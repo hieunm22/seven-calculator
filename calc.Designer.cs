@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace Calculator
 {
@@ -15,7 +14,7 @@ namespace Calculator
         /// <summary>
         /// combobox item member
         /// </summary>
-        private readonly object[][] comboBoxItemMember = new object[][]{
+        private readonly object[][] unitTypeItemMember = new object[][]{
 
             #region init item members
             new string[]{
@@ -541,26 +540,7 @@ namespace Calculator
 
             if (!currentConfig.Equals(initConfigValue))
             {
-                //  DO SOMETHING HERE
-                RegistryKey reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
-                reg.SetValue(optionName[0], currentConfig[0], RegistryValueKind.DWord);
-                reg.SetValue(optionName[1], currentConfig[1], RegistryValueKind.DWord);
-                reg.SetValue(optionName[2], currentConfig[2], RegistryValueKind.DWord);
-                reg.SetValue(optionName[3], currentConfig[3], RegistryValueKind.DWord);
-                reg.SetValue(optionName[4], currentConfig[4], RegistryValueKind.String);
-
-                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
-                reg.SetValue(optionName[5], currentConfig[5], RegistryValueKind.DWord);
-
-                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
-                reg.SetValue(optionName[6], currentConfig[6], RegistryValueKind.DWord);
-                reg.SetValue(optionName[7], currentConfig[7], RegistryValueKind.DWord);
-
-                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
-                reg.SetValue(optionName[08], currentConfig[08], RegistryValueKind.DWord);
-                reg.SetValue(optionName[09], currentConfig[09], RegistryValueKind.DWord);
-                reg.SetValue(optionName[10], currentConfig[10], RegistryValueKind.DWord);
-                reg.SetValue(optionName[11], currentConfig[11], RegistryValueKind.DWord);
+                Misc.SaveToRegistryBeforeExit(optionName, currentConfig);
             }
         }
         #endregion
@@ -571,27 +551,28 @@ namespace Calculator
         /// </summary>
         private Font fontChanged(int length)
         {
-            Font font = new Font("Consolas", 15.75F);
+            Font font = new Font(scr_lb.Font.FontFamily, 15.75F);
             if (standardMI.Checked || statisticsMI.Checked)
             {
-                if (length < 13) font = new Font("Consolas", 15.75F);   // 13 van du
-                if (length >= 13 && length < 21) font = new Font("Consolas", 10.25F);  // 13 van du
-                if (length >= 21) font = new Font("Consolas", 9.75F);
+                if (length < 13) font = new Font(scr_lb.Font.FontFamily, 15.75F);   // 13 van du
+                if (length >= 13 && length < 21) font = new Font(scr_lb.Font.FontFamily, 10.25F);  // 13 van du
+                if (length >= 21) font = new Font(scr_lb.Font.FontFamily, 9.75F);
             }
             if (scientificMI.Checked/* && pex == null*/)
             {
-                if (length < 31) font = new Font("Consolas", 15.75F);
-                if (length >= 31 && length < 37) font = new Font("Consolas", 13.75F);
-                if (length >= 37) font = new Font("Consolas", 10.25F);
+                if (length < 31) font = new Font(scr_lb.Font.FontFamily, 15.75F);
+                if (length >= 31 && length < 37) font = new Font(scr_lb.Font.FontFamily, 13.75F);
+                if (length >= 37 && length < 46) font = new Font(scr_lb.Font.FontFamily, 10.25F);
+                if (length >= 46) font = new Font(scr_lb.Font.FontFamily, 8.25F);
             }
             if (programmerMI.Checked)
             {
-                if (length < 30) font = new Font("Consolas", 15.75F);
-                //if (length >= 22 && length < 28) font = new Font("Consolas", 17.75F);
-                if (length >= 30 && length < 36) font = new Font("Consolas", 13.75F);
-                if (length >= 36 && length < 52) font = new Font("Consolas", 9.75F);
-                if (length >= 52 && length < 73) font = new Font("Consolas", 6.75F);
-                if (length >= 73) font = new Font("Consolas", 6F);
+                if (length < 30) font = new Font(scr_lb.Font.FontFamily, 15.75F);
+                //if (length >= 22 && length < 28) font = new Font(scr_lb.Font.FontFamily, 17.75F);
+                if (length >= 30 && length < 36) font = new Font(scr_lb.Font.FontFamily, 13.75F);
+                if (length >= 36 && length < 52) font = new Font(scr_lb.Font.FontFamily, 9.75F);
+                if (length >= 52 && length < 73) font = new Font(scr_lb.Font.FontFamily, 6.75F);
+                if (length >= 73) font = new Font(scr_lb.Font.FontFamily, 6F);
             }
             return font;
         }
@@ -1018,9 +999,9 @@ namespace Calculator
             minusbt.Visible = bl;
             divbt.Visible = bl;
             equal.Visible = bl;
-            invert_bt.Visible = bl;
-            percent_bt.Visible = bl;
-            sqrt_bt.Visible = bl;
+            invertbt_PN.Visible = bl;
+            percentbt_PN.Visible = bl;
+            sqrtbt_PN.Visible = bl;
             str = "0";
             #endregion
         }
@@ -1054,6 +1035,7 @@ namespace Calculator
             btFactorial.Visible = bl;
             modsciBT.Visible = bl;
             open_bracket.Visible = bl;
+            openProBT.Visible = !bl;
             close_bracket.Visible = bl;
             bracketTime_lb.Visible = bl;
             //str = "0";
@@ -1078,15 +1060,16 @@ namespace Calculator
             NotBT.Visible = bl;
             AndBT.Visible = bl;
             bracketTime_lb.Visible = bl;
-            openproBT.Visible = bl;
-            closeproBT.Visible = bl;
+            open_bracket.Visible = !bl;
+            openProBT.Visible = bl;
+            close_bracket.Visible = bl;
             modproBT.Visible = bl;
-            btnA.Visible = bl;
-            btnB.Visible = bl;
-            btnC.Visible = bl;
-            btnD.Visible = bl;
-            btnE.Visible = bl;
-            btnF.Visible = bl;
+            btnA_PN.Visible = bl;
+            btnB_PN.Visible = bl;
+            btnC_PN.Visible = bl;
+            btnD_PN.Visible = bl;
+            btnE_PN.Visible = bl;
+            btnF_PN.Visible = bl;
             if (bl) str = "0";
             #endregion
         }
@@ -1193,14 +1176,20 @@ namespace Calculator
         {
             BigNumber inp_num = str;
             pex = null;
-            string parameter = str;
             int tabIndex = bt.TabIndex;
-            if (isFuncClicked || sciexpAdd/* || str[0] == '-' || prevFunc[0] == '-'*/)
+            string parameter = str;
+            if (isFuncClicked || sciexpAdd)
             {
                 parameter = prevFunc;
             }
-            if (pre_bt == 152) parameter = bracketExp[openBRK - closeBRK];
+            else if (pre_bt == 152) parameter = bracketExp[openBRK - closeBRK];
             int len = prevFunc.Length;
+
+            while (parameter.StartsWith("(") && parameter.EndsWith(")"))
+            {
+                parameter = parameter.Substring(1, parameter.Length - 2);
+            }
+
             switch (tabIndex)
             {
                 #region Assign function
@@ -1208,7 +1197,7 @@ namespace Calculator
                 case 28: case 29: case 30:
                     prevFunc = string.Format("{0}({1})", bt.Text + parser.Angle, parameter);
                     break;
-                case 35: case 36: case 37: case 42: case 44:
+                case 35: case 36: case 37: case 42: case 44: 
                     prevFunc = string.Format("{0}({1})", bt.Text, parameter);
                     break;
                 case 45:
@@ -1254,22 +1243,22 @@ namespace Calculator
             }
 
             // bo nhung dau ngoac thua cua prevFunc
-            while (prevFunc.Contains("((")) { prevFunc = prevFunc.Replace("((", "(").Replace("))", ")"); }
-            //if (pre_bt != 152) sciexpAdd = false;   // tai sao nhi
+            //while (prevFunc.Contains("((")) { prevFunc = prevFunc.Replace("((", "(").Replace("))", ")"); }
             if (pre_oprt == 0)
             {
-                if (sci_exp.StartsWith("(")) sci_exp += prevFunc;
-                else sci_exp = prevFunc;
-                sciexpAdd = true;
+                if (sci_exp.StartsWith("(") && pre_bt != 152) 
+                    sci_exp += prevFunc;
+                else 
+                    sci_exp = prevFunc;
             }
             else
             {
-                // prevFunc bao gom ca 2 dau ngoac bao quanh nua~
-                if (!isFuncClicked && pre_bt == 152 && prevFunc.StartsWith("(") && prevFunc.EndsWith(")"))
-                    len += 2;
-                if (sciexpAdd) sci_exp = sci_exp.Substring(0, sci_exp.Length - len) + prevFunc;
-                else { sci_exp += prevFunc; sciexpAdd = true; }
+                if (sciexpAdd) 
+                    sci_exp = sci_exp.Substring(0, sci_exp.Length - len) + prevFunc;
+                else
+                    sci_exp += prevFunc;
             }
+            sciexpAdd = true;
 
             if (inv_ChkBox.Checked) inv_ChkBox.Checked = false;
             if (standardMI.Checked) pex = parser.EvaluateStd(prevFunc);
@@ -1285,7 +1274,7 @@ namespace Calculator
                 }
                 else
                 {
-                    str = pex.Message;//prevFunc);
+                    str = pex.Message;
                     scr_lb.Text = pex.Message;
                     scr_lb.Font = new Font("Consolas", pex.Message.Length > 40 ? 5.25F : 9.75F);
 
@@ -1293,8 +1282,7 @@ namespace Calculator
                     fe_ChkBox.Checked = false;
                 }
                 //pex = null;
-                if (sciexpAdd) expressionTB.Text = Misc.StandardExpression(sci_exp);
-                else expressionTB.Text = Misc.StandardExpression(sci_exp + prevFunc);
+                expressionTB.Text = Misc.StandardExpression(sci_exp);
             }
             else
             {
@@ -1472,6 +1460,7 @@ namespace Calculator
             {
                 sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length);
                 sciexpAdd = false;
+                expressionTB.Text = Misc.StandardExpression(sci_exp);
             }
             if (pre_bt == 152 && openBRK - closeBRK > 0)
             {
@@ -1490,15 +1479,16 @@ namespace Calculator
         /// </summary>
         private void numinput(object sender)
         {
-            if (pre_oprt == 0)
+            if (pre_oprt == 0 && isFuncClicked)
             {
-                switch (pre_bt)
-                {
-                    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
-                    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
-                        equal_Click(null, null);
-                        break;
-                } 
+                equal_Click(null, null);
+                //switch (pre_bt)
+                //{
+                //    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
+                //    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
+                //        equal_Click(null, null);
+                //        break;
+                //} 
             }
 
             var bt = sender as Button;
@@ -1515,7 +1505,7 @@ namespace Calculator
                         if (str.EndsWith("e+0")) str = str.Replace("e+0", "e+" + index.ToString());
                         else if (str.EndsWith("e-0")) str = str.Replace("e-0", "e-" + index.ToString());
                         else str += index.ToString();
-                        if (str.Length >= 45) str = str.Substring(0, str.Length - 1);
+                        if (str.Length >= 56) str = str.Substring(0, str.Length - 1);
                     }
                     else
                     {
@@ -1528,7 +1518,6 @@ namespace Calculator
                 }
                 else
                 {
-                    //sciexpAdd = true;
                     str = index.ToString();
                     FixNumberWhenChange();
                 }
@@ -2016,21 +2005,20 @@ namespace Calculator
         {
             if (hisDGV.CurrentCell != null && (standardMI.Checked || scientificMI.Checked))
             {
-                //if (dir * hisDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - hisDGV.RowCount))
                 if ((dir == 1 && hisDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && hisDGV.CurrentCell.RowIndex <= hisDGV.RowCount - 2))
                 {
-                    rowIndex = hisDGV.CurrentRow.Index - dir; // rowIndex--;
+                    rowIndex = hisDGV.CurrentRow.Index - dir;
                     hisDGV[0, rowIndex].Selected = true;
+                    //expressionTB.Text = sci_exp = "";
                     evaluateExpression(rowIndex, false);
                     prevFunc = str;
                 }
             }
             if (staDGV.CurrentCell != null && statisticsMI.Checked)
             {
-                //if (dir * staDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - staDGV.RowCount))
                 if ((dir == 1 && staDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && staDGV.CurrentCell.RowIndex <= staDGV.RowCount - 2))
                 {
-                    rowIndex = staDGV.CurrentRow.Index - dir; // rowIndex--;
+                    rowIndex = staDGV.CurrentRow.Index - dir;
                     staDGV[0, rowIndex].Selected = true;
                 }
             }
@@ -2060,21 +2048,17 @@ namespace Calculator
             this.num8BT = new System.Windows.Forms.Button();
             this.num9BT = new System.Windows.Forms.Button();
             this.num0BT = new System.Windows.Forms.Button();
-            this.btdot = new System.Windows.Forms.Button();
             this.addbt = new System.Windows.Forms.Button();
             this.minusbt = new System.Windows.Forms.Button();
             this.mulbt = new System.Windows.Forms.Button();
             this.divbt = new System.Windows.Forms.Button();
             this.equal = new System.Windows.Forms.Button();
-            this.invert_bt = new System.Windows.Forms.Button();
-            this.percent_bt = new System.Windows.Forms.Button();
             this.backspacebt = new System.Windows.Forms.Button();
             this.ce = new System.Windows.Forms.Button();
             this.changesignBT = new System.Windows.Forms.Button();
             this.mem_clear = new System.Windows.Forms.Button();
             this.mem_store = new System.Windows.Forms.Button();
             this.mem_recall = new System.Windows.Forms.Button();
-            this.sqrt_bt = new System.Windows.Forms.Button();
             this.clearbt = new System.Windows.Forms.Button();
             this.mem_add_bt = new System.Windows.Forms.Button();
             this.mem_minus_bt = new System.Windows.Forms.Button();
@@ -2099,23 +2083,15 @@ namespace Calculator
             this.tan_bt = new System.Windows.Forms.Button();
             this.sinh_bt = new System.Windows.Forms.Button();
             this.btFactorial = new System.Windows.Forms.Button();
-            this.btnF = new System.Windows.Forms.Button();
-            this.btnB = new System.Windows.Forms.Button();
-            this.btnD = new System.Windows.Forms.Button();
             this.XorBT = new System.Windows.Forms.Button();
             this.NotBT = new System.Windows.Forms.Button();
             this.AndBT = new System.Windows.Forms.Button();
-            this.btnE = new System.Windows.Forms.Button();
             this.RshBT = new System.Windows.Forms.Button();
             this.RoRBT = new System.Windows.Forms.Button();
             this.LshBT = new System.Windows.Forms.Button();
             this.or_BT = new System.Windows.Forms.Button();
             this.RoLBT = new System.Windows.Forms.Button();
-            this.btnA = new System.Windows.Forms.Button();
-            this.btnC = new System.Windows.Forms.Button();
-            this.openproBT = new System.Windows.Forms.Button();
             this.modproBT = new System.Windows.Forms.Button();
-            this.closeproBT = new System.Windows.Forms.Button();
             this.sigmax2BT = new System.Windows.Forms.Button();
             this.sigman_1BT = new System.Windows.Forms.Button();
             this.AddstaBT = new System.Windows.Forms.Button();
@@ -2184,6 +2160,26 @@ namespace Calculator
             this.hotkeyMI = new System.Windows.Forms.MenuItem();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.mWorker = new System.ComponentModel.BackgroundWorker();
+            this.percentbt_PN = new Calculator.IPanel();
+            this.percent_bt = new System.Windows.Forms.Button();
+            this.btdot_PN = new Calculator.IPanel();
+            this.btdot = new System.Windows.Forms.Button();
+            this.invertbt_PN = new Calculator.IPanel();
+            this.invert_bt = new System.Windows.Forms.Button();
+            this.sqrtbt_PN = new Calculator.IPanel();
+            this.sqrt_bt = new System.Windows.Forms.Button();
+            this.btnF_PN = new Calculator.IPanel();
+            this.btnF = new System.Windows.Forms.Button();
+            this.btnC_PN = new Calculator.IPanel();
+            this.btnC = new System.Windows.Forms.Button();
+            this.btnE_PN = new Calculator.IPanel();
+            this.btnE = new System.Windows.Forms.Button();
+            this.btnB_PN = new Calculator.IPanel();
+            this.btnB = new System.Windows.Forms.Button();
+            this.btnD_PN = new Calculator.IPanel();
+            this.btnD = new System.Windows.Forms.Button();
+            this.btnA_PN = new Calculator.IPanel();
+            this.btnA = new System.Windows.Forms.Button();
             this.PNbinary = new Calculator.IPanel();
             this.anglePN = new Calculator.IPanel();
             this.graRB = new System.Windows.Forms.RadioButton();
@@ -2267,6 +2263,25 @@ namespace Calculator
             this.toTB = new System.Windows.Forms.TextBox();
             this.fromLB = new System.Windows.Forms.Label();
             this.fromTB = new System.Windows.Forms.TextBox();
+            this.num2BT_PN = new Calculator.IPanel();
+            this.num3BT_PN = new Calculator.IPanel();
+            this.num6BT_PN = new Calculator.IPanel();
+            this.num7BT_PN = new Calculator.IPanel();
+            this.num4BT_PN = new Calculator.IPanel();
+            this.num5BT_PN = new Calculator.IPanel();
+            this.num8BT_PN = new Calculator.IPanel();
+            this.num9BT_PN = new Calculator.IPanel();
+            this.openProBT = new System.Windows.Forms.Button();
+            this.percentbt_PN.SuspendLayout();
+            this.btdot_PN.SuspendLayout();
+            this.invertbt_PN.SuspendLayout();
+            this.sqrtbt_PN.SuspendLayout();
+            this.btnF_PN.SuspendLayout();
+            this.btnC_PN.SuspendLayout();
+            this.btnE_PN.SuspendLayout();
+            this.btnB_PN.SuspendLayout();
+            this.btnD_PN.SuspendLayout();
+            this.btnA_PN.SuspendLayout();
             this.anglePN.SuspendLayout();
             this.gridPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.hisDGV)).BeginInit();
@@ -2282,6 +2297,14 @@ namespace Calculator
             this.morgagePN.SuspendLayout();
             this.feMPG_PN.SuspendLayout();
             this.unitconvPN.SuspendLayout();
+            this.num2BT_PN.SuspendLayout();
+            this.num3BT_PN.SuspendLayout();
+            this.num6BT_PN.SuspendLayout();
+            this.num7BT_PN.SuspendLayout();
+            this.num4BT_PN.SuspendLayout();
+            this.num5BT_PN.SuspendLayout();
+            this.num8BT_PN.SuspendLayout();
+            this.num9BT_PN.SuspendLayout();
             this.SuspendLayout();
             // 
             // num1BT
@@ -2304,7 +2327,7 @@ namespace Calculator
             // 
             this.num2BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num2BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num2BT.Location = new System.Drawing.Point(51, 194);
+            this.num2BT.Location = new System.Drawing.Point(0, 0);
             this.num2BT.Name = "num2BT";
             this.num2BT.Size = new System.Drawing.Size(34, 27);
             this.num2BT.TabIndex = 2;
@@ -2320,7 +2343,7 @@ namespace Calculator
             // 
             this.num3BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num3BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num3BT.Location = new System.Drawing.Point(90, 194);
+            this.num3BT.Location = new System.Drawing.Point(0, 0);
             this.num3BT.Name = "num3BT";
             this.num3BT.Size = new System.Drawing.Size(34, 27);
             this.num3BT.TabIndex = 3;
@@ -2336,7 +2359,7 @@ namespace Calculator
             // 
             this.num4BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num4BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num4BT.Location = new System.Drawing.Point(12, 162);
+            this.num4BT.Location = new System.Drawing.Point(0, 0);
             this.num4BT.Name = "num4BT";
             this.num4BT.Size = new System.Drawing.Size(34, 27);
             this.num4BT.TabIndex = 4;
@@ -2352,7 +2375,7 @@ namespace Calculator
             // 
             this.num5BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num5BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num5BT.Location = new System.Drawing.Point(51, 162);
+            this.num5BT.Location = new System.Drawing.Point(0, 0);
             this.num5BT.Name = "num5BT";
             this.num5BT.Size = new System.Drawing.Size(34, 27);
             this.num5BT.TabIndex = 5;
@@ -2368,7 +2391,7 @@ namespace Calculator
             // 
             this.num6BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num6BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num6BT.Location = new System.Drawing.Point(90, 162);
+            this.num6BT.Location = new System.Drawing.Point(0, 0);
             this.num6BT.Name = "num6BT";
             this.num6BT.Size = new System.Drawing.Size(34, 27);
             this.num6BT.TabIndex = 6;
@@ -2384,7 +2407,7 @@ namespace Calculator
             // 
             this.num7BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num7BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num7BT.Location = new System.Drawing.Point(12, 130);
+            this.num7BT.Location = new System.Drawing.Point(0, 0);
             this.num7BT.Name = "num7BT";
             this.num7BT.Size = new System.Drawing.Size(34, 27);
             this.num7BT.TabIndex = 7;
@@ -2400,7 +2423,7 @@ namespace Calculator
             // 
             this.num8BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num8BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num8BT.Location = new System.Drawing.Point(51, 130);
+            this.num8BT.Location = new System.Drawing.Point(0, 0);
             this.num8BT.Name = "num8BT";
             this.num8BT.Size = new System.Drawing.Size(34, 27);
             this.num8BT.TabIndex = 8;
@@ -2416,7 +2439,7 @@ namespace Calculator
             // 
             this.num9BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num9BT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.num9BT.Location = new System.Drawing.Point(90, 130);
+            this.num9BT.Location = new System.Drawing.Point(0, 0);
             this.num9BT.Name = "num9BT";
             this.num9BT.Size = new System.Drawing.Size(34, 27);
             this.num9BT.TabIndex = 9;
@@ -2443,22 +2466,6 @@ namespace Calculator
             this.num0BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num0BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num0BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // btdot
-            // 
-            this.btdot.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btdot.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btdot.Location = new System.Drawing.Point(90, 226);
-            this.btdot.Name = "btdot";
-            this.btdot.Size = new System.Drawing.Size(34, 27);
-            this.btdot.TabIndex = 10;
-            this.btdot.TabStop = false;
-            this.btdot.Text = ".";
-            this.btdot.UseVisualStyleBackColor = true;
-            this.btdot.Click += new System.EventHandler(this.numberinput_Click);
-            this.btdot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btdot.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btdot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // addbt
             // 
@@ -2540,38 +2547,6 @@ namespace Calculator
             this.equal.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.equal.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.equal.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // invert_bt
-            // 
-            this.invert_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.invert_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.invert_bt.Location = new System.Drawing.Point(168, 162);
-            this.invert_bt.Name = "invert_bt";
-            this.invert_bt.Size = new System.Drawing.Size(34, 27);
-            this.invert_bt.TabIndex = 17;
-            this.invert_bt.TabStop = false;
-            this.invert_bt.Text = "1/x";
-            this.invert_bt.UseVisualStyleBackColor = true;
-            this.invert_bt.Click += new System.EventHandler(this.functionBT_Click);
-            this.invert_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.invert_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.invert_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // percent_bt
-            // 
-            this.percent_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.percent_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.percent_bt.Location = new System.Drawing.Point(168, 130);
-            this.percent_bt.Name = "percent_bt";
-            this.percent_bt.Size = new System.Drawing.Size(34, 27);
-            this.percent_bt.TabIndex = 18;
-            this.percent_bt.TabStop = false;
-            this.percent_bt.Text = "%";
-            this.percent_bt.UseVisualStyleBackColor = true;
-            this.percent_bt.Click += new System.EventHandler(this.percent_Click);
-            this.percent_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.percent_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.percent_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // backspacebt
             // 
@@ -2672,22 +2647,6 @@ namespace Calculator
             this.mem_recall.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_recall.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mem_recall.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // sqrt_bt
-            // 
-            this.sqrt_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.sqrt_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.sqrt_bt.Location = new System.Drawing.Point(168, 98);
-            this.sqrt_bt.Name = "sqrt_bt";
-            this.sqrt_bt.Size = new System.Drawing.Size(34, 27);
-            this.sqrt_bt.TabIndex = 19;
-            this.sqrt_bt.TabStop = false;
-            this.sqrt_bt.Text = "√";
-            this.sqrt_bt.UseVisualStyleBackColor = true;
-            this.sqrt_bt.Click += new System.EventHandler(this.functionBT_Click);
-            this.sqrt_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.sqrt_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.sqrt_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // clearbt
             // 
@@ -3063,54 +3022,6 @@ namespace Calculator
             this.btFactorial.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btFactorial.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
-            // btnF
-            // 
-            this.btnF.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnF.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnF.Location = new System.Drawing.Point(99, 332);
-            this.btnF.Name = "btnF";
-            this.btnF.Size = new System.Drawing.Size(34, 27);
-            this.btnF.TabIndex = 206;
-            this.btnF.TabStop = false;
-            this.btnF.Text = "F";
-            this.btnF.UseVisualStyleBackColor = true;
-            this.btnF.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnF.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnF.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // btnB
-            // 
-            this.btnB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnB.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnB.Location = new System.Drawing.Point(99, 332);
-            this.btnB.Name = "btnB";
-            this.btnB.Size = new System.Drawing.Size(34, 27);
-            this.btnB.TabIndex = 202;
-            this.btnB.TabStop = false;
-            this.btnB.Text = "B";
-            this.btnB.UseVisualStyleBackColor = true;
-            this.btnB.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnB.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // btnD
-            // 
-            this.btnD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnD.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnD.Location = new System.Drawing.Point(99, 332);
-            this.btnD.Name = "btnD";
-            this.btnD.Size = new System.Drawing.Size(34, 27);
-            this.btnD.TabIndex = 204;
-            this.btnD.TabStop = false;
-            this.btnD.Text = "D";
-            this.btnD.UseVisualStyleBackColor = true;
-            this.btnD.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnD.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnD.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnD.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
             // XorBT
             // 
             this.XorBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
@@ -3158,22 +3069,6 @@ namespace Calculator
             this.AndBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.AndBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.AndBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // btnE
-            // 
-            this.btnE.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnE.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnE.Location = new System.Drawing.Point(99, 332);
-            this.btnE.Name = "btnE";
-            this.btnE.Size = new System.Drawing.Size(34, 27);
-            this.btnE.TabIndex = 205;
-            this.btnE.TabStop = false;
-            this.btnE.Text = "E";
-            this.btnE.UseVisualStyleBackColor = true;
-            this.btnE.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnE.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnE.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnE.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // RshBT
             // 
@@ -3255,53 +3150,6 @@ namespace Calculator
             this.RoLBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.RoLBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
-            // btnA
-            // 
-            this.btnA.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnA.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnA.Location = new System.Drawing.Point(99, 332);
-            this.btnA.Name = "btnA";
-            this.btnA.Size = new System.Drawing.Size(34, 27);
-            this.btnA.TabIndex = 201;
-            this.btnA.TabStop = false;
-            this.btnA.Text = "A";
-            this.btnA.UseVisualStyleBackColor = true;
-            this.btnA.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnA.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnA.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnA.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // btnC
-            // 
-            this.btnC.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnC.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnC.Location = new System.Drawing.Point(99, 332);
-            this.btnC.Name = "btnC";
-            this.btnC.Size = new System.Drawing.Size(34, 27);
-            this.btnC.TabIndex = 203;
-            this.btnC.TabStop = false;
-            this.btnC.Text = "C";
-            this.btnC.UseVisualStyleBackColor = true;
-            this.btnC.Click += new System.EventHandler(this.buttonAF_Click);
-            this.btnC.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.btnC.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.btnC.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // openproBT
-            // 
-            this.openproBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.openproBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.openproBT.Location = new System.Drawing.Point(99, 332);
-            this.openproBT.Name = "openproBT";
-            this.openproBT.Size = new System.Drawing.Size(34, 27);
-            this.openproBT.TabIndex = 199;
-            this.openproBT.TabStop = false;
-            this.openproBT.Text = "(";
-            this.openproBT.UseVisualStyleBackColor = true;
-            this.openproBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.openproBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.openproBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
             // modproBT
             // 
             this.modproBT.Font = new System.Drawing.Font("Segoe UI", 6.75F);
@@ -3317,21 +3165,6 @@ namespace Calculator
             this.modproBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.modproBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.modproBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // closeproBT
-            // 
-            this.closeproBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.closeproBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.closeproBT.Location = new System.Drawing.Point(99, 332);
-            this.closeproBT.Name = "closeproBT";
-            this.closeproBT.Size = new System.Drawing.Size(34, 27);
-            this.closeproBT.TabIndex = 205;
-            this.closeproBT.TabStop = false;
-            this.closeproBT.Text = ")";
-            this.closeproBT.UseVisualStyleBackColor = true;
-            this.closeproBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.closeproBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.closeproBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // sigmax2BT
             // 
@@ -3967,6 +3800,286 @@ namespace Calculator
             this.mWorker.WorkerSupportsCancellation = true;
             this.mWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.mWorker_DoWorkPrevFunc);
             this.mWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.mWorker_RunWorkerCompleted);
+            // 
+            // percentbt_PN
+            // 
+            this.percentbt_PN.AllowDrawBorder = false;
+            this.percentbt_PN.ContextMenu = this.helpCTMN;
+            this.percentbt_PN.Controls.Add(this.percent_bt);
+            this.percentbt_PN.Location = new System.Drawing.Point(168, 130);
+            this.percentbt_PN.Name = "percentbt_PN";
+            this.percentbt_PN.Size = new System.Drawing.Size(34, 27);
+            this.percentbt_PN.TabIndex = 252;
+            this.percentbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.percentbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // percent_bt
+            // 
+            this.percent_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.percent_bt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.percent_bt.Location = new System.Drawing.Point(0, 0);
+            this.percent_bt.Name = "percent_bt";
+            this.percent_bt.Size = new System.Drawing.Size(34, 27);
+            this.percent_bt.TabIndex = 18;
+            this.percent_bt.TabStop = false;
+            this.percent_bt.Text = "%";
+            this.percent_bt.UseVisualStyleBackColor = true;
+            this.percent_bt.Click += new System.EventHandler(this.percent_Click);
+            this.percent_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.percent_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.percent_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btdot_PN
+            // 
+            this.btdot_PN.AllowDrawBorder = false;
+            this.btdot_PN.ContextMenu = this.helpCTMN;
+            this.btdot_PN.Controls.Add(this.btdot);
+            this.btdot_PN.Location = new System.Drawing.Point(90, 226);
+            this.btdot_PN.Name = "btdot_PN";
+            this.btdot_PN.Size = new System.Drawing.Size(34, 27);
+            this.btdot_PN.TabIndex = 252;
+            this.btdot_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btdot_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btdot
+            // 
+            this.btdot.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btdot.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btdot.Location = new System.Drawing.Point(0, 0);
+            this.btdot.Name = "btdot";
+            this.btdot.Size = new System.Drawing.Size(34, 27);
+            this.btdot.TabIndex = 10;
+            this.btdot.TabStop = false;
+            this.btdot.Text = ".";
+            this.btdot.UseVisualStyleBackColor = true;
+            this.btdot.Click += new System.EventHandler(this.numberinput_Click);
+            this.btdot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btdot.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btdot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // invertbt_PN
+            // 
+            this.invertbt_PN.AllowDrawBorder = false;
+            this.invertbt_PN.ContextMenu = this.helpCTMN;
+            this.invertbt_PN.Controls.Add(this.invert_bt);
+            this.invertbt_PN.Location = new System.Drawing.Point(168, 162);
+            this.invertbt_PN.Name = "invertbt_PN";
+            this.invertbt_PN.Size = new System.Drawing.Size(34, 27);
+            this.invertbt_PN.TabIndex = 252;
+            this.invertbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.invertbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // invert_bt
+            // 
+            this.invert_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.invert_bt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.invert_bt.Location = new System.Drawing.Point(0, 0);
+            this.invert_bt.Name = "invert_bt";
+            this.invert_bt.Size = new System.Drawing.Size(34, 27);
+            this.invert_bt.TabIndex = 17;
+            this.invert_bt.TabStop = false;
+            this.invert_bt.Text = "1/x";
+            this.invert_bt.UseVisualStyleBackColor = true;
+            this.invert_bt.Click += new System.EventHandler(this.functionBT_Click);
+            this.invert_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.invert_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.invert_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // sqrtbt_PN
+            // 
+            this.sqrtbt_PN.AllowDrawBorder = false;
+            this.sqrtbt_PN.ContextMenu = this.helpCTMN;
+            this.sqrtbt_PN.Controls.Add(this.sqrt_bt);
+            this.sqrtbt_PN.Location = new System.Drawing.Point(168, 98);
+            this.sqrtbt_PN.Name = "sqrtbt_PN";
+            this.sqrtbt_PN.Size = new System.Drawing.Size(34, 27);
+            this.sqrtbt_PN.TabIndex = 252;
+            this.sqrtbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.sqrtbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // sqrt_bt
+            // 
+            this.sqrt_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.sqrt_bt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.sqrt_bt.Location = new System.Drawing.Point(0, 0);
+            this.sqrt_bt.Name = "sqrt_bt";
+            this.sqrt_bt.Size = new System.Drawing.Size(34, 27);
+            this.sqrt_bt.TabIndex = 19;
+            this.sqrt_bt.TabStop = false;
+            this.sqrt_bt.Text = "√";
+            this.sqrt_bt.UseVisualStyleBackColor = true;
+            this.sqrt_bt.Click += new System.EventHandler(this.functionBT_Click);
+            this.sqrt_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.sqrt_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.sqrt_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnF_PN
+            // 
+            this.btnF_PN.AllowDrawBorder = false;
+            this.btnF_PN.ContextMenu = this.helpCTMN;
+            this.btnF_PN.Controls.Add(this.btnF);
+            this.btnF_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnF_PN.Name = "btnF_PN";
+            this.btnF_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnF_PN.TabIndex = 252;
+            this.btnF_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnF_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnF
+            // 
+            this.btnF.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnF.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnF.Location = new System.Drawing.Point(0, 0);
+            this.btnF.Name = "btnF";
+            this.btnF.Size = new System.Drawing.Size(34, 27);
+            this.btnF.TabIndex = 206;
+            this.btnF.TabStop = false;
+            this.btnF.Text = "F";
+            this.btnF.UseVisualStyleBackColor = true;
+            this.btnF.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnF.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnF.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnC_PN
+            // 
+            this.btnC_PN.AllowDrawBorder = false;
+            this.btnC_PN.ContextMenu = this.helpCTMN;
+            this.btnC_PN.Controls.Add(this.btnC);
+            this.btnC_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnC_PN.Name = "btnC_PN";
+            this.btnC_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnC_PN.TabIndex = 252;
+            this.btnC_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnC_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnC
+            // 
+            this.btnC.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnC.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnC.Location = new System.Drawing.Point(0, 0);
+            this.btnC.Name = "btnC";
+            this.btnC.Size = new System.Drawing.Size(34, 27);
+            this.btnC.TabIndex = 203;
+            this.btnC.TabStop = false;
+            this.btnC.Text = "C";
+            this.btnC.UseVisualStyleBackColor = true;
+            this.btnC.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnC.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnC.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnC.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnE_PN
+            // 
+            this.btnE_PN.AllowDrawBorder = false;
+            this.btnE_PN.ContextMenu = this.helpCTMN;
+            this.btnE_PN.Controls.Add(this.btnE);
+            this.btnE_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnE_PN.Name = "btnE_PN";
+            this.btnE_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnE_PN.TabIndex = 252;
+            this.btnE_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnE_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnE
+            // 
+            this.btnE.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnE.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnE.Location = new System.Drawing.Point(0, 0);
+            this.btnE.Name = "btnE";
+            this.btnE.Size = new System.Drawing.Size(34, 27);
+            this.btnE.TabIndex = 205;
+            this.btnE.TabStop = false;
+            this.btnE.Text = "E";
+            this.btnE.UseVisualStyleBackColor = true;
+            this.btnE.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnE.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnE.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnE.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnB_PN
+            // 
+            this.btnB_PN.AllowDrawBorder = false;
+            this.btnB_PN.ContextMenu = this.helpCTMN;
+            this.btnB_PN.Controls.Add(this.btnB);
+            this.btnB_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnB_PN.Name = "btnB_PN";
+            this.btnB_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnB_PN.TabIndex = 252;
+            this.btnB_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnB_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnB
+            // 
+            this.btnB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnB.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnB.Location = new System.Drawing.Point(0, 0);
+            this.btnB.Name = "btnB";
+            this.btnB.Size = new System.Drawing.Size(34, 27);
+            this.btnB.TabIndex = 202;
+            this.btnB.TabStop = false;
+            this.btnB.Text = "B";
+            this.btnB.UseVisualStyleBackColor = true;
+            this.btnB.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnB.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnD_PN
+            // 
+            this.btnD_PN.AllowDrawBorder = false;
+            this.btnD_PN.ContextMenu = this.helpCTMN;
+            this.btnD_PN.Controls.Add(this.btnD);
+            this.btnD_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnD_PN.Name = "btnD_PN";
+            this.btnD_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnD_PN.TabIndex = 252;
+            this.btnD_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnD_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnD
+            // 
+            this.btnD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnD.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnD.Location = new System.Drawing.Point(0, 0);
+            this.btnD.Name = "btnD";
+            this.btnD.Size = new System.Drawing.Size(34, 27);
+            this.btnD.TabIndex = 204;
+            this.btnD.TabStop = false;
+            this.btnD.Text = "D";
+            this.btnD.UseVisualStyleBackColor = true;
+            this.btnD.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnD.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnD.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnD.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // btnA_PN
+            // 
+            this.btnA_PN.AllowDrawBorder = false;
+            this.btnA_PN.ContextMenu = this.helpCTMN;
+            this.btnA_PN.Controls.Add(this.btnA);
+            this.btnA_PN.Location = new System.Drawing.Point(99, 371);
+            this.btnA_PN.Name = "btnA_PN";
+            this.btnA_PN.Size = new System.Drawing.Size(34, 27);
+            this.btnA_PN.TabIndex = 252;
+            this.btnA_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.btnA_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // btnA
+            // 
+            this.btnA.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.btnA.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnA.Location = new System.Drawing.Point(0, 0);
+            this.btnA.Name = "btnA";
+            this.btnA.Size = new System.Drawing.Size(34, 27);
+            this.btnA.TabIndex = 201;
+            this.btnA.TabStop = false;
+            this.btnA.Text = "A";
+            this.btnA.UseVisualStyleBackColor = true;
+            this.btnA.Click += new System.EventHandler(this.buttonAF_Click);
+            this.btnA.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.btnA.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.btnA.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // PNbinary
             // 
@@ -5181,11 +5294,141 @@ namespace Calculator
             this.fromTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
             this.fromTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
             // 
+            // num2BT_PN
+            // 
+            this.num2BT_PN.AllowDrawBorder = false;
+            this.num2BT_PN.ContextMenu = this.helpCTMN;
+            this.num2BT_PN.Controls.Add(this.num2BT);
+            this.num2BT_PN.Location = new System.Drawing.Point(51, 194);
+            this.num2BT_PN.Name = "num2BT_PN";
+            this.num2BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num2BT_PN.TabIndex = 252;
+            this.num2BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num2BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num3BT_PN
+            // 
+            this.num3BT_PN.AllowDrawBorder = false;
+            this.num3BT_PN.ContextMenu = this.helpCTMN;
+            this.num3BT_PN.Controls.Add(this.num3BT);
+            this.num3BT_PN.Location = new System.Drawing.Point(90, 194);
+            this.num3BT_PN.Name = "num3BT_PN";
+            this.num3BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num3BT_PN.TabIndex = 252;
+            this.num3BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num3BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num6BT_PN
+            // 
+            this.num6BT_PN.AllowDrawBorder = false;
+            this.num6BT_PN.ContextMenu = this.helpCTMN;
+            this.num6BT_PN.Controls.Add(this.num6BT);
+            this.num6BT_PN.Location = new System.Drawing.Point(90, 162);
+            this.num6BT_PN.Name = "num6BT_PN";
+            this.num6BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num6BT_PN.TabIndex = 252;
+            this.num6BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num6BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num7BT_PN
+            // 
+            this.num7BT_PN.AllowDrawBorder = false;
+            this.num7BT_PN.ContextMenu = this.helpCTMN;
+            this.num7BT_PN.Controls.Add(this.num7BT);
+            this.num7BT_PN.Location = new System.Drawing.Point(12, 130);
+            this.num7BT_PN.Name = "num7BT_PN";
+            this.num7BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num7BT_PN.TabIndex = 252;
+            this.num7BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num7BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num4BT_PN
+            // 
+            this.num4BT_PN.AllowDrawBorder = false;
+            this.num4BT_PN.ContextMenu = this.helpCTMN;
+            this.num4BT_PN.Controls.Add(this.num4BT);
+            this.num4BT_PN.Location = new System.Drawing.Point(12, 162);
+            this.num4BT_PN.Name = "num4BT_PN";
+            this.num4BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num4BT_PN.TabIndex = 252;
+            this.num4BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num4BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num5BT_PN
+            // 
+            this.num5BT_PN.AllowDrawBorder = false;
+            this.num5BT_PN.ContextMenu = this.helpCTMN;
+            this.num5BT_PN.Controls.Add(this.num5BT);
+            this.num5BT_PN.Location = new System.Drawing.Point(51, 162);
+            this.num5BT_PN.Name = "num5BT_PN";
+            this.num5BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num5BT_PN.TabIndex = 252;
+            this.num5BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num5BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num8BT_PN
+            // 
+            this.num8BT_PN.AllowDrawBorder = false;
+            this.num8BT_PN.ContextMenu = this.helpCTMN;
+            this.num8BT_PN.Controls.Add(this.num8BT);
+            this.num8BT_PN.Location = new System.Drawing.Point(51, 130);
+            this.num8BT_PN.Name = "num8BT_PN";
+            this.num8BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num8BT_PN.TabIndex = 252;
+            this.num8BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num8BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // num9BT_PN
+            // 
+            this.num9BT_PN.AllowDrawBorder = false;
+            this.num9BT_PN.ContextMenu = this.helpCTMN;
+            this.num9BT_PN.Controls.Add(this.num9BT);
+            this.num9BT_PN.Location = new System.Drawing.Point(90, 131);
+            this.num9BT_PN.Name = "num9BT_PN";
+            this.num9BT_PN.Size = new System.Drawing.Size(34, 27);
+            this.num9BT_PN.TabIndex = 252;
+            this.num9BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.num9BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // openProBT
+            // 
+            this.openProBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.openProBT.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.openProBT.Location = new System.Drawing.Point(56, 332);
+            this.openProBT.Name = "openProBT";
+            this.openProBT.Size = new System.Drawing.Size(34, 27);
+            this.openProBT.TabIndex = 153;
+            this.openProBT.TabStop = false;
+            this.openProBT.Text = "(";
+            this.openProBT.UseVisualStyleBackColor = true;
+            this.openProBT.Click += new System.EventHandler(this.open_bracket_Click);
+            this.openProBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.openProBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.openProBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
             // calc
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 282);
+            this.ClientSize = new System.Drawing.Size(214, 241);
+            this.Controls.Add(this.num9BT_PN);
+            this.Controls.Add(this.num7BT_PN);
+            this.Controls.Add(this.num8BT_PN);
+            this.Controls.Add(this.num6BT_PN);
+            this.Controls.Add(this.num5BT_PN);
+            this.Controls.Add(this.num3BT_PN);
+            this.Controls.Add(this.num4BT_PN);
+            this.Controls.Add(this.num2BT_PN);
+            this.Controls.Add(this.percentbt_PN);
+            this.Controls.Add(this.btdot_PN);
+            this.Controls.Add(this.invertbt_PN);
+            this.Controls.Add(this.sqrtbt_PN);
+            this.Controls.Add(this.btnF_PN);
+            this.Controls.Add(this.btnC_PN);
+            this.Controls.Add(this.btnE_PN);
+            this.Controls.Add(this.btnB_PN);
+            this.Controls.Add(this.btnD_PN);
+            this.Controls.Add(this.btnA_PN);
             this.Controls.Add(this.PNbinary);
             this.Controls.Add(this.anglePN);
             this.Controls.Add(this.radioButton1);
@@ -5193,24 +5436,17 @@ namespace Calculator
             this.Controls.Add(this.screenPN);
             this.Controls.Add(this.bracketTime_lb);
             this.Controls.Add(this.inv_ChkBox);
-            this.Controls.Add(this.btnF);
-            this.Controls.Add(this.btnB);
-            this.Controls.Add(this.btnD);
-            this.Controls.Add(this.closeproBT);
             this.Controls.Add(this.XorBT);
             this.Controls.Add(this.NotBT);
             this.Controls.Add(this.AndBT);
-            this.Controls.Add(this.btnE);
             this.Controls.Add(this.RshBT);
             this.Controls.Add(this.modproBT);
             this.Controls.Add(this.RoRBT);
-            this.Controls.Add(this.openproBT);
             this.Controls.Add(this.LshBT);
             this.Controls.Add(this.or_BT);
             this.Controls.Add(this.RoLBT);
-            this.Controls.Add(this.btnA);
-            this.Controls.Add(this.btnC);
             this.Controls.Add(this.close_bracket);
+            this.Controls.Add(this.openProBT);
             this.Controls.Add(this.open_bracket);
             this.Controls.Add(this._10x_bt);
             this.Controls.Add(this.nvx_bt);
@@ -5230,34 +5466,22 @@ namespace Calculator
             this.Controls.Add(this.tan_bt);
             this.Controls.Add(this.sinh_bt);
             this.Controls.Add(this.btFactorial);
-            this.Controls.Add(this.sqrt_bt);
-            this.Controls.Add(this.invert_bt);
             this.Controls.Add(this.equal);
             this.Controls.Add(this.divbt);
             this.Controls.Add(this.mulbt);
             this.Controls.Add(this.minusbt);
             this.Controls.Add(this.addbt);
-            this.Controls.Add(this.btdot);
             this.Controls.Add(this.num0BT);
             this.Controls.Add(this.clearbt);
             this.Controls.Add(this.mem_minus_bt);
             this.Controls.Add(this.mem_recall);
             this.Controls.Add(this.changesignBT);
             this.Controls.Add(this.mem_add_bt);
-            this.Controls.Add(this.num9BT);
             this.Controls.Add(this.mem_store);
             this.Controls.Add(this.ce);
-            this.Controls.Add(this.num6BT);
-            this.Controls.Add(this.num8BT);
             this.Controls.Add(this.mem_clear);
-            this.Controls.Add(this.num3BT);
             this.Controls.Add(this.backspacebt);
-            this.Controls.Add(this.num5BT);
-            this.Controls.Add(this.num7BT);
-            this.Controls.Add(this.num2BT);
-            this.Controls.Add(this.num4BT);
             this.Controls.Add(this.num1BT);
-            this.Controls.Add(this.percent_bt);
             this.Controls.Add(this.cos_bt);
             this.Controls.Add(this.sin_bt);
             this.Controls.Add(this.sigmax2BT);
@@ -5290,6 +5514,16 @@ namespace Calculator
             this.Load += new System.EventHandler(this.calc_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.percentbt_PN.ResumeLayout(false);
+            this.btdot_PN.ResumeLayout(false);
+            this.invertbt_PN.ResumeLayout(false);
+            this.sqrtbt_PN.ResumeLayout(false);
+            this.btnF_PN.ResumeLayout(false);
+            this.btnC_PN.ResumeLayout(false);
+            this.btnE_PN.ResumeLayout(false);
+            this.btnB_PN.ResumeLayout(false);
+            this.btnD_PN.ResumeLayout(false);
+            this.btnA_PN.ResumeLayout(false);
             this.anglePN.ResumeLayout(false);
             this.anglePN.PerformLayout();
             this.gridPanel.ResumeLayout(false);
@@ -5315,6 +5549,14 @@ namespace Calculator
             this.feMPG_PN.PerformLayout();
             this.unitconvPN.ResumeLayout(false);
             this.unitconvPN.PerformLayout();
+            this.num2BT_PN.ResumeLayout(false);
+            this.num3BT_PN.ResumeLayout(false);
+            this.num6BT_PN.ResumeLayout(false);
+            this.num7BT_PN.ResumeLayout(false);
+            this.num4BT_PN.ResumeLayout(false);
+            this.num5BT_PN.ResumeLayout(false);
+            this.num8BT_PN.ResumeLayout(false);
+            this.num9BT_PN.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -5328,34 +5570,40 @@ namespace Calculator
         /// </summary>
         private void initializedForm(bool isReturn0)
         {
-            this.num1BT.Location = new Point(12, 194);
-            this.num2BT.Location = new Point(51, 194);
-            this.num3BT.Location = new Point(90, 194);
-            this.num4BT.Location = new Point(12, 162);
-            this.num5BT.Location = new Point(51, 162);
-            this.num6BT.Location = new Point(90, 162);
-            this.num7BT.Location = new Point(12, 130);
-            this.num8BT.Location = new Point(51, 130);
-            this.num9BT.Location = new Point(90, 130);
-            this.num0BT.Location = new Point(12, 226);
-            this.btdot.Location = new Point(90, 226);
-            this.addbt.Location = new Point(129, 226);
-            this.minusbt.Location = new Point(129, 194);
-            this.mulbt.Location = new Point(129, 162);
-            this.divbt.Location = new Point(129, 130);
-            this.equal.Location = new Point(168, 194);
-            this.invert_bt.Location = new Point(168, 162);
-            this.percent_bt.Location = new Point(168, 130);
-            this.backspacebt.Location = new Point(12, 98);
-            this.ce.Location = new Point(51, 98);
-            this.changesignBT.Location = new Point(129, 98);
             this.mem_clear.Location = new Point(12, 66);
             this.mem_store.Location = new Point(51, 66);
             this.mem_recall.Location = new Point(90, 66);
-            this.sqrt_bt.Location = new Point(168, 98);
-            this.clearbt.Location = new Point(90, 98);
             this.mem_add_bt.Location = new Point(129, 66);
             this.mem_minus_bt.Location = new Point(168, 66);
+			
+            this.backspacebt.Location = new Point(12, 98);
+            this.ce.Location = new Point(51, 98);
+            this.clearbt.Location = new Point(90, 98);
+            this.changesignBT.Location = new Point(129, 98);
+            this.sqrtbt_PN.Location = new Point(168, 98);
+			
+            this.num7BT_PN.Location = new Point(12, 130);
+            this.num8BT_PN.Location = new Point(51, 130);
+            this.num9BT_PN.Location = new Point(90, 130);
+            this.divbt.Location = new Point(129, 130);
+            this.percentbt_PN.Location = new Point(168, 130);
+			
+            this.num4BT_PN.Location = new Point(12, 162);
+            this.num5BT_PN.Location = new Point(51, 162);
+            this.num6BT_PN.Location = new Point(90, 162);
+            this.mulbt.Location = new Point(129, 162);
+            this.invertbt_PN.Location = new Point(168, 162);
+			
+            this.num1BT.Location = new Point(12, 194);
+            this.num2BT_PN.Location = new Point(51, 194);
+            this.num3BT_PN.Location = new Point(90, 194);
+            this.minusbt.Location = new Point(129, 194);
+            this.equal.Location = new Point(168, 194);
+			
+            this.num0BT.Location = new Point(12, 226);
+            this.btdot_PN.Location = new Point(90, 226);
+            this.addbt.Location = new Point(129, 226);
+			
             this.mem_lb.Visible = (mem_num != 0);
 
             this.screenPN.Location = new Point(12, 12);
@@ -5374,69 +5622,70 @@ namespace Calculator
         /// </summary>
         private void scientificLoad(bool isReturn0)
         {
-            this.sqrt_bt.Location = new Point(363, 98);
-            this.percent_bt.Location = new Point(363, 130);
-            this.invert_bt.Location = new Point(363, 162);
-            this.equal.Location = new Point(363, 194);
-            this.mem_minus_bt.Location = new Point(363, 65);
+            this.anglePN.Location = new Point(12, 66);
 
-            this.divbt.Location = new Point(324, 130);
-            this.mulbt.Location = new Point(324, 162);
-            this.minusbt.Location = new Point(324, 194);
-            this.addbt.Location = new Point(324, 226);
-            this.changesignBT.Location = new Point(324, 98);
-            this.mem_add_bt.Location = new Point(324, 65);
-
-            this.btdot.Location = new Point(285, 226);
-            this.num9BT.Location = new Point(285, 130);
-            this.mem_store.Location = new Point(285, 65);
-            this.clearbt.Location = new Point(285, 98);
-            this.num6BT.Location = new Point(285, 162);
-            this.num3BT.Location = new Point(285, 194);
-
-            this.mem_recall.Location = new Point(246, 65);
-            this.ce.Location = new Point(246, 98);
-            this.num8BT.Location = new Point(246, 130);
-            this.num5BT.Location = new Point(246, 162);
-            this.num2BT.Location = new Point(246, 194);
-
-            this.mem_clear.Location = new Point(207, 65);
-            this.backspacebt.Location = new Point(207, 98);
-            this.num7BT.Location = new Point(207, 130);
-            this.num4BT.Location = new Point(207, 162);
-            this.num1BT.Location = new Point(207, 194);
-            this.num0BT.Location = new Point(207, 226);
-
-            this.close_bracket.Location = new Point(168, 98);
-            this.btFactorial.Location = new Point(168, 130);
-            this._10x_bt.Location = new Point(168, 226);
-            this._3vx_bt.Location = new Point(168, 194);
-            this.nvx_bt.Location = new Point(168, 162);
-
-            this.open_bracket.Location = new Point(129, 98);
-            this.xn_bt.Location = new Point(129, 162);
-            this.log_bt.Location = new Point(129, 226);
-            this.x3_bt.Location = new Point(129, 194);
-            this.x2_bt.Location = new Point(129, 130);
-
-            this.modsciBT.Location = new Point(90, 226);
-            this.ln_bt.Location = new Point(90, 98);
-            this.tan_bt.Location = new Point(90, 194);
-            this.cos_bt.Location = new Point(90, 162);
-            this.sin_bt.Location = new Point(90, 130);
-
-            this.exp_bt.Location = new Point(51, 226);
-            this.sinh_bt.Location = new Point(51, 130);
-            this.cosh_bt.Location = new Point(51, 162);
-            this.tanh_bt.Location = new Point(51, 194);
-            this.inv_ChkBox.Location = new Point(51, 98);
-
+            this.bracketTime_lb.Location = new Point(12, 98);
             this.int_bt.Location = new Point(12, 130);
             this.dms_bt.Location = new Point(12, 162);
             this.pi_bt.Location = new Point(12, 194);
             this.fe_ChkBox.Location = new Point(12, 226);
-            this.anglePN.Location = new Point(12, 66);
-            this.bracketTime_lb.Location = new Point(12, 98);
+
+            this.inv_ChkBox.Location = new Point(51, 98);
+            this.sinh_bt.Location = new Point(51, 130);
+            this.cosh_bt.Location = new Point(51, 162);
+            this.tanh_bt.Location = new Point(51, 194);
+            this.exp_bt.Location = new Point(51, 226);
+
+            this.ln_bt.Location = new Point(90, 98);
+            this.sin_bt.Location = new Point(90, 130);
+            this.cos_bt.Location = new Point(90, 162);
+            this.tan_bt.Location = new Point(90, 194);
+            this.modsciBT.Location = new Point(90, 226);
+
+            this.open_bracket.Location = new Point(129, 98);
+            this.x2_bt.Location = new Point(129, 130);
+            this.xn_bt.Location = new Point(129, 162);
+            this.x3_bt.Location = new Point(129, 194);
+            this.log_bt.Location = new Point(129, 226);
+
+            this.close_bracket.Location = new Point(168, 98);
+            this.btFactorial.Location = new Point(168, 130);
+            this.nvx_bt.Location = new Point(168, 162);
+            this._3vx_bt.Location = new Point(168, 194);
+            this._10x_bt.Location = new Point(168, 226);
+
+            this.mem_clear.Location = new Point(207, 66);
+            this.backspacebt.Location = new Point(207, 98);
+            this.num7BT_PN.Location = new Point(207, 130);
+            this.num4BT_PN.Location = new Point(207, 162);
+            this.num1BT.Location = new Point(207, 194);
+            this.num0BT.Location = new Point(207, 226);
+
+            this.mem_recall.Location = new Point(246, 66);
+            this.ce.Location = new Point(246, 98);
+            this.num8BT_PN.Location = new Point(246, 130);
+            this.num5BT_PN.Location = new Point(246, 162);
+            this.num2BT_PN.Location = new Point(246, 194);
+
+            this.mem_store.Location = new Point(285, 66);
+            this.clearbt.Location = new Point(285, 98);
+            this.num9BT_PN.Location = new Point(285, 130);
+            this.num6BT_PN.Location = new Point(285, 162);
+            this.num3BT_PN.Location = new Point(285, 194);
+            this.btdot_PN.Location = new Point(285, 226);
+
+            this.mem_add_bt.Location = new Point(324, 66);
+            this.changesignBT.Location = new Point(324, 98);
+            this.divbt.Location = new Point(324, 130);
+            this.mulbt.Location = new Point(324, 162);
+            this.minusbt.Location = new Point(324, 194);
+            this.addbt.Location = new Point(324, 226);
+
+            this.mem_minus_bt.Location = new Point(363, 66);
+            this.sqrtbt_PN.Location = new Point(363, 98);
+            this.percentbt_PN.Location = new Point(363, 130);
+            this.invertbt_PN.Location = new Point(363, 162);
+            this.equal.Location = new Point(363, 194);
 
             if (isReturn0) this.scr_lb.Text = "0";
 
@@ -5452,6 +5701,287 @@ namespace Calculator
             // Calculator
             //
             //this.Size = new Size(447, 340);
+        }
+        /// <summary>
+        /// set lại location cho các control của form standard có history
+        /// </summary>
+        private void stdWithHistory()
+        {
+            this.mem_clear.Location = new Point(12, 170);
+            this.mem_store.Location = new Point(51, 170);
+            this.mem_recall.Location = new Point(90, 170);
+            this.mem_add_bt.Location = new Point(129, 170);
+            this.mem_minus_bt.Location = new Point(168, 170);
+
+            this.backspacebt.Location = new Point(12, 202);
+            this.ce.Location = new Point(51, 202);
+            this.clearbt.Location = new Point(90, 202);
+            this.changesignBT.Location = new Point(129, 202);
+            this.sqrtbt_PN.Location = new Point(168, 202);
+
+            this.num7BT_PN.Location = new Point(12, 234);
+            this.num8BT_PN.Location = new Point(51, 234);
+            this.num9BT_PN.Location = new Point(90, 234);
+            this.divbt.Location = new Point(129, 234);
+            this.percentbt_PN.Location = new Point(168, 234);
+
+            this.num4BT_PN.Location = new Point(12, 266);
+            this.num5BT_PN.Location = new Point(51, 266);
+            this.num6BT_PN.Location = new Point(90, 266);
+            this.mulbt.Location = new Point(129, 266);
+            this.invertbt_PN.Location = new Point(168, 266);
+
+            this.num1BT.Location = new Point(12, 298);
+            this.num2BT_PN.Location = new Point(51, 298);
+            this.num3BT_PN.Location = new Point(90, 298);
+            this.minusbt.Location = new Point(129, 298);
+            this.equal.Location = new Point(168, 298);
+
+            this.num0BT.Location = new Point(12, 330);
+            this.btdot_PN.Location = new Point(90, 330);
+            this.addbt.Location = new Point(129, 330);
+
+            this.gridPanel.Location = new Point(12, 12);
+            this.gridPanel.Size = new Size(190, 105);
+            this.gridPanel.Visible = true;
+
+            this.screenPN.Location = new Point(12, 116);
+            this.screenPN.Size = new Size(190, 47);
+            //
+            // Column1
+            //
+            this.Column1.HeaderText = "Column1";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            this.Column1.Width = 190;
+            //this.Size = new Size(237, 470);
+        }
+        /// <summary>
+        /// set lại location cho các control của form scientific có history
+        /// </summary>
+        private void sciWithHistory()
+        {
+            this.anglePN.Location = new Point(12, 170);
+            this.bracketTime_lb.Location = new Point(12, 202);
+            this.int_bt.Location = new Point(12, 234);
+            this.dms_bt.Location = new Point(12, 265);
+            this.pi_bt.Location = new Point(12, 298);
+            this.fe_ChkBox.Location = new Point(12, 330);
+
+            this.inv_ChkBox.Location = new Point(51, 202);
+            this.sinh_bt.Location = new Point(51, 234);
+            this.cosh_bt.Location = new Point(51, 265);
+            this.tanh_bt.Location = new Point(51, 298);
+            this.exp_bt.Location = new Point(51, 330);
+
+            this.ln_bt.Location = new Point(90, 202);
+            this.sin_bt.Location = new Point(90, 234);
+            this.cos_bt.Location = new Point(90, 265);
+            this.tan_bt.Location = new Point(90, 298);
+            this.modsciBT.Location = new Point(90, 330);
+
+            this.open_bracket.Location = new Point(129, 202);
+            this.x2_bt.Location = new Point(129, 234);
+            this.xn_bt.Location = new Point(129, 265);
+            this.x3_bt.Location = new Point(129, 298);
+            this.log_bt.Location = new Point(129, 330);
+
+            this.close_bracket.Location = new Point(168, 202);
+            this.btFactorial.Location = new Point(168, 234);
+            this.nvx_bt.Location = new Point(168, 265);
+            this._3vx_bt.Location = new Point(168, 298);
+            this._10x_bt.Location = new Point(168, 330);
+
+            this.mem_clear.Location = new Point(207, 170);
+            this.backspacebt.Location = new Point(207, 202);
+            this.num7BT_PN.Location = new Point(207, 234);
+            this.num4BT_PN.Location = new Point(207, 265);
+            this.num1BT.Location = new Point(207, 298);
+            this.num0BT.Location = new Point(207, 330);
+
+            this.mem_recall.Location = new Point(246, 170);
+            this.ce.Location = new Point(246, 202);
+            this.num8BT_PN.Location = new Point(246, 234);
+            this.num5BT_PN.Location = new Point(246, 265);
+            this.num2BT_PN.Location = new Point(246, 298);
+
+            this.mem_store.Location = new Point(285, 170);
+            this.clearbt.Location = new Point(285, 202);
+            this.num9BT_PN.Location = new Point(285, 234);
+            this.num6BT_PN.Location = new Point(285, 265);
+            this.num3BT_PN.Location = new Point(285, 298);
+            this.btdot_PN.Location = new Point(285, 330);
+
+            this.mem_add_bt.Location = new Point(324, 170);
+            this.changesignBT.Location = new Point(324, 202);
+            this.divbt.Location = new Point(324, 234);
+            this.mulbt.Location = new Point(324, 265);
+            this.minusbt.Location = new Point(324, 298);
+            this.addbt.Location = new Point(324, 330);
+
+            this.mem_minus_bt.Location = new Point(363, 170);
+            this.sqrtbt_PN.Location = new Point(363, 202);
+            this.percentbt_PN.Location = new Point(363, 234);
+            this.invertbt_PN.Location = new Point(363, 265);
+            this.equal.Location = new Point(363, 298);
+            //
+            // mem_lb
+            //
+            this.mem_lb.Size = new Size(18, 16);
+            this.mem_lb.Text = "M";
+            this.mem_lb.Visible = (mem_num != 0);
+            //
+            // screenPN
+            //
+            this.screenPN.Location = new Point(12, 116);
+            this.screenPN.Size = new Size(385, 47);
+
+            hideSciComponent(true);
+
+            this.gridPanel.Location = new Point(12, 12);
+            this.gridPanel.Size = new Size(385, gridPanel.Size.Height);
+            this.gridPanel.Visible = true;
+            //
+            // Column1
+            //
+            //this.Column1.Width = 383;
+            //
+            // Calculator
+            //
+            //this.Size = new Size(447, 470);
+        }
+        /// <summary>
+        /// set lại location cho các control của form programmer mode
+        /// </summary>
+        private void programmerMode()
+        {
+            this.PNbinary.Location = new Point(12, 64);
+            this.basePN.Location = new Point(12, 129);
+            this.unknownPN.Location = new Point(12, 225);
+
+            this.bracketTime_lb.Location = new Point(90, 129);
+            this.openProBT.Location = new Point(90, 161);
+            this.RoLBT.Location = new Point(90, 193);
+            this.or_BT.Location = new Point(90, 225);
+            this.LshBT.Location = new Point(90, 257);
+            this.NotBT.Location = new Point(90, 289);
+			
+            this.modproBT.Location = new Point(129, 129);
+            this.close_bracket.Location = new Point(129, 161);
+            this.RoRBT.Location = new Point(129, 193);
+            this.XorBT.Location = new Point(129, 225);
+            this.RshBT.Location = new Point(129, 257);
+            this.AndBT.Location = new Point(129, 289);
+			
+            this.btnA_PN.Location = new Point(168, 129);
+            this.btnB_PN.Location = new Point(168, 161);
+            this.btnC_PN.Location = new Point(168, 193);
+            this.btnD_PN.Location = new Point(168, 225);
+            this.btnE_PN.Location = new Point(168, 257);
+            this.btnF_PN.Location = new Point(168, 289);
+			
+            this.mem_clear.Location = new Point(207, 129);
+            this.backspacebt.Location = new Point(207, 161);
+            this.num7BT_PN.Location = new Point(207, 193);
+            this.num4BT_PN.Location = new Point(207, 225);
+            this.num1BT.Location = new Point(207, 257);
+            this.num0BT.Location = new Point(207, 289);
+			
+            this.mem_recall.Location = new Point(246, 129);
+            this.ce.Location = new Point(246, 161);
+            this.num8BT_PN.Location = new Point(246, 193);
+            this.num5BT_PN.Location = new Point(246, 225);
+            this.num2BT_PN.Location = new Point(246, 257);
+			
+            this.mem_store.Location = new Point(285, 129);
+            this.clearbt.Location = new Point(285, 161);
+            this.num9BT_PN.Location = new Point(285, 193);
+            this.num6BT_PN.Location = new Point(285, 225);
+            this.num3BT_PN.Location = new Point(285, 257);
+            this.btdot_PN.Location = new Point(285, 289);
+			
+            this.mem_add_bt.Location = new Point(324, 129);
+            this.changesignBT.Location = new Point(324, 161);
+            this.divbt.Location = new Point(324, 193);
+            this.mulbt.Location = new Point(324, 225);
+            this.minusbt.Location = new Point(324, 257);
+            this.addbt.Location = new Point(324, 289);
+			
+            this.mem_minus_bt.Location = new Point(363, 129);
+            this.sqrtbt_PN.Location = new Point(363, 161);
+			this.percentbt_PN.Location = new Point(363, 193);
+            this.invertbt_PN.Location = new Point(363, 225);
+            this.equal.Location = new Point(363, 257);
+
+            this.screenPN.Location = new Point(12, 12);
+            this.screenPN.Size = new Size(385, 47);
+
+            this.scr_lb.Text = "0";
+
+            this.mem_lb.Visible = (mem_num != 0);
+
+            this.sqrt_bt.Enabled = false;
+            this.invert_bt.Enabled = false;
+            this.btdot.Enabled = false;
+			
+
+            baseRBCheckedChanged();
+            //copyHistoryMI.Enabled = false;
+            //
+            // Programmer
+            //
+            //this.Size = new Size(447, 420);
+        }
+        /// <summary>
+        /// set lại location cho các control của statistics mode
+        /// </summary>
+        private void statisticsMode()
+        {
+            this.mem_clear.Location = new Point(12, 170);
+            this.mem_store.Location = new Point(51, 170);
+            this.mem_recall.Location = new Point(90, 170);
+            this.mem_add_bt.Location = new Point(129, 170);
+            this.mem_minus_bt.Location = new Point(168, 170);
+
+            this.backspacebt.Location = new Point(12, 202);
+            this.CAD.Location = new Point(51, 202);
+            this.clearbt.Location = new Point(90, 202);
+            this.fe_ChkBox.Location = new Point(129, 202);
+            this.exp_bt.Location = new Point(168, 202);
+
+            this.num7BT_PN.Location = new Point(12, 234);
+            this.num8BT_PN.Location = new Point(51, 234);
+            this.num9BT_PN.Location = new Point(90, 234);
+            this.xcross.Location = new Point(129, 234);
+            this.x2cross.Location = new Point(168, 234);
+
+            this.num4BT_PN.Location = new Point(12, 266);
+            this.num5BT_PN.Location = new Point(51, 266);
+            this.num6BT_PN.Location = new Point(90, 266);
+            this.sigmaxBT.Location = new Point(129, 266);
+            this.sigmax2BT.Location = new Point(168, 266);
+
+            this.num1BT.Location = new Point(12, 298);
+            this.num2BT_PN.Location = new Point(51, 298);
+            this.num3BT_PN.Location = new Point(90, 298);
+            this.sigmanBT.Location = new Point(129, 298);
+            this.sigman_1BT.Location = new Point(168, 298);
+
+            this.num0BT.Location = new Point(12, 330);
+            this.btdot_PN.Location = new Point(90, 330);
+            this.changesignBT.Location = new Point(129, 330);
+            this.AddstaBT.Location = new Point(168, 330);
+
+            this.screenPN.Location = new Point(12, 116);
+            this.screenPN.Size = new Size(190, 47);
+
+            this.gridPanel.Location = new Point(12, 12);
+            this.screenPN.Location = new Point(12, 116);
+            this.screenPN.Size = new Size(190, 47);
+            this.staDGV.Size = new Size(190, 85);
+            this.gridPanel.Size = new Size(190, 105);
+
+            //this.staDGV.CurrentCell = null;
         }
         /// <summary>
         /// gọi các property ẩn của các control
@@ -5523,14 +6053,11 @@ namespace Calculator
             this.modsciBT.ContextMenu = helpCTMN;
             this.RoRBT.ContextMenu = helpCTMN;
             this.RshBT.ContextMenu = helpCTMN;
-            this.open_bracket.ContextMenu = helpCTMN;
-            this.close_bracket.ContextMenu = helpCTMN;
+            this.openProBT.ContextMenu = helpCTMN;
             this.NotBT.ContextMenu = helpCTMN;
             this.AndBT.ContextMenu = helpCTMN;
             this.XorBT.ContextMenu = helpCTMN;
             this.modproBT.ContextMenu = helpCTMN;
-            this.openproBT.ContextMenu = helpCTMN;
-            this.closeproBT.ContextMenu = helpCTMN;
             this.btnA.ContextMenu = helpCTMN;
             this.btnB.ContextMenu = helpCTMN;
             this.btnC.ContextMenu = helpCTMN;
@@ -5656,284 +6183,6 @@ namespace Calculator
 
             #endregion
         }
-        /// <summary>
-        /// set lại location cho các control của form standard có history
-        /// </summary>
-        private void stdWithHistory()
-        {
-            this.sqrt_bt.Location = new Point(168, 202);
-            this.clearbt.Location = new Point(90, 202);
-            this.changesignBT.Location = new Point(129, 202);
-            this.ce.Location = new Point(51, 202);
-            this.backspacebt.Location = new Point(12, 202);
-
-            this.invert_bt.Location = new Point(168, 266);
-            this.mulbt.Location = new Point(129, 266);
-            this.num6BT.Location = new Point(90, 266);
-            this.num5BT.Location = new Point(51, 266);
-            this.num4BT.Location = new Point(12, 266);
-
-            this.equal.Location = new Point(168, 298);
-            this.minusbt.Location = new Point(129, 298);
-            this.num3BT.Location = new Point(90, 298);
-            this.num2BT.Location = new Point(51, 298);
-            this.num1BT.Location = new Point(12, 298);
-
-            this.addbt.Location = new Point(129, 330);
-            this.btdot.Location = new Point(90, 330);
-            this.num0BT.Location = new Point(12, 330);
-
-            this.divbt.Location = new Point(129, 234);
-            this.num9BT.Location = new Point(90, 234);
-            this.num8BT.Location = new Point(51, 234);
-            this.num7BT.Location = new Point(12, 234);
-            this.percent_bt.Location = new Point(168, 234);
-
-            this.mem_store.Location = new Point(51, 170);
-            this.mem_minus_bt.Location = new Point(168, 170);
-            this.mem_recall.Location = new Point(90, 170);
-            this.mem_add_bt.Location = new Point(129, 170);
-            this.mem_clear.Location = new Point(12, 170);
-
-            this.gridPanel.Location = new Point(12, 12);
-            this.gridPanel.Size = new Size(190, 105);
-            this.gridPanel.Visible = true;
-
-            this.screenPN.Location = new Point(12, 116);
-            this.screenPN.Size = new Size(190, 47);
-            //
-            // Column1
-            //
-            this.Column1.HeaderText = "Column1";
-            this.Column1.Name = "Column1";
-            this.Column1.ReadOnly = true;
-            this.Column1.Width = 190;
-            //this.Size = new Size(237, 470);
-        }
-        /// <summary>
-        /// set lại location cho các control của form scientific có history
-        /// </summary>
-        private void sciWithHistory()
-        {
-            this._10x_bt.Location = new Point(168, 330);
-            this._3vx_bt.Location = new Point(168, 298);
-            this.nvx_bt.Location = new Point(168, 265);
-            this.btFactorial.Location = new Point(168, 234);
-            this.close_bracket.Location = new Point(168, 202);
-
-            this.log_bt.Location = new Point(129, 330);
-            this.x3_bt.Location = new Point(129, 298);
-            this.xn_bt.Location = new Point(129, 265);
-            this.x2_bt.Location = new Point(129, 234);
-            this.open_bracket.Location = new Point(129, 202);
-
-            this.fe_ChkBox.Location = new Point(12, 330);
-            this.pi_bt.Location = new Point(12, 298);
-            this.dms_bt.Location = new Point(12, 265);
-            this.int_bt.Location = new Point(12, 234);
-            this.bracketTime_lb.Location = new Point(12, 202);
-            this.anglePN.Location = new Point(12, 170);
-
-            this.modsciBT.Location = new Point(90, 330);
-            this.tan_bt.Location = new Point(90, 298);
-            this.cos_bt.Location = new Point(90, 265);
-            this.sin_bt.Location = new Point(90, 234);
-            this.ln_bt.Location = new Point(90, 202);
-
-            this.exp_bt.Location = new Point(51, 330);
-            this.tanh_bt.Location = new Point(51, 298);
-            this.cosh_bt.Location = new Point(51, 265);
-            this.sinh_bt.Location = new Point(51, 234);
-            this.inv_ChkBox.Location = new Point(51, 202);
-
-            this.equal.Location = new Point(363, 298);
-            this.invert_bt.Location = new Point(363, 265);
-            this.percent_bt.Location = new Point(363, 234);
-            this.sqrt_bt.Location = new Point(363, 202);
-            this.mem_minus_bt.Location = new Point(363, 170);
-
-            this.addbt.Location = new Point(324, 330);
-            this.minusbt.Location = new Point(324, 298);
-            this.mulbt.Location = new Point(324, 265);
-            this.divbt.Location = new Point(324, 234);
-            this.changesignBT.Location = new Point(324, 202);
-            this.mem_add_bt.Location = new Point(324, 170);
-
-            this.btdot.Location = new Point(285, 330);
-            this.num3BT.Location = new Point(285, 298);
-            this.num6BT.Location = new Point(285, 265);
-            this.num9BT.Location = new Point(285, 234);
-            this.clearbt.Location = new Point(285, 202);
-            this.mem_store.Location = new Point(285, 170);
-
-            this.num0BT.Location = new Point(207, 330);
-            this.num1BT.Location = new Point(207, 298);
-            this.num4BT.Location = new Point(207, 265);
-            this.num7BT.Location = new Point(207, 234);
-            this.backspacebt.Location = new Point(207, 202);
-            this.mem_clear.Location = new Point(207, 170);
-
-            this.num2BT.Location = new Point(246, 298);
-            this.num5BT.Location = new Point(246, 265);
-            this.num8BT.Location = new Point(246, 234);
-            this.ce.Location = new Point(246, 202);
-            this.mem_recall.Location = new Point(246, 170);
-            //
-            // mem_lb
-            //
-            this.mem_lb.Size = new Size(18, 16);
-            this.mem_lb.Text = "M";
-            this.mem_lb.Visible = (mem_num != 0);
-            //
-            // screenPN
-            //
-            this.screenPN.Location = new Point(12, 116);
-            this.screenPN.Size = new Size(385, 47);
-
-            hideSciComponent(true);
-
-            this.gridPanel.Location = new Point(12, 12);
-            this.gridPanel.Size = new Size(385, gridPanel.Size.Height);
-            this.gridPanel.Visible = true;
-            //
-            // Column1
-            //
-            //this.Column1.Width = 383;
-            //
-            // Calculator
-            //
-            //this.Size = new Size(447, 470);
-        }
-        /// <summary>
-        /// set lại location cho các control của form programmer mode
-        /// </summary>
-        private void programmerMode()
-        {
-            this.equal.Location = new Point(363, 257);
-            this.divbt.Location = new Point(324, 193);
-            this.mulbt.Location = new Point(324, 225);
-            this.minusbt.Location = new Point(324, 257);
-            this.addbt.Location = new Point(324, 289);
-            this.clearbt.Location = new Point(285, 161);
-            this.mem_minus_bt.Location = new Point(363, 129);
-            this.mem_recall.Location = new Point(246, 129);
-            this.changesignBT.Location = new Point(324, 161);
-            this.mem_add_bt.Location = new Point(324, 129);
-            this.mem_store.Location = new Point(285, 129);
-            this.mem_clear.Location = new Point(207, 129);
-            this.ce.Location = new Point(246, 161);
-            this.backspacebt.Location = new Point(207, 161);
-            this.RoLBT.Location = new Point(90, 193);
-            this.or_BT.Location = new Point(90, 225);
-            this.LshBT.Location = new Point(90, 257);
-            this.RoRBT.Location = new Point(129, 193);
-            this.RshBT.Location = new Point(129, 257);
-            this.basePN.Location = new Point(12, 129);
-            this.open_bracket.Location = new Point(90, 161);
-            this.close_bracket.Location = new Point(129, 161);
-            this.bracketTime_lb.Location = new Point(90, 129);
-            this.NotBT.Location = new Point(90, 289);
-            this.unknownPN.Location = new Point(12, 225);
-            this.AndBT.Location = new Point(129, 289);
-            this.XorBT.Location = new Point(129, 225);
-            this.PNbinary.Location = new Point(12, 64);
-            this.modproBT.Location = new Point(129, 129);
-            this.openproBT.Location = new Point(90, 161);
-            this.closeproBT.Location = new Point(129, 161);
-            this.num0BT.Location = new Point(207, 289);
-            this.num1BT.Location = new Point(207, 257);
-            this.num2BT.Location = new Point(246, 257);
-            this.num3BT.Location = new Point(285, 257);
-            this.num4BT.Location = new Point(207, 225);
-            this.num5BT.Location = new Point(246, 225);
-            this.num6BT.Location = new Point(285, 225);
-            this.num7BT.Location = new Point(207, 193);
-            this.num8BT.Location = new Point(246, 193);
-            this.num9BT.Location = new Point(285, 193);
-            this.btnA.Location = new Point(168, 129);
-            this.btnB.Location = new Point(168, 161);
-            this.btnC.Location = new Point(168, 193);
-            this.btnD.Location = new Point(168, 225);
-            this.btnE.Location = new Point(168, 257);
-            this.btnF.Location = new Point(168, 289);
-
-            this.screenPN.Location = new Point(12, 12);
-            this.screenPN.Size = new Size(385, 47);
-
-            this.scr_lb.Text = "0";
-
-            this.mem_lb.Visible = (mem_num != 0);
-
-            this.sqrt_bt.Enabled = false;
-            this.sqrt_bt.Location = new Point(363, 161);
-
-            this.percent_bt.Location = new Point(363, 193);
-
-            this.invert_bt.Enabled = false;
-            this.invert_bt.Location = new Point(363, 225);
-
-            this.btdot.Enabled = false;
-            this.btdot.Location = new Point(285, 289);
-
-            baseRBCheckedChanged();
-            //copyHistoryMI.Enabled = false;
-            //
-            // Programmer
-            //
-            //this.Size = new Size(447, 420);
-        }
-        /// <summary>
-        /// set lại location cho các control của statistics mode
-        /// </summary>
-        private void statisticsMode()
-        {
-            //this.Expsta_bt.Location = new Point(168, 202);
-            this.exp_bt.Location = new Point(168, 202);
-            this.clearbt.Location = new Point(90, 202);
-            this.fe_ChkBox.Location = new Point(129, 202);
-            this.CAD.Location = new Point(51, 202);
-            this.backspacebt.Location = new Point(12, 202);
-
-            this.sigmax2BT.Location = new Point(168, 266);
-            this.sigmaxBT.Location = new Point(129, 266);
-            this.num6BT.Location = new Point(90, 266);
-            this.num5BT.Location = new Point(51, 266);
-            this.num4BT.Location = new Point(12, 266);
-
-            this.sigman_1BT.Location = new Point(168, 298);
-            this.sigmanBT.Location = new Point(129, 298);
-            this.num3BT.Location = new Point(90, 298);
-            this.num2BT.Location = new Point(51, 298);
-            this.num1BT.Location = new Point(12, 298);
-
-            this.btdot.Location = new Point(90, 330);
-            this.num0BT.Location = new Point(12, 330);
-            this.AddstaBT.Location = new Point(168, 330);
-            this.changesignBT.Location = new Point(129, 330);
-
-            this.xcross.Location = new Point(129, 234);
-            this.num9BT.Location = new Point(90, 234);
-            this.num8BT.Location = new Point(51, 234);
-            this.num7BT.Location = new Point(12, 234);
-            this.x2cross.Location = new Point(168, 234);
-
-            this.mem_store.Location = new Point(51, 170);
-            this.mem_minus_bt.Location = new Point(168, 170);
-            this.mem_recall.Location = new Point(90, 170);
-            this.mem_add_bt.Location = new Point(129, 170);
-            this.mem_clear.Location = new Point(12, 170);
-
-            this.screenPN.Location = new Point(12, 116);
-            this.screenPN.Size = new Size(190, 47);
-
-            this.gridPanel.Location = new Point(12, 12);
-            this.screenPN.Location = new Point(12, 116);
-            this.screenPN.Size = new Size(190, 47);
-            this.staDGV.Size = new Size(190, 85);
-            this.gridPanel.Size = new Size(190, 105);
-
-            //this.staDGV.CurrentCell = null;
-        }
 
         #endregion
 
@@ -5945,13 +6194,21 @@ namespace Calculator
             infoControl = sender as Control;
             if (infoControl is RadioButton)
             {
-                location.X = this.Location.X + infoControl.Parent.Location.X + infoControl.Location.X + 4;
-                location.Y = this.Location.Y + infoControl.Parent.Location.Y + infoControl.Location.Y + infoControl.Size.Height + 50;
+                location.X = this.Location.X + infoControl.Parent.Location.X + infoControl.Location.X;
+                location.Y = this.Location.Y + infoControl.Parent.Location.Y + infoControl.Location.Y + 50;
             }
-            else //if (infoControl is Button || infoControl is Label)
+            else //if (infoControl is Button || infoControl is Label || infoControl is Panel)
             {
-                location.X = this.Location.X + infoControl.Location.X + 4;
-                location.Y = this.Location.Y + infoControl.Location.Y + infoControl.Size.Height + 50;
+                if (infoControl.Parent is calc)
+                {
+                    location.X = this.Location.X + infoControl.Location.X;
+                    location.Y = this.Location.Y + infoControl.Location.Y + 50;
+                }
+                if (infoControl.Parent is Panel)
+                {
+                    location.X = this.Location.X + infoControl.Parent.Location.X + infoControl.Location.X;
+                    location.Y = this.Location.Y + infoControl.Parent.Location.Y + infoControl.Location.Y + 50;
+                }
             }
         }
 
@@ -6052,6 +6309,14 @@ namespace Calculator
         private Button num8BT;
         private Button num9BT;
         private Button num0BT;
+        private IPanel num2BT_PN;
+        private IPanel num3BT_PN;
+        private IPanel num6BT_PN;
+        private IPanel num7BT_PN;
+        private IPanel num4BT_PN;
+        private IPanel num5BT_PN;
+        private IPanel num8BT_PN;
+        private IPanel num9BT_PN;
         private Button btdot;
         private Button addbt;
         private Button minusbt;
@@ -6063,6 +6328,10 @@ namespace Calculator
         private ILabel expressionTB;
         private Button invert_bt;
         private Button percent_bt;
+        private IPanel sqrtbt_PN;
+        private IPanel invertbt_PN;
+        private IPanel percentbt_PN;
+        private IPanel btdot_PN;
         private Button backspacebt;
         private Button ce;
         private Button changesignBT;
@@ -6208,6 +6477,12 @@ namespace Calculator
         private IPanel PNbinary;
         private IPanel basePN;
         private IPanel unknownPN;
+        private IPanel btnA_PN;
+        private IPanel btnB_PN;
+        private IPanel btnC_PN;
+        private IPanel btnD_PN;
+        private IPanel btnE_PN;
+        private IPanel btnF_PN;
         private Button btnA;
         private Button btnB;
         private Button btnC;
@@ -6222,9 +6497,8 @@ namespace Calculator
         private Button LshBT;
         private Button or_BT;
         private Button RoLBT;
-        private Button openproBT;
         private Button modproBT;
-        private Button closeproBT;
+        private Button openProBT;
         private ILabel[] bin_digit;
         private ILabel[] flagpoint;
         //------------------------------------------------------------------

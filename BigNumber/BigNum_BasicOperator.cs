@@ -1070,7 +1070,7 @@ namespace Calculator
 		/// <summary>
         /// rr = aa / bb
         /// </summary>
-        static public void Div(BigNumber aa, BigNumber bb, BigNumber rr)
+        static void Div(BigNumber aa, BigNumber bb, BigNumber rr)
         {
             long places = MaxDigits(aa, bb);
             Div(aa, bb, rr, places);
@@ -1078,7 +1078,7 @@ namespace Calculator
         /// <summary>
         /// result = src + dst
         /// </summary>
-        static public void Add(BigNumber src, BigNumber dst, BigNumber result)
+        static void Add(BigNumber src, BigNumber dst, BigNumber result)
         {
             int carry;
             sbyte sign;
@@ -1175,7 +1175,7 @@ namespace Calculator
         /// <summary>
         /// result = src - dst
         /// </summary>
-        static public void Sub(BigNumber src, BigNumber dst, BigNumber result)
+        static void Sub(BigNumber src, BigNumber dst, BigNumber result)
         {
             int itmp, ChangeOrderFlag, borrow;
             sbyte sign;
@@ -1291,7 +1291,7 @@ namespace Calculator
             Normalize(result);
         }
 
-        static public void SetZero(BigNumber mm)
+        static void SetZero(BigNumber mm)
         {
             mm.signum = 0;
             mm.mantissa = new byte[1];

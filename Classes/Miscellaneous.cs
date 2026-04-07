@@ -102,7 +102,7 @@ namespace Calculator
         /// thêm dấu * vào các vị trí thích hợp
         /// </summary>
         /// <param name="expression">biểu thức cần chèn dấu *</param>
-        public static string InsertMultiplyChar(string expression)
+        static string InsertMultiplyChar(string expression)
         {
             string result = expression;
             //[a-z]{2,}
@@ -116,7 +116,7 @@ namespace Calculator
         /// 1 + ln2 --> 1 + ln(2)
         /// </summary>
         /// <param name="expression">chuỗi cần thay thế</param>
-        public static string InsertBracket(string expression)
+        static string InsertBracket(string expression)
         {
             string result = expression.Replace(DecimalSeparator, ",");
             var reg = new Regex(@"(-|)([a-z]{2,})([\+-]?\d+,*\d*[eE][\+-]?\d+|[\+-]?\d+,*\d*)");
@@ -134,15 +134,17 @@ namespace Calculator
         /// 2 + ((((3)))) --> 2 + 3
         /// </summary>
         /// <param name="expression">chuỗi cần thay thế</param>
-        public static string RemoveBracket(string expression)
+        static string RemoveBracket(string expression)
         {
             // "((-7))" -> xoa bot 1 capacity dau ngoac -> (-7)
-            Regex reg = new Regex(@"(\(\()([\+-]?\d+,*\d*[eE][\+-]?\d+|[\-\+]?\d+,*\d*)(\)\))");    // ((mot_bieu_thuc))
+            //Regex reg = new Regex(@"\(\(   (.*)   \)\)");    // ((mot_bieu_thuc))
+              Regex reg = new Regex(@"\(\(([^\(\)]+)\)\)(\^|!?)");    // ((mot_bieu_thuc))
             expression = expression.Replace(DecimalSeparator, ",");
             Match m = reg.Match(expression);
             while (m.Success)
             {
                 expression = expression.Replace(m.Value, m.Value.Substring(1, m.Value.Length - 2));
+                //expression = expression.Substring(0, m.Index) + m.Value.Substring(1, m.Value.Length - 2) + expression.Substring(m.Index + m.Value.Length);
                 m = reg.Match(expression);
             }
             return expression.Replace(",", DecimalSeparator);
@@ -440,6 +442,42 @@ namespace Calculator
                 rs = "0";
             }
             return rs;
+        }
+        /// <summary>
+        /// lưu vào registry trước khi thoát
+        /// </summary>
+        /// <param name="optName">list tên dword</param>
+        /// <param name="config">list giá trị được ghi</param>
+        public static void SaveToRegistryBeforeExit(string[] optName, object[] config)
+        {
+            var reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
+            reg.SetValue(optName[0], config[0], RegistryValueKind.DWord);
+            reg.SetValue(optName[1], config[1], RegistryValueKind.DWord);
+            reg.SetValue(optName[2], config[2], RegistryValueKind.DWord);
+            reg.SetValue(optName[3], config[3], RegistryValueKind.DWord);
+            reg.SetValue(optName[4], config[4], RegistryValueKind.String);
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
+            reg.SetValue(optName[5], config[5], RegistryValueKind.DWord);
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
+            reg.SetValue(optName[6], config[6], RegistryValueKind.DWord);
+            reg.SetValue(optName[7], config[7], RegistryValueKind.DWord);
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
+            reg.SetValue(optName[08], config[08], RegistryValueKind.DWord);
+            reg.SetValue(optName[09], config[09], RegistryValueKind.DWord);
+            reg.SetValue(optName[10], config[10], RegistryValueKind.DWord);
+            reg.SetValue(optName[11], config[11], RegistryValueKind.DWord);
+        }
+
+        public static int NumberOfOpenWOClose(string expression)
+        {
+            var regEx = new Regex(@"\(");
+            int matches = regEx.Matches(expression).Count;
+            regEx = new Regex(@"\)");
+            matches -= regEx.Matches(expression).Count;
+            return matches;
         }
     }
     /// <summary>

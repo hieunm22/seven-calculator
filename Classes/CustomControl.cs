@@ -56,6 +56,7 @@ namespace Calculator
             get { return base.ContextMenu; }
             set { base.ContextMenu = value; }
         }
+
         [Browsable(false)]
         public override ContextMenuStrip ContextMenuStrip
         {
@@ -73,7 +74,7 @@ namespace Calculator
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
             {
                 if (!IsCurrentCellInEditMode) return base.ProcessDataGridViewKey(e);
-                else return true;
+                else return false;
             }
             return base.ProcessDataGridViewKey(e);
         }
@@ -100,6 +101,7 @@ namespace Calculator
             get { return base.ContextMenu; }
             set { base.ContextMenu = value; }
         }
+
         [Browsable(false)]
         public override ContextMenuStrip ContextMenuStrip
         {
@@ -107,9 +109,17 @@ namespace Calculator
             set { base.ContextMenuStrip = value; }
         }
 
+        private bool allowDrawBorder = true;
+        [DefaultValue(true)]
+        public bool AllowDrawBorder
+        {
+            get { return allowDrawBorder; }
+            set { allowDrawBorder = value; }
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
-            if (BorderStyle == BorderStyle.None)
+            if (BorderStyle == BorderStyle.None && allowDrawBorder)
             {
                 Graphics gr = e.Graphics;
                 gr.DrawRectangle(new Pen(Color.FromArgb(134, 150, 170), 1.0f), 0, 0, Size.Width - 1, Size.Height - 1);
@@ -160,7 +170,7 @@ namespace Calculator
                 this.Text = "";
                 allowTextChanged = true;
                 this.ForeColor = SystemColors.ControlText;
-                this.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+                this.Font = new Font(this.Font, FontStyle.Regular);
             }
             base.OnGotFocus(e);
         }
@@ -175,7 +185,7 @@ namespace Calculator
                 this.Text = "Enter value";
                 allowTextChanged = true;
                 this.ForeColor = SystemColors.GrayText;
-                this.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+                this.Font = new Font(this.Font, FontStyle.Italic);
             }
             base.OnLostFocus(e);
         }
@@ -184,23 +194,20 @@ namespace Calculator
         //
         protected override void OnKeyPress(KeyPressEventArgs e)
         {
-            if (NumberModeOnly)
+            if (!NumberModeOnly) { base.OnKeyPress(e); return; }
+            switch ((int)e.KeyChar)
             {
-                switch ((int)e.KeyChar)
-                {
-                    case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7':
-                    case '8': case '9': case '.': case ',': case 'e': case 'E': case '+': case '-':
-                        e.Handled = false;
-                        break;
-                    case 1: case 3: case 8: case 22: case 26: case 27:
-                        base.OnKeyPress(e);
-                        break;
-                    default:
-                        e.Handled = true;
-                        break;
-                }
+                case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7':
+                case '8': case '9': case '.': case ',': case 'e': case 'E': case '+': case '-':
+                    e.Handled = false;
+                    break;
+                case 1: case 3: case 8: case 22: case 26: case 27:
+                    base.OnKeyPress(e);
+                    break;
+                default:
+                    e.Handled = true;
+                    break;
             }
-            base.OnKeyPress(e);
         }
     }
 

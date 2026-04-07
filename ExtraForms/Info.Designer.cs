@@ -31,37 +31,38 @@ namespace Calculator
         private void InitializeComponent()
         {
             this.borderPN = new System.Windows.Forms.Panel();
-            this.displayText = new System.Windows.Forms.TextBox();
+            this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.borderPN.SuspendLayout();
             this.SuspendLayout();
             // 
             // borderPN
             // 
-            this.borderPN.BackColor = System.Drawing.Color.Transparent;
+            this.borderPN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.borderPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.borderPN.Controls.Add(this.displayText);
+            this.borderPN.Controls.Add(this.rtbInfo);
             this.borderPN.Dock = System.Windows.Forms.DockStyle.Fill;
             this.borderPN.Location = new System.Drawing.Point(0, 0);
             this.borderPN.Name = "borderPN";
             this.borderPN.Size = new System.Drawing.Size(324, 100);
             this.borderPN.TabIndex = 0;
             // 
-            // displayText
+            // rtbInfo
             // 
-            this.displayText.BackColor = System.Drawing.SystemColors.Info;
-            this.displayText.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.displayText.Location = new System.Drawing.Point(5, 5);
-            this.displayText.Multiline = true;
-            this.displayText.Name = "displayText";
-            this.displayText.ReadOnly = true;
-            this.displayText.Size = new System.Drawing.Size(312, 88);
-            this.displayText.TabIndex = 0;
+            this.rtbInfo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.rtbInfo.Cursor = System.Windows.Forms.Cursors.Default;
+            this.rtbInfo.Location = new System.Drawing.Point(5, 5);
+            this.rtbInfo.Name = "rtbInfo";
+            this.rtbInfo.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
+            this.rtbInfo.Size = new System.Drawing.Size(312, 88);
+            this.rtbInfo.TabIndex = 0;
+            this.rtbInfo.Text = "";
             // 
             // Info
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.SystemColors.Info;
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.ClientSize = new System.Drawing.Size(324, 100);
             this.Controls.Add(this.borderPN);
             this.Enabled = false;
@@ -71,11 +72,9 @@ namespace Calculator
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "toolTip";
-            this.Activated += new System.EventHandler(this.toolTip_Activated);
             this.Deactivate += new System.EventHandler(this.toolTip_Click);
             this.Click += new System.EventHandler(this.toolTip_Click);
             this.borderPN.ResumeLayout(false);
-            this.borderPN.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -83,7 +82,7 @@ namespace Calculator
         #endregion
 
         private Panel borderPN;
-        private TextBox displayText;
+        private RichTextBox rtbInfo;
 
 
     }

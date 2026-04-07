@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Calculator
@@ -28,12 +27,12 @@ namespace Calculator
             }
         }
 
-        delegate void SetPBProgress(int _progress, int ct, int tt);
+        delegate void SetPBProgress(int _progress, int _ct, int _tt);
 
-        private void SetProcess(int _progress, int ct, int tt)
+        private void SetProcess(int _progress, int _ct, int _tt)
         {
             progressBar.Value = _progress;
-            label2.Text = string.Format("{0} / {1}", ct - 1, tt);
+            label2.Text = string.Format("{0} / {1}", _ct - 1, _tt);
         }
 
         private bool finished = false;
@@ -63,17 +62,6 @@ namespace Calculator
         {
             if (DoCancel != null) DoCancel();
             base.OnClosed(e);
-        }
-
-        [DllImport("user32")]
-        static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
-        [DllImport("user32")]
-        static extern bool EnableMenuItem(IntPtr hMenu, uint uIDEnableItem, uint uEnable);
-
-        private void CancelOperation_Load(object sender, EventArgs e)
-        {
-            var sm = GetSystemMenu(Handle, false);
-            EnableMenuItem(sm, 0xF060, 2);
         }
         /// <summary>
         /// di chuyển form mà không cần đưa con trỏ lên title bar
