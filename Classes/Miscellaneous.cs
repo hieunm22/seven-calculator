@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
+using Microsoft.Win32;
 
 namespace Calculator
 {
@@ -24,7 +25,6 @@ namespace Calculator
         {
             if (obj.ToString() == "0") return "0";
             string output = obj.ToString();
-            // biến này lưu giá trị phần nguyên của comboBoxItemMember
 
             int comma = output.IndexOf(DecimalSeparator);
             if (comma > 0) output = output.Substring(0, comma);	//cắt phần lẻ trước khi chia
@@ -49,7 +49,7 @@ namespace Calculator
         {
             string outp = input;
             int bit = outp.Length - num;
-            // them 1 dau cach vao giua nhom 3 so o xau ket qua
+            // them ky tu phan cach nhom vao giua nhom 3 so o xau ket qua
             while (bit > 0)
             {
                 outp = outp.Insert(bit, sep);
@@ -181,6 +181,7 @@ namespace Calculator
             while (stdStr.Contains("  ")) stdStr = stdStr.Replace("  ", " ");
             stdStr = stdStr.Replace("* - ", "* -");
             stdStr = stdStr.Replace("/ - ", "/ -");
+            stdStr = stdStr.Replace("mod - ", "mod -");
             if (stdStr.StartsWith(" - ")) stdStr = "-" + stdStr.Substring(3);
             if (stdStr.StartsWith(" + ")) stdStr = stdStr.Substring(3);
             return stdStr.Trim();
@@ -324,10 +325,121 @@ namespace Calculator
             }
             return temperature;
         }
-
-        public static void WriteAllText(string path, string content)
+        /// <summary>
+        /// đọc thông tin từ regedit
+        /// </summary>
+        /// <param name="optionName"></param>
+        /// <returns></returns>
+        public static object[] ReadFromRegedit(string[] optionName)
         {
-            System.IO.File.WriteAllText(path, content);
+            object[] result = new object[optionName.Length];
+            RegistryKey reg = Registry.CurrentUser;
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
+            if (reg == null)    // create and assign default value
+            {
+                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator");
+                for (int i = 0; i < 4; i++)
+                {
+                    reg.SetValue(optionName[i], 0, RegistryValueKind.DWord);
+                    result[i] = 0;
+                }
+                result[4] = "0";
+                reg.SetValue(optionName[4], result[4], RegistryValueKind.String);
+            }
+            else
+            {
+                result[0] = GetValueFromValueKey(optionName[0], reg, 0, 3, 0);
+                result[1] = GetValueFromValueKey(optionName[1], reg, 0, 1, 0);
+                result[2] = GetValueFromValueKey(optionName[2], reg, 0, 7, 0);
+                result[3] = GetValueFromValueKey(optionName[3], reg, 0, 1, 0);
+                result[4] = GetValueFromValueKey(optionName[4], reg);
+            }
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
+            if (reg == null)    // create and assign default value
+            {
+                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\UnitConversion");
+                reg.SetValue(optionName[5], 0, RegistryValueKind.DWord);
+                result[5] = 0;
+            }
+            else
+            {
+                result[5] = GetValueFromValueKey(optionName[5], reg, 0, 11, 0);
+            }
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
+            if (reg == null)    // create and assign default value
+            {
+                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\DateCalculation");
+                reg.SetValue(optionName[6], 0, RegistryValueKind.DWord);
+                reg.SetValue(optionName[7], 0, RegistryValueKind.DWord);
+                result[6] = 0;
+                result[7] = 0;
+            }
+            else
+            {
+                result[6] = GetValueFromValueKey(optionName[6], reg, 0, 1, 0);
+                result[7] = GetValueFromValueKey(optionName[7], reg, 0, 1, 0);
+            }
+
+            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
+            if (reg == null)    // create and assign default value
+            {
+                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\OtherOptions");
+                reg.SetValue(optionName[08], 10, RegistryValueKind.DWord);
+                reg.SetValue(optionName[09], 1, RegistryValueKind.DWord);
+                reg.SetValue(optionName[10], 0, RegistryValueKind.DWord);
+                reg.SetValue(optionName[11], 1, RegistryValueKind.DWord);
+                result[08] = 10;
+                result[09] = 1;
+                result[10] = 0;
+                result[11] = 1;
+            }
+            else
+            {
+                result[08] = GetValueFromValueKey(optionName[08], reg, 0, 12, 10);
+                result[09] = GetValueFromValueKey(optionName[09], reg, 0, 1, 1);
+                result[10] = GetValueFromValueKey(optionName[10], reg, 0, 1, 0);
+                result[11] = GetValueFromValueKey(optionName[11], reg, 0, 1, 1);
+            }
+            reg.Close();
+
+            return result;
+        }
+        /// <summary>
+        /// đọc thông tin từ dword value
+        /// </summary>
+        /// <param name="optionName">tên dword</param>
+        /// <param name="reg">đường dẫn tới key chứa dword</param>
+        /// <param name="minValue">giá trị nhỏ nhất cho phép của dword</param>
+        /// <param name="maxValue">giá trị lớn nhất cho phép của dword</param>
+        /// <param name="defaultValue">giá trị mặc định sẽ được gán nếu giá trị đọc được nằm ngoài khoảng min-max trên</param>
+        /// <returns>giá trị đọc được từ dword value</returns>
+        static object GetValueFromValueKey(string optionName, RegistryKey reg, int minValue, int maxValue, int defaultValue)
+        {
+            int rs = (int)reg.GetValue(optionName, -1);
+            if (rs > maxValue || rs < minValue)
+            {
+                rs = defaultValue;
+                reg.SetValue(optionName, defaultValue, RegistryValueKind.DWord);
+            }
+            return rs;
+        }
+        /// <summary>
+        /// đọc thông tin từ string value
+        /// </summary>
+        /// <param name="optionName">tên dword</param>
+        /// <param name="reg">đường dẫn tới key chứa dword</param>
+        /// <returns>giá trị đọc được từ dword value</returns>
+        static object GetValueFromValueKey(string optionName, RegistryKey reg)
+        {
+            string rs = (string)reg.GetValue(optionName, "A non-number can be assigned here");
+            if (!BigNumber.IsNumber(rs))
+            {
+                reg.SetValue(optionName, "0", RegistryValueKind.String);
+                rs = "0";
+            }
+            return rs;
         }
     }
     /// <summary>

@@ -41,9 +41,10 @@
             // spdLB
             // 
             this.spdLB.AutoSize = true;
+            this.spdLB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.spdLB.Location = new System.Drawing.Point(21, 14);
             this.spdLB.Name = "spdLB";
-            this.spdLB.Size = new System.Drawing.Size(85, 13);
+            this.spdLB.Size = new System.Drawing.Size(101, 13);
             this.spdLB.TabIndex = 0;
             this.spdLB.Text = "Collapsed speed";
             this.spdLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
@@ -51,9 +52,10 @@
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Location = new System.Drawing.Point(82, 124);
+            this.btnOK.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnOK.Location = new System.Drawing.Point(78, 124);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(75, 23);
+            this.btnOK.Size = new System.Drawing.Size(87, 23);
             this.btnOK.TabIndex = 5;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
@@ -62,9 +64,10 @@
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(185, 124);
+            this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCancel.Location = new System.Drawing.Point(198, 124);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.Size = new System.Drawing.Size(87, 23);
             this.btnCancel.TabIndex = 6;
             this.btnCancel.Text = "C&ancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -73,9 +76,10 @@
             // fastFactCB
             // 
             this.fastFactCB.AutoSize = true;
-            this.fastFactCB.Location = new System.Drawing.Point(29, 69);
+            this.fastFactCB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fastFactCB.Location = new System.Drawing.Point(24, 69);
             this.fastFactCB.Name = "fastFactCB";
-            this.fastFactCB.Size = new System.Drawing.Size(89, 17);
+            this.fastFactCB.Size = new System.Drawing.Size(99, 17);
             this.fastFactCB.TabIndex = 3;
             this.fastFactCB.Text = "&Fast factorial";
             this.fastFactCB.UseVisualStyleBackColor = true;
@@ -83,7 +87,8 @@
             // 
             // collapsedSpdNUD
             // 
-            this.collapsedSpdNUD.Location = new System.Drawing.Point(122, 12);
+            this.collapsedSpdNUD.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.collapsedSpdNUD.Location = new System.Drawing.Point(146, 12);
             this.collapsedSpdNUD.Maximum = new decimal(new int[] {
             12,
             0,
@@ -95,7 +100,7 @@
             0,
             0});
             this.collapsedSpdNUD.Name = "collapsedSpdNUD";
-            this.collapsedSpdNUD.Size = new System.Drawing.Size(67, 21);
+            this.collapsedSpdNUD.Size = new System.Drawing.Size(78, 21);
             this.collapsedSpdNUD.TabIndex = 1;
             this.collapsedSpdNUD.Value = new decimal(new int[] {
             5,
@@ -109,9 +114,10 @@
             this.usedSignChkB.AutoSize = true;
             this.usedSignChkB.Checked = true;
             this.usedSignChkB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.usedSignChkB.Location = new System.Drawing.Point(29, 92);
+            this.usedSignChkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.usedSignChkB.Location = new System.Drawing.Point(24, 92);
             this.usedSignChkB.Name = "usedSignChkB";
-            this.usedSignChkB.Size = new System.Drawing.Size(241, 17);
+            this.usedSignChkB.Size = new System.Drawing.Size(287, 17);
             this.usedSignChkB.TabIndex = 4;
             this.usedSignChkB.Text = "U&se signed-integer calculation in programmer";
             this.usedSignChkB.UseVisualStyleBackColor = true;
@@ -122,9 +128,10 @@
             this.animateCB.AutoSize = true;
             this.animateCB.Checked = true;
             this.animateCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.animateCB.Location = new System.Drawing.Point(29, 46);
+            this.animateCB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.animateCB.Location = new System.Drawing.Point(24, 46);
             this.animateCB.Name = "animateCB";
-            this.animateCB.Size = new System.Drawing.Size(114, 17);
+            this.animateCB.Size = new System.Drawing.Size(132, 17);
             this.animateCB.TabIndex = 2;
             this.animateCB.Text = "Animate &resization";
             this.animateCB.UseVisualStyleBackColor = true;
@@ -133,10 +140,10 @@
             // Preferences
             // 
             this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(342, 157);
+            this.ClientSize = new System.Drawing.Size(362, 157);
             this.Controls.Add(this.animateCB);
             this.Controls.Add(this.usedSignChkB);
             this.Controls.Add(this.collapsedSpdNUD);
@@ -144,7 +151,7 @@
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.spdLB);
-            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Font = new System.Drawing.Font("Verdana", 8.25F);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

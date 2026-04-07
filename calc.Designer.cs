@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 namespace Calculator
 {
@@ -295,7 +296,7 @@ namespace Calculator
                         }
                         break;
                     case 113:       // F2
-                        if (hisDGV.Visible && hisDGV.RowCount > 0)
+                        if (hisDGV.Visible && hisDGV.RowCount > 0 && !standardMI.Checked)
                         {
                             hisDGV.ReadOnly = false;
                             hisDGV.BeginEdit(false);
@@ -538,30 +539,28 @@ namespace Calculator
             currentConfig[6] = autocal_date.Checked.GetHashCode();
             currentConfig[7] = datemethodCB.SelectedIndex * (datemethodCB.SelectedIndex >= 0).GetHashCode();
 
-            string configNew = string.Format(@"[calc]
-CalculatorType={0};
-DigitGrouping={1};
-ExtraFunction={2};
-History={3};
-MemoryNumber={4};
---------------------------------------------------
-[UnitConversion]
-TypeUnitCB={5};
---------------------------------------------------
-[DateCalculation]
-AutoCalculate={6};
-Method={7};
---------------------------------------------------
-[OtherOptions]
-CollapseSpeed={8};
-Animate={9};
-FastFactorial={10};
-SignInteger={11};",
-            currentConfig);
-
-            if (this.configContent != configNew)
+            if (!currentConfig.Equals(initConfigValue))
             {
-                Misc.WriteAllText(configPath, configNew);
+                //  DO SOMETHING HERE
+                RegistryKey reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
+                reg.SetValue(optionName[0], currentConfig[0], RegistryValueKind.DWord);
+                reg.SetValue(optionName[1], currentConfig[1], RegistryValueKind.DWord);
+                reg.SetValue(optionName[2], currentConfig[2], RegistryValueKind.DWord);
+                reg.SetValue(optionName[3], currentConfig[3], RegistryValueKind.DWord);
+                reg.SetValue(optionName[4], currentConfig[4], RegistryValueKind.String);
+
+                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
+                reg.SetValue(optionName[5], currentConfig[5], RegistryValueKind.DWord);
+
+                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
+                reg.SetValue(optionName[6], currentConfig[6], RegistryValueKind.DWord);
+                reg.SetValue(optionName[7], currentConfig[7], RegistryValueKind.DWord);
+
+                reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
+                reg.SetValue(optionName[08], currentConfig[08], RegistryValueKind.DWord);
+                reg.SetValue(optionName[09], currentConfig[09], RegistryValueKind.DWord);
+                reg.SetValue(optionName[10], currentConfig[10], RegistryValueKind.DWord);
+                reg.SetValue(optionName[11], currentConfig[11], RegistryValueKind.DWord);
             }
         }
         #endregion
@@ -620,11 +619,11 @@ SignInteger={11};",
                 hideProComponent(false);
                 hideStaComponent(false);
 
-                unitconvGB.Location = new Point(213, 12);
-                unitconvGB.Size = new Size(362, 241 + 103 * his);
+                unitconvPN.Location = new Point(213, 12);
+                unitconvPN.Size = new Size(362, 241 + 103 * his);
 
-                datecalcGB.Visible = dateCalculationMI.Checked;
-                unitconvGB.Visible = unitConversionMI.Checked;
+                datecalcPN.Visible = dateCalculationMI.Checked;
+                unitconvPN.Visible = unitConversionMI.Checked;
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
@@ -659,12 +658,12 @@ SignInteger={11};",
                 else scientificLoad(true);
 
                 this.hisDGV.Size = new Size(scientificMI.Checked ? 385 : 190, hisDGV.Size.Height);
-                datecalcGB.Visible = dateCalculationMI.Checked;
-                unitconvGB.Visible = unitConversionMI.Checked;
+                datecalcPN.Visible = dateCalculationMI.Checked;
+                unitconvPN.Visible = unitConversionMI.Checked;
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
 
-                unitconvGB.Location = new Point(408, 12);
-                unitconvGB.Size = new Size(362, 241 + 103 * his);
+                unitconvPN.Location = new Point(408, 12);
+                unitconvPN.Size = new Size(362, 241 + 103 * his);
                 if (exf) basicMI.Checked = false;
 
                 gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
@@ -696,14 +695,14 @@ SignInteger={11};",
                 hideSciComponent(false);
                 hideProComponent(true);
                 hideStaComponent(false);
-                datecalcGB.Visible = dateCalculationMI.Checked;
-                unitconvGB.Visible = unitConversionMI.Checked;
+                datecalcPN.Visible = dateCalculationMI.Checked;
+                unitconvPN.Visible = unitConversionMI.Checked;
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
                 programmerMode();
 
                 historyMI.Enabled = false;
-                unitconvGB.Location = new Point(408, 12);
-                unitconvGB.Size = new Size(362, 304);
+                unitconvPN.Location = new Point(408, 12);
+                unitconvPN.Size = new Size(362, 304);
 
                 gridPanel.Visible = historyMI.Checked && historyMI.Enabled;
                 hisDGV.Visible = false;
@@ -730,8 +729,8 @@ SignInteger={11};",
                 hideSciComponent(false);
                 hideProComponent(false);
                 hideStaComponent(true);
-                datecalcGB.Visible = dateCalculationMI.Checked;
-                unitconvGB.Visible = unitConversionMI.Checked;
+                datecalcPN.Visible = dateCalculationMI.Checked;
+                unitconvPN.Visible = unitConversionMI.Checked;
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 gridPanel.Visible = true;
@@ -743,8 +742,8 @@ SignInteger={11};",
                 //ctmnEnableAndVisible();
 
                 enableComponentByProgrammer();
-                unitconvGB.Location = new Point(213, 12);
-                unitconvGB.Size = new Size(362, 344);
+                unitconvPN.Location = new Point(213, 12);
+                unitconvPN.Size = new Size(362, 344);
 
                 clear_num(false);
                 if (!isLoaded) propertiesChange = true;
@@ -775,10 +774,10 @@ SignInteger={11};",
         /// <summary>
         /// nạp những setting từ lần sử dụng trước đó từ registry
         /// </summary>
-        private void loadInfoFromFile()
+        private void LoadInfo()
         {
-            initConfigValue = readFromFile();
-            getMemoryNumber();
+            initConfigValue = Misc.ReadFromRegedit(optionName);
+            //getMemoryNumber();
             currentConfig = new object[initConfigValue.Length];
             initConfigValue.CopyTo(currentConfig, 0);
             if ((int)initConfigValue[0] == 0) stdLoad(true);
@@ -800,15 +799,15 @@ SignInteger={11};",
             {
                 exFunc(mortgageMI, true);
             }
-            if ((int)initConfigValue[2] == 4)
+            else if ((int)initConfigValue[2] == 4)
             {
                 exFunc(vehicleLeaseMI, true);
             }
-            if ((int)initConfigValue[2] == 5)
+            else if ((int)initConfigValue[2] == 5)
             {
                 exFunc(fe_MPG_MI, true);
             }
-            if ((int)initConfigValue[2] == 6)
+            else if ((int)initConfigValue[2] == 6)
             {
                 exFunc(feL100_MI, true);
             }
@@ -823,18 +822,17 @@ SignInteger={11};",
             typeUnitCB.SelectedIndex = (int)initConfigValue[5];
             typeUnitCB.SelectedIndexChanged += typeUnitCB_SelectedIndexChanged;
 
-            datemethodCB.SelectedIndexChanged -= cal_method_SelectedIndexChanged;
+            datemethodCB.SelectedIndexChanged -= datemethodCB_SelectedIndexChanged;
+            autocal_date.CheckedChanged -= autocal_date_CheckedChanged;
+
             datemethodCB.SelectedIndex = (int)initConfigValue[7];
             calMethod_SIC(true, (int)initConfigValue[7]);
-            datemethodCB.SelectedIndexChanged += cal_method_SelectedIndexChanged;
 
+            datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
+            autocal_date.CheckedChanged += autocal_date_CheckedChanged;
+            
             btdot.Text = Misc.DecimalSeparator;
             resultCollection = new string[100];
-        }
-
-        private bool saiso(int n1, int n2)
-        {
-            return Math.Abs(n1 - n2) < 5;
         }
 
         /// <summary>
@@ -842,215 +840,44 @@ SignInteger={11};",
         /// </summary>
         private void FormSizeChanged(Size newS, bool isLoaded)
         {
-            if (isLoaded || (int)initConfigValue[9] == 0) { this.Size = newS; return; }
-            int oldw = Size.Width, oldh = Size.Height;
-            int neww = newS.Width, newh = newS.Height;
+            if (isLoaded || (int)currentConfig[9] == 0) { this.Size = newS; return; }
+            int old_w = Size.Width, old_h = Size.Height;
+            int new_w = newS.Width, new_h = newS.Height;
             //------chi thay doi chieu rong
-            int colspd = (int)initConfigValue[8];
-            //if (saiso(oldh, newh))
-            if (oldh == newh)
+            int colspd = (int)currentConfig[8];
+            if (old_h == new_h)
             {
-                int inc_or_dec = (oldw < neww) ? 1 : -1;
-                for (int i = 0; i < (int)(Math.Abs(neww - oldw) / colspd); i++)
-                    this.Size = new Size(Size.Width + colspd * inc_or_dec, oldh);
+                int inc_or_dec = (old_w < new_w) ? 1 : -1;
+                for (int i = 0; i < (int)(Math.Abs(new_w - old_w) / colspd); i++)
+                    this.Size = new Size(Size.Width + colspd * inc_or_dec, old_h);
                 goto end;
             }
             //------chi thay doi chieu cao
-            if (oldw == neww)
-            //if (saiso(oldw, neww))
+            if (old_w == new_w)
             {
-                int inc_or_dec = (oldh < newh) ? 1 : -1;
-                for (int i = 0; i < (int)(Math.Abs(newh - oldh) / colspd); i++)
-                    this.Size = new Size(oldw, Size.Height + colspd * inc_or_dec);
+                int inc_or_dec = (old_h < new_h) ? 1 : -1;
+                for (int i = 0; i < (int)(Math.Abs(new_h - old_h) / colspd); i++)
+                    this.Size = new Size(old_w, Size.Height + colspd * inc_or_dec);
                 goto end;
             }
             //------thay doi ca chieu rong va chieu cao
-            int verticalSpd = (oldw - neww) / (newh - oldh) * colspd;
+            int verticalSpd = (old_w - new_w) / (new_h - old_h) * colspd;
             verticalSpd = Math.Abs(verticalSpd);
-            if (oldw > neww)
+            if (old_w > new_w)
             {
-                int inc_or_dec = (oldh < newh) ? 1 : -1;
-                for (int i = 0; i < (int)(Math.Abs(newh - oldh) / colspd); i++)
-                    this.Size = new Size(oldw -= verticalSpd, Size.Height + inc_or_dec * colspd);
+                int inc_or_dec = (old_h < new_h) ? 1 : -1;
+                for (int i = 0; i < (int)(Math.Abs(new_h - old_h) / colspd); i++)
+                    this.Size = new Size(old_w -= verticalSpd, Size.Height + inc_or_dec * colspd);
                 goto end;
             }
 
-            if (oldw < neww)
+            if (old_w < new_w)
             {
-                int inc_or_dec = (oldw < neww) ? 1 : -1;
-                for (int i = 0; i < (int)(Math.Abs(neww - oldw) / colspd); i++)
-                    this.Size = new Size(oldw += verticalSpd, Size.Height + inc_or_dec * colspd);
+                int inc_or_dec = (old_w < new_w) ? 1 : -1;
+                for (int i = 0; i < (int)(Math.Abs(new_w - old_w) / colspd); i++)
+                    this.Size = new Size(old_w += verticalSpd, Size.Height + inc_or_dec * colspd);
             }
-            end: if (Size.Height != newh || Size.Width != neww) this.Size = new Size(neww, newh);
-        }
-
-        string configContent;
-        /// <summary>
-        /// đọc thuộc tính đã được ghi vào file, nếu không đúng thì sửa luôn
-        /// </summary>
-        private object[] readFromFile()
-        {
-            bool changed = false;
-            object[] result = new object[optionName.Length];
-            string[] lines = new string[20];
-            try
-            {
-                configContent = System.IO.File.ReadAllText(configPath);
-                configContent = configContent.Replace(" ", "").Replace("\t", "");
-
-                //edit = configContent;
-                //int index = 0;
-                //while (edit.Contains("="))
-                //{
-                //    edit = edit.Substring(edit.IndexOf("=") + 1);
-                //    if (index != 4) result[index] = int.Parse(edit.Substring(0, edit.IndexOf(";")));    // bỏ qua dòng thứ 5
-                //    index++;
-                //}
-
-                lines = System.IO.File.ReadAllLines(configPath);
-                // bắt buộc config phải theo thứ tự này
-                result[00] = assignConfigValue(ref lines[01], optionName[00]);
-                result[01] = assignConfigValue(ref lines[02], optionName[01]);
-                result[02] = assignConfigValue(ref lines[03], optionName[02]);
-                result[03] = assignConfigValue(ref lines[04], optionName[03]);
-                result[05] = assignConfigValue(ref lines[08], optionName[05]);
-                result[06] = assignConfigValue(ref lines[11], optionName[06]);
-                result[07] = assignConfigValue(ref lines[12], optionName[07]);
-                result[08] = assignConfigValue(ref lines[15], optionName[08]);
-                result[09] = assignConfigValue(ref lines[16], optionName[09]);
-                result[10] = assignConfigValue(ref lines[17], optionName[10]);
-                result[11] = assignConfigValue(ref lines[18], optionName[11]);
-
-                changed |= checkIfValid(optionName[00], ref result[00], 3);
-                changed |= checkIfValid(optionName[01], ref result[01], 1);
-                changed |= checkIfValid(optionName[02], ref result[02], 6);
-                changed |= checkIfValid(optionName[03], ref result[03], 1);
-                changed |= checkIfValid(optionName[05], ref result[05], 10);
-                changed |= checkIfValid(optionName[06], ref result[06], 1);
-                changed |= checkIfValid(optionName[07], ref result[07], 1);
-                changed |= checkIfValid(optionName[08], ref result[08], 12);
-                changed |= checkIfValid(optionName[09], ref result[09], 1);
-                changed |= checkIfValid(optionName[10], ref result[10], 1);
-                changed |= checkIfValid(optionName[11], ref result[11], 1);
-                if (changed) Misc.WriteAllText(configPath, configContent);
-            }
-            catch (Exception)
-            {
-                configContent = string.Format(@"[calc]
-{0}=0;
-{1}=0;
-{2}=0;
-{3}=0;
-{4}=0;
---------------------------------------------------
-[UnitConversion]
-{5}=0;
---------------------------------------------------
-[DateCalculation]
-{6}=0;
-{7}=0;
---------------------------------------------------
-[OtherOptions]
-{8}=10;
-{9}=1;
-{10}=0;
-{11}=1;", optionName);
-                Misc.WriteAllText(configPath, configContent);
-                //standardMI.Checked = true;
-                historyMI.Checked = false;
-                digitGroupingMI.Checked = false;
-                //basicMI.Checked = true;
-                result = new object[] { 0, 0, 0, 0, "0", 0, 0, 0, 10, 1, 0, 1 };
-                return result;
-            }
-            return result;
-        }
-
-        private int assignConfigValue(ref string line, string compare)
-        {
-            if (line.Contains(compare))
-            {
-                string value = line;
-                value = value.Substring(0, value.IndexOf(";"));
-                value = value.Substring(value.IndexOf("=") + 1);
-                return int.Parse(value);
-            }
-            else
-            {
-                //line = string.Format("{0}=0;", compare);
-                //propertiesChange = true;
-                //return 0;
-                throw new Exception("Invalid compare value");
-            }
-        }
-        /// <summary>
-        /// kiểm tra giá trị được gán có nằm trong phạm vi cho phép không?
-        /// </summary>
-        private bool checkIfValid(string compare, ref object RTValue, int max)
-        {
-            int defaultvalue = 0;
-            switch (compare)
-            {
-                case "CollapseSpeed": defaultvalue = 10;
-                    break;
-                case "SignInteger": case "Animate": defaultvalue = 1;
-                    break;
-            }
-            if ((int)RTValue > max || (int)RTValue < (compare == "CollapseSpeed" ? 4 : 0))
-            {
-                configContent = configContent.Replace(compare + "=" + RTValue, compare + "=" + defaultvalue.ToString());
-                RTValue = defaultvalue;
-                return true;
-            }
-            return false;
-        }
-        /// <summary>
-        /// lấy giá trị của số M từ file
-        /// </summary>
-        private void getMemoryNumber()
-        {
-            string number = null;
-            try
-            {
-                if (!configContent.Contains("MemoryNumber"))
-                {
-                    initConfigValue[4] = "0";
-                    configContent = string.Format(@"[calc]
-CalculatorType={0};
-DigitGrouping={1};
-ExtraFunction={2};
-History={3};
-MemoryNumber={4};
---------------------------------------------------
-[UnitConversion];
-TypeUnitCB={5};
---------------------------------------------------
-[DateCalculation]
-AutoCalculate={6};
-Method={7};
---------------------------------------------------
-[OtherOptions]
-CollapseSpeed={8};
-Animate={11};
-FastFactorial={10};
-SignInteger={9};", initConfigValue);
-                    Misc.WriteAllText(configPath, configContent);
-                    return;
-                }
-                number = configContent.Substring(configContent.IndexOf("MemoryNumber") + "MemoryNumber".Length);
-                number = number.Substring(0, number.IndexOf(";"));
-                number = number.Substring(number.IndexOf("=") + 1);
-                mem_num = number;
-                initConfigValue[4] = number;
-                mem_lb.Visible = (mem_num != 0);
-                toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", mem_num.StrValue));
-            }
-            catch (Exception)
-            {
-                initConfigValue[4] = "0";
-                configContent = configContent.Replace("MemoryNumber=" + number, "MemoryNumber=0");
-                Misc.WriteAllText(configPath, configContent);
-            }
+            end: if (Size.Height != new_h || Size.Width != new_w) this.Size = new Size(new_w, new_h);
         }
         /// <summary>
         /// form with history - control - H
@@ -1066,8 +893,8 @@ SignInteger={9};", initConfigValue);
             int exf = (dateCalculationMI.Checked || unitConversionMI.Checked ||
                 fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked).GetHashCode();
 
-            unitconvGB.Location = new Point(213 + 195 * sci, 12);
-            unitconvGB.Size = new Size(362, 241 + 103 * his);
+            unitconvPN.Location = new Point(213 + 195 * sci, 12);
+            unitconvPN.Size = new Size(362, 241 + 103 * his);
 
             hisDGV.EndEdit();
 
@@ -1113,8 +940,8 @@ SignInteger={9};", initConfigValue);
             FormSizeChanged(new Size(590 + 197 * (sci + pro), 310 + 104 * his + 64 * pro), isLoaded);
 
             currentConfig[2] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : 0);
-            datecalcGB.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
-            unitconvGB.Visible = unitConversionMI.Checked = (menuitem == unitConversionMI);
+            datecalcPN.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
+            unitconvPN.Visible = unitConversionMI.Checked = (menuitem == unitConversionMI);
             feMPG_PN.Visible = (menuitem == fe_MPG_MI || menuitem == feL100_MI);
             morgagePN.Visible = (menuitem == mortgageMI);
             VhPN.Visible = (menuitem == vehicleLeaseMI);
@@ -1134,8 +961,8 @@ SignInteger={9};", initConfigValue);
             fe_MPG_MI.Checked = (menuitem == fe_MPG_MI);
             feL100_MI.Checked = (menuitem == feL100_MI);
 
-            unitconvGB.Size = new Size(362, 241 + 63 * pro + 103 * his);
-            unitconvGB.Location = new Point(213 + 195 * (sci + pro), 12);
+            unitconvPN.Size = new Size(362, 241 + 63 * pro + 103 * his);
+            unitconvPN.Location = new Point(213 + 195 * (sci + pro), 12);
 
             basicMI.Checked = false;
 
@@ -1143,43 +970,41 @@ SignInteger={9};", initConfigValue);
 
             if (isLoaded)
             {
-                datemethodCB.SelectedIndexChanged -= cal_method_SelectedIndexChanged;
+                datemethodCB.SelectedIndexChanged -= datemethodCB_SelectedIndexChanged;
                 datemethodCB.SelectedIndex = (int)initConfigValue[7];
-                datemethodCB.SelectedIndexChanged += cal_method_SelectedIndexChanged;
+                datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
                 //------------------------
                 typeUnitCB.SelectedIndexChanged -= typeUnitCB_SelectedIndexChanged;
                 typeUnitCB.SelectedIndex = (int)initConfigValue[5];
                 typeUnitCB.SelectedIndexChanged += typeUnitCB_SelectedIndexChanged;
-                EnableKeyboardAndChangeFocus();
             }
-            toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
-            assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
-            toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
-
-            typeFECB1.Visible = (menuitem == fe_MPG_MI);
-            typeFECB2.Visible = (menuitem == feL100_MI);
-
-            typeMorgageCB.SelectedIndex = 1;
-            typeVhCB.SelectedIndex = 2;
-            typeFECB1.SelectedIndex = 1;
-            typeFECB2.SelectedIndex = 1;
-
-            autocal_date.Checked = ((int)initConfigValue[6] == 1);
-            if (dateCalculationMI.Checked) this.AcceptButton = calculate_date;
-            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = fuelEconomyBT;
-
-            prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused;
-
-            if (!isLoaded)
+            else
             {
                 propertiesChange = true;
                 if (menuitem == unitConversionMI) { typeUnitCB.Focus(); typeUnitCB.Focus(); }
                 if (menuitem == dateCalculationMI) datemethodCB.Focus();
                 if (mortgageMI.Checked) typeMorgageCB.Focus();
-                if (vehicleLeaseMI.Checked) typeMorgageCB.Focus();
-                if (feL100_MI.Checked) typeFECB2.Focus();
-                if (feL100_MI.Checked) typeFECB2.Focus();
+                if (vehicleLeaseMI.Checked) typeVhCB.Focus();
+                if (fe_MPG_MI.Checked) typeFEmpg.Focus();
+                if (feL100_MI.Checked) typeFEl100.Focus();
             }
+            toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
+            assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
+            toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
+
+            typeFEmpg.Visible = (menuitem == fe_MPG_MI);
+            typeFEl100.Visible = (menuitem == feL100_MI);
+
+            typeMorgageCB.SelectedIndex = 1;
+            typeVhCB.SelectedIndex = 2;
+            typeFEmpg.SelectedIndex = 1;
+            typeFEl100.SelectedIndex = 1;
+
+            autocal_date.Checked = (int)currentConfig[6] == 1;
+            if (dateCalculationMI.Checked) this.AcceptButton = calculate_date;
+            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = fuelEconomyBT;
+
+            prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused && !typeFEl100.Focused && !typeFEmpg.Focused;
         }
         /// <summary>
         /// ẩn các control đặc biệt của form standard
@@ -1349,7 +1174,7 @@ SignInteger={9};", initConfigValue);
                 if (method == "M+") mem_num = mem_num + str;  // M+
                 if (method == "M-") mem_num = mem_num - str;  // M-
                 if (method == "MS") mem_num = str;            // MS
-                initConfigValue[4] = mem_num.StrValue;
+                currentConfig[4] = mem_num.StrValue;
                 DisplayToScreen();
 
                 mem_lb.Visible = (mem_num != 0);
@@ -1515,16 +1340,8 @@ SignInteger={9};", initConfigValue);
 
         private void recalculate(int rowID)
         {
-            try
-            {
-                hisDGV.EndEdit();
-                sci_exp = hisDGV[0, rowID].Value.ToString(); // sau khi ket thuc 1 phep tinh, sci_exp duoc gan ve ""
-            }
-            catch
-            {
-                sci_exp = oldValue.ToString();
-                hisDGV[0, rowID].Value = oldValue;
-            }
+            hisDGV.EndEdit();
+            sci_exp = hisDGV[0, rowID].Value.ToString(); // sau khi ket thuc 1 phep tinh, sci_exp duoc gan ve ""
             evaluateExpression(rowID, true);
             //if (pex == null) DisplayToScreen();
         }
@@ -1673,6 +1490,17 @@ SignInteger={9};", initConfigValue);
         /// </summary>
         private void numinput(object sender)
         {
+            if (pre_oprt == 0)
+            {
+                switch (pre_bt)
+                {
+                    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
+                    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
+                        equal_Click(null, null);
+                        break;
+                } 
+            }
+
             var bt = sender as Button;
             if (!bt.Enabled) return;
             int index = bt.TabIndex;
@@ -1704,7 +1532,7 @@ SignInteger={9};", initConfigValue);
                     str = index.ToString();
                     FixNumberWhenChange();
                 }
-                expressionTB.Text = Misc.StandardExpression(sci_exp);
+                //expressionTB.Text = Misc.StandardExpression(sci_exp);
                 isFuncClicked = false;
                 prevFunc = str;
                 goto breakpoint;
@@ -1965,18 +1793,18 @@ SignInteger={9};", initConfigValue);
         {
             pre_priority = priority;
             string oper = "";
-            if (index == 012) { oper = "+"; priority = 1; }
-            if (index == 013) { oper = "-"; priority = 1; }
-            if (index == 014) { oper = "*"; priority = 2; }
-            if (index == 015) { oper = "/"; priority = 2; }
-            if (index == 033) { oper = "^"; priority = 3; }
-            if (index == 034) { oper = "yroot"; priority = 3; }
-            if (index == 142) { oper = "mod"; priority = 2; }
+            if (index == 12) { oper = "+"; priority = 1; }
+            if (index == 13) { oper = "-"; priority = 1; }
+            if (index == 14) { oper = "*"; priority = 2; }
+            if (index == 15) { oper = "/"; priority = 2; }
+            if (index == 33) { oper = "^"; priority = 3; }
+            if (index == 34) { oper = "yroot"; priority = 3; }
+            if (index == 43) { oper = "mod"; priority = 2; }
             if (pre_oprt != 0)
             {
                 switch (pre_bt)
                 {
-                    case 12: case 13: case 14: case 15: case 33: case 34: case 142:
+                    case 12: case 13: case 14: case 15: case 33: case 34: case 43:
                         if (pre_bt == 12 || pre_bt == 13)
                         {
                             mulDivFunc = prevFunc + oper;
@@ -1985,7 +1813,7 @@ SignInteger={9};", initConfigValue);
                         string format = "({0}){1}";
                         if (priority <= pre_priority || (sci_exp.StartsWith("(") && sci_exp[sci_exp.Length - 2] == ')')) format = "{0}{1}";
                         sci_exp = string.Format(format, sci_exp.Substring(0, sci_exp.Length - preoperLength), oper);
-                        if (pre_bt == 14 || pre_bt == 15 || pre_bt == 142)
+                        if (pre_bt == 14 || pre_bt == 15 || pre_bt == 43)
                             mulDivFunc = string.Format(format, mulDivFunc.Substring(0, mulDivFunc.Length - preoperLength), oper);
                         if (pre_bt == 33 || pre_bt == 34)
                             power_Func = string.Format(format, power_Func.Substring(0, power_Func.Length - preoperLength), oper);
@@ -2010,7 +1838,7 @@ SignInteger={9};", initConfigValue);
                     pex = parser.EvaluateSci(power_Func.Substring(0, power_Func.Length - 1));
                     str = parser.StringResult;
                 }
-                if (index == 14 || index == 15 || index == 142)
+                if (index == 14 || index == 15 || index == 43)
                 {
                     if (pre_oprt == 33 || pre_oprt == 34)
                     {
@@ -2064,7 +1892,7 @@ SignInteger={9};", initConfigValue);
                 {
                     power_Func = prevFunc + oper;
                 }
-                if (index == 14 || index == 15 || index == 142)
+                if (index == 14 || index == 15 || index == 43)
                 {
                     mulDivFunc = prevFunc + oper;
                 }
@@ -2188,7 +2016,8 @@ SignInteger={9};", initConfigValue);
         {
             if (hisDGV.CurrentCell != null && (standardMI.Checked || scientificMI.Checked))
             {
-                if (dir * hisDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - hisDGV.RowCount))
+                //if (dir * hisDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - hisDGV.RowCount))
+                if ((dir == 1 && hisDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && hisDGV.CurrentCell.RowIndex <= hisDGV.RowCount - 2))
                 {
                     rowIndex = hisDGV.CurrentRow.Index - dir; // rowIndex--;
                     hisDGV[0, rowIndex].Selected = true;
@@ -2198,10 +2027,11 @@ SignInteger={9};", initConfigValue);
             }
             if (staDGV.CurrentCell != null && statisticsMI.Checked)
             {
-                if (dir * staDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - staDGV.RowCount))
+                //if (dir * staDGV.CurrentCell.RowIndex >= (dir == 1 ? 1 : 2 - staDGV.RowCount))
+                if ((dir == 1 && staDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && staDGV.CurrentCell.RowIndex <= staDGV.RowCount - 2))
                 {
-                    staDGV[0, staDGV.CurrentRow.Index - dir].Selected = true;
-                    rowIndex = staDGV.CurrentRow.Index;// rowIndex--;
+                    rowIndex = staDGV.CurrentRow.Index - dir; // rowIndex--;
+                    staDGV[0, rowIndex].Selected = true;
                 }
             }
         }
@@ -2246,7 +2076,7 @@ SignInteger={9};", initConfigValue);
             this.mem_recall = new System.Windows.Forms.Button();
             this.sqrt_bt = new System.Windows.Forms.Button();
             this.clearbt = new System.Windows.Forms.Button();
-            this.madd = new System.Windows.Forms.Button();
+            this.mem_add_bt = new System.Windows.Forms.Button();
             this.mem_minus_bt = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.close_bracket = new System.Windows.Forms.Button();
@@ -2296,6 +2126,8 @@ SignInteger={9};", initConfigValue);
             this.x2cross = new System.Windows.Forms.Button();
             this.inv_ChkBox = new System.Windows.Forms.CheckBox();
             this.toolTip2 = new System.Windows.Forms.ToolTip(this.components);
+            this.dnBT = new System.Windows.Forms.Button();
+            this.upBT = new System.Windows.Forms.Button();
             this.fe_ChkBox = new System.Windows.Forms.CheckBox();
             this.bracketTime_lb = new System.Windows.Forms.Label();
             this.cos_bt = new System.Windows.Forms.Button();
@@ -2358,8 +2190,6 @@ SignInteger={9};", initConfigValue);
             this.degRB = new System.Windows.Forms.RadioButton();
             this.radRB = new System.Windows.Forms.RadioButton();
             this.gridPanel = new Calculator.IPanel();
-            this.dnBT = new System.Windows.Forms.Button();
-            this.upBT = new System.Windows.Forms.Button();
             this.countLB = new System.Windows.Forms.Label();
             this.hisDGV = new Calculator.IDataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -2379,9 +2209,9 @@ SignInteger={9};", initConfigValue);
             this.qwordRB = new System.Windows.Forms.RadioButton();
             this.dwordRB = new System.Windows.Forms.RadioButton();
             this._wordRB = new System.Windows.Forms.RadioButton();
-            this.datecalcGB = new Calculator.IPanel();
-            this.result1 = new System.Windows.Forms.TextBox();
-            this.result2 = new System.Windows.Forms.TextBox();
+            this.datecalcPN = new Calculator.IPanel();
+            this.tbResult1 = new System.Windows.Forms.TextBox();
+            this.tbResult2 = new System.Windows.Forms.TextBox();
             this.calmethodLB = new System.Windows.Forms.Label();
             this.secondDate = new System.Windows.Forms.Label();
             this.dtP2 = new System.Windows.Forms.DateTimePicker();
@@ -2393,8 +2223,8 @@ SignInteger={9};", initConfigValue);
             this.autocal_date = new System.Windows.Forms.CheckBox();
             this.dateDifferenceLB = new System.Windows.Forms.Label();
             this.calculate_date = new System.Windows.Forms.Button();
-            this.yearAddSubLB = new System.Windows.Forms.Label();
             this.datemethodCB = new System.Windows.Forms.ComboBox();
+            this.yearAddSubLB = new System.Windows.Forms.Label();
             this.monthAddSubLB = new System.Windows.Forms.Label();
             this.dayAddSubLB = new System.Windows.Forms.Label();
             this.periodsDateUD = new Calculator.INumericUpDown();
@@ -2421,13 +2251,13 @@ SignInteger={9};", initConfigValue);
             this.morgageResultTB = new System.Windows.Forms.TextBox();
             this.feMPG_PN = new Calculator.IPanel();
             this.typeFEmpgLB = new System.Windows.Forms.Label();
-            this.typeFECB2 = new System.Windows.Forms.ComboBox();
-            this.typeFECB1 = new System.Windows.Forms.ComboBox();
+            this.typeFEl100 = new System.Windows.Forms.ComboBox();
+            this.typeFEmpg = new System.Windows.Forms.ComboBox();
             this.fempgLB2 = new System.Windows.Forms.Label();
             this.fempgLB1 = new System.Windows.Forms.Label();
             this.fuelEconomyBT = new System.Windows.Forms.Button();
             this.fempgResultTB = new System.Windows.Forms.TextBox();
-            this.unitconvGB = new Calculator.IPanel();
+            this.unitconvPN = new Calculator.IPanel();
             this.toCombobox = new System.Windows.Forms.ComboBox();
             this.typeUnitLB = new System.Windows.Forms.Label();
             this.fromCB = new System.Windows.Forms.ComboBox();
@@ -2444,14 +2274,14 @@ SignInteger={9};", initConfigValue);
             this.screenPN.SuspendLayout();
             this.basePN.SuspendLayout();
             this.unknownPN.SuspendLayout();
-            this.datecalcGB.SuspendLayout();
+            this.datecalcPN.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).BeginInit();
             this.VhPN.SuspendLayout();
             this.morgagePN.SuspendLayout();
             this.feMPG_PN.SuspendLayout();
-            this.unitconvGB.SuspendLayout();
+            this.unitconvPN.SuspendLayout();
             this.SuspendLayout();
             // 
             // num1BT
@@ -2875,22 +2705,22 @@ SignInteger={9};", initConfigValue);
             this.clearbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.clearbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
-            // madd
+            // mem_add_bt
             // 
-            this.madd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.madd.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.madd.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.madd.Location = new System.Drawing.Point(129, 66);
-            this.madd.Name = "madd";
-            this.madd.Size = new System.Drawing.Size(34, 27);
-            this.madd.TabIndex = 26;
-            this.madd.TabStop = false;
-            this.madd.Text = "M+";
-            this.madd.UseVisualStyleBackColor = true;
-            this.madd.Click += new System.EventHandler(this.memprocess_Click);
-            this.madd.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.madd.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            this.madd.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            this.mem_add_bt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.mem_add_bt.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.mem_add_bt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.mem_add_bt.Location = new System.Drawing.Point(129, 66);
+            this.mem_add_bt.Name = "mem_add_bt";
+            this.mem_add_bt.Size = new System.Drawing.Size(34, 27);
+            this.mem_add_bt.TabIndex = 26;
+            this.mem_add_bt.TabStop = false;
+            this.mem_add_bt.Text = "M+";
+            this.mem_add_bt.UseVisualStyleBackColor = true;
+            this.mem_add_bt.Click += new System.EventHandler(this.memprocess_Click);
+            this.mem_add_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.mem_add_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            this.mem_add_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // mem_minus_bt
             // 
@@ -3096,7 +2926,7 @@ SignInteger={9};", initConfigValue);
             this.modsciBT.Location = new System.Drawing.Point(56, 332);
             this.modsciBT.Name = "modsciBT";
             this.modsciBT.Size = new System.Drawing.Size(34, 27);
-            this.modsciBT.TabIndex = 142;
+            this.modsciBT.TabIndex = 43;
             this.modsciBT.TabStop = false;
             this.modsciBT.Text = "Mod";
             this.modsciBT.UseVisualStyleBackColor = true;
@@ -3646,7 +3476,40 @@ SignInteger={9};", initConfigValue);
             this.inv_ChkBox.UseVisualStyleBackColor = true;
             this.inv_ChkBox.CheckedChanged += new System.EventHandler(this.inv_ChkBox_CheckedChanged);
             this.inv_ChkBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.inv_ChkBox.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.inv_ChkBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // dnBT
+            // 
+            this.dnBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.dnBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dnBT.Location = new System.Drawing.Point(167, 2);
+            this.dnBT.Name = "dnBT";
+            this.dnBT.Size = new System.Drawing.Size(17, 16);
+            this.dnBT.TabIndex = 1;
+            this.dnBT.TabStop = false;
+            this.dnBT.Text = "▼";
+            this.toolTip2.SetToolTip(this.dnBT, "Down");
+            this.dnBT.UseVisualStyleBackColor = true;
+            this.dnBT.Click += new System.EventHandler(this.directionBT_Click);
+            this.dnBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.dnBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
+            // 
+            // upBT
+            // 
+            this.upBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.upBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.upBT.Location = new System.Drawing.Point(147, 2);
+            this.upBT.Name = "upBT";
+            this.upBT.Size = new System.Drawing.Size(17, 16);
+            this.upBT.TabIndex = 3;
+            this.upBT.TabStop = false;
+            this.upBT.Text = "▲";
+            this.toolTip2.SetToolTip(this.upBT, "Up");
+            this.upBT.UseVisualStyleBackColor = true;
+            this.upBT.Click += new System.EventHandler(this.directionBT_Click);
+            this.upBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.upBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // fe_ChkBox
             // 
@@ -3655,13 +3518,14 @@ SignInteger={9};", initConfigValue);
             this.fe_ChkBox.Location = new System.Drawing.Point(186, 331);
             this.fe_ChkBox.Name = "fe_ChkBox";
             this.fe_ChkBox.Size = new System.Drawing.Size(34, 27);
-            this.fe_ChkBox.TabIndex = 43;
+            this.fe_ChkBox.TabIndex = 47;
             this.fe_ChkBox.TabStop = false;
             this.fe_ChkBox.Text = "F-E";
             this.fe_ChkBox.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.fe_ChkBox.UseVisualStyleBackColor = true;
             this.fe_ChkBox.CheckedChanged += new System.EventHandler(this.fe_ChkBox_CheckChanged);
             this.fe_ChkBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.fe_ChkBox.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.fe_ChkBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
             // 
             // bracketTime_lb
@@ -4184,38 +4048,6 @@ SignInteger={9};", initConfigValue);
             this.gridPanel.TabStop = true;
             this.gridPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
-            // dnBT
-            // 
-            this.dnBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.dnBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dnBT.Location = new System.Drawing.Point(167, 2);
-            this.dnBT.Name = "dnBT";
-            this.dnBT.Size = new System.Drawing.Size(17, 16);
-            this.dnBT.TabIndex = 1;
-            this.dnBT.TabStop = false;
-            this.dnBT.Text = "▼";
-            this.toolTip2.SetToolTip(this.dnBT, "Down");
-            this.dnBT.UseVisualStyleBackColor = true;
-            this.dnBT.Click += new System.EventHandler(this.directionBT_Click);
-            this.dnBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.dnBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
-            // upBT
-            // 
-            this.upBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.upBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.upBT.Location = new System.Drawing.Point(147, 2);
-            this.upBT.Name = "upBT";
-            this.upBT.Size = new System.Drawing.Size(17, 16);
-            this.upBT.TabIndex = 3;
-            this.upBT.TabStop = false;
-            this.upBT.Text = "▲";
-            this.toolTip2.SetToolTip(this.upBT, "Up");
-            this.upBT.UseVisualStyleBackColor = true;
-            this.upBT.Click += new System.EventHandler(this.directionBT_Click);
-            this.upBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.upBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
             // countLB
             // 
             this.countLB.AutoSize = true;
@@ -4269,7 +4101,7 @@ SignInteger={9};", initConfigValue);
             this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
             this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
             this.hisDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.historyDGV_CellStateChanged);
-            this.hisDGV.DoubleClick += new System.EventHandler(this.hisDGV_DoubleClick);
+            this.hisDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
             // Column1
@@ -4284,7 +4116,7 @@ SignInteger={9};", initConfigValue);
             // staDGV
             // 
             this.staDGV.AllowCellClick = false;
-            this.staDGV.AllowCellDoubleClick = false;
+            this.staDGV.AllowCellDoubleClick = true;
             this.staDGV.AllowCellStateChanged = false;
             this.staDGV.AllowUserToAddRows = false;
             this.staDGV.AllowUserToDeleteRows = false;
@@ -4315,8 +4147,9 @@ SignInteger={9};", initConfigValue);
             this.staDGV.TabIndex = 0;
             this.staDGV.TabStop = false;
             this.staDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.staDGV_CellBeginEdit);
-            this.staDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.statisticsDGV_CellEndEdit);
+            this.staDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.staDGV_CellEndEdit);
             this.staDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.staDGV_CellStateChanged);
+            this.staDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.staDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
             // Column2
@@ -4531,56 +4364,56 @@ SignInteger={9};", initConfigValue);
             this._wordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._wordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             // 
-            // datecalcGB
+            // datecalcPN
             // 
-            this.datecalcGB.BackColor = System.Drawing.Color.White;
-            this.datecalcGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.datecalcGB.Controls.Add(this.result1);
-            this.datecalcGB.Controls.Add(this.result2);
-            this.datecalcGB.Controls.Add(this.calmethodLB);
-            this.datecalcGB.Controls.Add(this.secondDate);
-            this.datecalcGB.Controls.Add(this.dtP2);
-            this.datecalcGB.Controls.Add(this.subrb);
-            this.datecalcGB.Controls.Add(this.dtP1);
-            this.datecalcGB.Controls.Add(this.addrb);
-            this.datecalcGB.Controls.Add(this.addSubResultLB);
-            this.datecalcGB.Controls.Add(this.firstDate);
-            this.datecalcGB.Controls.Add(this.autocal_date);
-            this.datecalcGB.Controls.Add(this.dateDifferenceLB);
-            this.datecalcGB.Controls.Add(this.calculate_date);
-            this.datecalcGB.Controls.Add(this.yearAddSubLB);
-            this.datecalcGB.Controls.Add(this.datemethodCB);
-            this.datecalcGB.Controls.Add(this.monthAddSubLB);
-            this.datecalcGB.Controls.Add(this.dayAddSubLB);
-            this.datecalcGB.Controls.Add(this.periodsDateUD);
-            this.datecalcGB.Controls.Add(this.periodsMonthUD);
-            this.datecalcGB.Controls.Add(this.periodsYearUD);
-            this.datecalcGB.Location = new System.Drawing.Point(234, 12);
-            this.datecalcGB.Name = "datecalcGB";
-            this.datecalcGB.Size = new System.Drawing.Size(356, 241);
-            this.datecalcGB.TabIndex = 32;
-            this.datecalcGB.Visible = false;
-            this.datecalcGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.datecalcPN.BackColor = System.Drawing.Color.White;
+            this.datecalcPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.datecalcPN.Controls.Add(this.tbResult1);
+            this.datecalcPN.Controls.Add(this.tbResult2);
+            this.datecalcPN.Controls.Add(this.calmethodLB);
+            this.datecalcPN.Controls.Add(this.secondDate);
+            this.datecalcPN.Controls.Add(this.dtP2);
+            this.datecalcPN.Controls.Add(this.subrb);
+            this.datecalcPN.Controls.Add(this.dtP1);
+            this.datecalcPN.Controls.Add(this.addrb);
+            this.datecalcPN.Controls.Add(this.addSubResultLB);
+            this.datecalcPN.Controls.Add(this.firstDate);
+            this.datecalcPN.Controls.Add(this.autocal_date);
+            this.datecalcPN.Controls.Add(this.dateDifferenceLB);
+            this.datecalcPN.Controls.Add(this.calculate_date);
+            this.datecalcPN.Controls.Add(this.datemethodCB);
+            this.datecalcPN.Controls.Add(this.yearAddSubLB);
+            this.datecalcPN.Controls.Add(this.monthAddSubLB);
+            this.datecalcPN.Controls.Add(this.dayAddSubLB);
+            this.datecalcPN.Controls.Add(this.periodsDateUD);
+            this.datecalcPN.Controls.Add(this.periodsMonthUD);
+            this.datecalcPN.Controls.Add(this.periodsYearUD);
+            this.datecalcPN.Location = new System.Drawing.Point(234, 12);
+            this.datecalcPN.Name = "datecalcPN";
+            this.datecalcPN.Size = new System.Drawing.Size(356, 241);
+            this.datecalcPN.TabIndex = 32;
+            this.datecalcPN.Visible = false;
+            this.datecalcPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
-            // result1
+            // tbResult1
             // 
-            this.result1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.result1.Location = new System.Drawing.Point(12, 108);
-            this.result1.Name = "result1";
-            this.result1.ReadOnly = true;
-            this.result1.Size = new System.Drawing.Size(330, 22);
-            this.result1.TabIndex = 208;
-            this.result1.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.tbResult1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbResult1.Location = new System.Drawing.Point(12, 108);
+            this.tbResult1.Name = "tbResult1";
+            this.tbResult1.ReadOnly = true;
+            this.tbResult1.Size = new System.Drawing.Size(330, 22);
+            this.tbResult1.TabIndex = 208;
+            this.tbResult1.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // result2
+            // tbResult2
             // 
-            this.result2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.result2.Location = new System.Drawing.Point(12, 159);
-            this.result2.Name = "result2";
-            this.result2.ReadOnly = true;
-            this.result2.Size = new System.Drawing.Size(330, 22);
-            this.result2.TabIndex = 209;
-            this.result2.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.tbResult2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbResult2.Location = new System.Drawing.Point(12, 159);
+            this.tbResult2.Name = "tbResult2";
+            this.tbResult2.ReadOnly = true;
+            this.tbResult2.Size = new System.Drawing.Size(330, 22);
+            this.tbResult2.TabIndex = 209;
+            this.tbResult2.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // calmethodLB
             // 
@@ -4601,9 +4434,9 @@ SignInteger={9};", initConfigValue);
             this.secondDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
             this.secondDate.Location = new System.Drawing.Point(214, 67);
             this.secondDate.Name = "secondDate";
-            this.secondDate.Size = new System.Drawing.Size(22, 13);
+            this.secondDate.Size = new System.Drawing.Size(19, 13);
             this.secondDate.TabIndex = 60;
-            this.secondDate.Text = "To:";
+            this.secondDate.Text = "To";
             this.secondDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // dtP2
@@ -4675,9 +4508,9 @@ SignInteger={9};", initConfigValue);
             this.firstDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
             this.firstDate.Location = new System.Drawing.Point(12, 67);
             this.firstDate.Name = "firstDate";
-            this.firstDate.Size = new System.Drawing.Size(36, 13);
+            this.firstDate.Size = new System.Drawing.Size(33, 13);
             this.firstDate.TabIndex = 59;
-            this.firstDate.Text = "From:";
+            this.firstDate.Text = "From";
             this.firstDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // autocal_date
@@ -4691,7 +4524,7 @@ SignInteger={9};", initConfigValue);
             this.autocal_date.TabIndex = 210;
             this.autocal_date.Text = "A&uto Calculate";
             this.autocal_date.UseVisualStyleBackColor = true;
-            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_cb_CheckedChanged);
+            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_date_CheckedChanged);
             this.autocal_date.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // dateDifferenceLB
@@ -4719,17 +4552,6 @@ SignInteger={9};", initConfigValue);
             this.calculate_date.Click += new System.EventHandler(this.calculate_bt_Click);
             this.calculate_date.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // yearAddSubLB
-            // 
-            this.yearAddSubLB.AutoSize = true;
-            this.yearAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.yearAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.yearAddSubLB.Location = new System.Drawing.Point(12, 102);
-            this.yearAddSubLB.Name = "yearAddSubLB";
-            this.yearAddSubLB.Size = new System.Drawing.Size(31, 13);
-            this.yearAddSubLB.TabIndex = 64;
-            this.yearAddSubLB.Text = "Year:";
-            // 
             // datemethodCB
             // 
             this.datemethodCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -4742,52 +4564,62 @@ SignInteger={9};", initConfigValue);
             this.datemethodCB.Name = "datemethodCB";
             this.datemethodCB.Size = new System.Drawing.Size(330, 21);
             this.datemethodCB.TabIndex = 200;
-            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.cal_method_SelectedIndexChanged);
+            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.datemethodCB_SelectedIndexChanged);
             this.datemethodCB.Enter += new System.EventHandler(this.DisableKeyboard);
             this.datemethodCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
+            // 
+            // yearAddSubLB
+            // 
+            this.yearAddSubLB.AutoSize = true;
+            this.yearAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.yearAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.yearAddSubLB.Location = new System.Drawing.Point(12, 107);
+            this.yearAddSubLB.Name = "yearAddSubLB";
+            this.yearAddSubLB.Size = new System.Drawing.Size(39, 13);
+            this.yearAddSubLB.TabIndex = 64;
+            this.yearAddSubLB.Text = "Year(s)";
             // 
             // monthAddSubLB
             // 
             this.monthAddSubLB.AutoSize = true;
             this.monthAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.monthAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.monthAddSubLB.Location = new System.Drawing.Point(118, 102);
+            this.monthAddSubLB.Location = new System.Drawing.Point(125, 107);
             this.monthAddSubLB.Name = "monthAddSubLB";
-            this.monthAddSubLB.Size = new System.Drawing.Size(45, 13);
+            this.monthAddSubLB.Size = new System.Drawing.Size(53, 13);
             this.monthAddSubLB.TabIndex = 64;
-            this.monthAddSubLB.Text = "Month:";
+            this.monthAddSubLB.Text = "Month(s)";
             // 
             // dayAddSubLB
             // 
             this.dayAddSubLB.AutoSize = true;
             this.dayAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dayAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.dayAddSubLB.Location = new System.Drawing.Point(240, 102);
+            this.dayAddSubLB.Location = new System.Drawing.Point(243, 107);
             this.dayAddSubLB.Name = "dayAddSubLB";
-            this.dayAddSubLB.Size = new System.Drawing.Size(29, 13);
+            this.dayAddSubLB.Size = new System.Drawing.Size(37, 13);
             this.dayAddSubLB.TabIndex = 64;
-            this.dayAddSubLB.Text = "Day:";
+            this.dayAddSubLB.Text = "Day(s)";
             // 
             // periodsDateUD
             // 
             this.periodsDateUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsDateUD.Location = new System.Drawing.Point(282, 100);
+            this.periodsDateUD.Location = new System.Drawing.Point(284, 105);
             this.periodsDateUD.Maximum = new decimal(new int[] {
             730000,
             0,
             0,
             0});
             this.periodsDateUD.Name = "periodsDateUD";
-            this.periodsDateUD.Size = new System.Drawing.Size(60, 22);
+            this.periodsDateUD.Size = new System.Drawing.Size(58, 22);
             this.periodsDateUD.TabIndex = 205;
-            this.periodsDateUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // periodsMonthUD
             // 
             this.periodsMonthUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsMonthUD.Location = new System.Drawing.Point(169, 100);
+            this.periodsMonthUD.Location = new System.Drawing.Point(181, 105);
             this.periodsMonthUD.Maximum = new decimal(new int[] {
             24000,
             0,
@@ -4796,14 +4628,13 @@ SignInteger={9};", initConfigValue);
             this.periodsMonthUD.Name = "periodsMonthUD";
             this.periodsMonthUD.Size = new System.Drawing.Size(44, 22);
             this.periodsMonthUD.TabIndex = 204;
-            this.periodsMonthUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // periodsYearUD
             // 
             this.periodsYearUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsYearUD.Location = new System.Drawing.Point(60, 100);
+            this.periodsYearUD.Location = new System.Drawing.Point(60, 105);
             this.periodsYearUD.Maximum = new decimal(new int[] {
             2000,
             0,
@@ -4812,7 +4643,6 @@ SignInteger={9};", initConfigValue);
             this.periodsYearUD.Name = "periodsYearUD";
             this.periodsYearUD.Size = new System.Drawing.Size(44, 22);
             this.periodsYearUD.TabIndex = 203;
-            this.periodsYearUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
@@ -5091,8 +4921,8 @@ SignInteger={9};", initConfigValue);
             this.feMPG_PN.BackColor = System.Drawing.Color.White;
             this.feMPG_PN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.feMPG_PN.Controls.Add(this.typeFEmpgLB);
-            this.feMPG_PN.Controls.Add(this.typeFECB2);
-            this.feMPG_PN.Controls.Add(this.typeFECB1);
+            this.feMPG_PN.Controls.Add(this.typeFEl100);
+            this.feMPG_PN.Controls.Add(this.typeFEmpg);
             this.feMPG_PN.Controls.Add(this.fempgLB2);
             this.feMPG_PN.Controls.Add(this.fempgLB1);
             this.feMPG_PN.Controls.Add(this.fuelEconomyBT);
@@ -5116,39 +4946,39 @@ SignInteger={9};", initConfigValue);
             this.typeFEmpgLB.Text = "Select the Speed you want to calculate";
             this.typeFEmpgLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
-            // typeFECB2
+            // typeFEl100
             // 
-            this.typeFECB2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFECB2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFECB2.FormattingEnabled = true;
-            this.typeFECB2.Items.AddRange(new object[] {
+            this.typeFEl100.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeFEl100.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeFEl100.FormattingEnabled = true;
+            this.typeFEl100.Items.AddRange(new object[] {
             "Distance (kilometers)",
             "Fuel economy (L/100 km)",
             "Fuel used (liters)"});
-            this.typeFECB2.Location = new System.Drawing.Point(12, 32);
-            this.typeFECB2.MaxDropDownItems = 11;
-            this.typeFECB2.Name = "typeFECB2";
-            this.typeFECB2.Size = new System.Drawing.Size(330, 21);
-            this.typeFECB2.TabIndex = 9;
-            this.typeFECB2.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFECB2.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.typeFEl100.Location = new System.Drawing.Point(12, 32);
+            this.typeFEl100.MaxDropDownItems = 11;
+            this.typeFEl100.Name = "typeFEl100";
+            this.typeFEl100.Size = new System.Drawing.Size(330, 21);
+            this.typeFEl100.TabIndex = 9;
+            this.typeFEl100.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
+            this.typeFEl100.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // typeFECB1
+            // typeFEmpg
             // 
-            this.typeFECB1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFECB1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFECB1.FormattingEnabled = true;
-            this.typeFECB1.Items.AddRange(new object[] {
+            this.typeFEmpg.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeFEmpg.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeFEmpg.FormattingEnabled = true;
+            this.typeFEmpg.Items.AddRange(new object[] {
             "Distance (miles)",
             "Fuel economy (mpg)",
             "Fuel used (gallons)"});
-            this.typeFECB1.Location = new System.Drawing.Point(12, 32);
-            this.typeFECB1.MaxDropDownItems = 11;
-            this.typeFECB1.Name = "typeFECB1";
-            this.typeFECB1.Size = new System.Drawing.Size(330, 21);
-            this.typeFECB1.TabIndex = 9;
-            this.typeFECB1.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFECB1.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.typeFEmpg.Location = new System.Drawing.Point(12, 32);
+            this.typeFEmpg.MaxDropDownItems = 11;
+            this.typeFEmpg.Name = "typeFEmpg";
+            this.typeFEmpg.Size = new System.Drawing.Size(330, 21);
+            this.typeFEmpg.TabIndex = 9;
+            this.typeFEmpg.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
+            this.typeFEmpg.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // fempgLB2
             // 
@@ -5202,28 +5032,28 @@ SignInteger={9};", initConfigValue);
             this.fempgResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
             this.fempgResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
             // 
-            // unitconvGB
+            // unitconvPN
             // 
-            this.unitconvGB.BackColor = System.Drawing.Color.White;
-            this.unitconvGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.unitconvGB.Controls.Add(this.toCombobox);
-            this.unitconvGB.Controls.Add(this.typeUnitLB);
-            this.unitconvGB.Controls.Add(this.fromCB);
-            this.unitconvGB.Controls.Add(this.typeUnitCB);
-            this.unitconvGB.Controls.Add(this.invert_unit);
-            this.unitconvGB.Controls.Add(this.toLB);
-            this.unitconvGB.Controls.Add(this.toTB);
-            this.unitconvGB.Controls.Add(this.fromLB);
-            this.unitconvGB.Controls.Add(this.fromTB);
-            this.unitconvGB.Location = new System.Drawing.Point(234, 12);
-            this.unitconvGB.Name = "unitconvGB";
-            this.unitconvGB.Size = new System.Drawing.Size(356, 241);
-            this.unitconvGB.TabIndex = 31;
-            this.unitconvGB.Visible = false;
-            this.unitconvGB.LocationChanged += new System.EventHandler(this.unitconvGB_LocationChanged);
-            this.unitconvGB.SizeChanged += new System.EventHandler(this.unitconvGB_SizeChanged);
-            this.unitconvGB.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.unitconvGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.unitconvPN.BackColor = System.Drawing.Color.White;
+            this.unitconvPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.unitconvPN.Controls.Add(this.toCombobox);
+            this.unitconvPN.Controls.Add(this.typeUnitLB);
+            this.unitconvPN.Controls.Add(this.fromCB);
+            this.unitconvPN.Controls.Add(this.typeUnitCB);
+            this.unitconvPN.Controls.Add(this.invert_unit);
+            this.unitconvPN.Controls.Add(this.toLB);
+            this.unitconvPN.Controls.Add(this.toTB);
+            this.unitconvPN.Controls.Add(this.fromLB);
+            this.unitconvPN.Controls.Add(this.fromTB);
+            this.unitconvPN.Location = new System.Drawing.Point(234, 12);
+            this.unitconvPN.Name = "unitconvPN";
+            this.unitconvPN.Size = new System.Drawing.Size(356, 241);
+            this.unitconvPN.TabIndex = 31;
+            this.unitconvPN.Visible = false;
+            this.unitconvPN.LocationChanged += new System.EventHandler(this.unitconvGB_LocationChanged);
+            this.unitconvPN.SizeChanged += new System.EventHandler(this.unitconvGB_SizeChanged);
+            this.unitconvPN.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.unitconvPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // toCombobox
             // 
@@ -5355,7 +5185,7 @@ SignInteger={9};", initConfigValue);
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 241);
+            this.ClientSize = new System.Drawing.Size(214, 282);
             this.Controls.Add(this.PNbinary);
             this.Controls.Add(this.anglePN);
             this.Controls.Add(this.radioButton1);
@@ -5413,7 +5243,7 @@ SignInteger={9};", initConfigValue);
             this.Controls.Add(this.mem_minus_bt);
             this.Controls.Add(this.mem_recall);
             this.Controls.Add(this.changesignBT);
-            this.Controls.Add(this.madd);
+            this.Controls.Add(this.mem_add_bt);
             this.Controls.Add(this.num9BT);
             this.Controls.Add(this.mem_store);
             this.Controls.Add(this.ce);
@@ -5441,11 +5271,11 @@ SignInteger={9};", initConfigValue);
             this.Controls.Add(this.basePN);
             this.Controls.Add(this.unknownPN);
             this.Controls.Add(this.fe_ChkBox);
-            this.Controls.Add(this.datecalcGB);
+            this.Controls.Add(this.datecalcPN);
             this.Controls.Add(this.VhPN);
             this.Controls.Add(this.morgagePN);
             this.Controls.Add(this.feMPG_PN);
-            this.Controls.Add(this.unitconvGB);
+            this.Controls.Add(this.unitconvPN);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -5472,8 +5302,8 @@ SignInteger={9};", initConfigValue);
             this.basePN.PerformLayout();
             this.unknownPN.ResumeLayout(false);
             this.unknownPN.PerformLayout();
-            this.datecalcGB.ResumeLayout(false);
-            this.datecalcGB.PerformLayout();
+            this.datecalcPN.ResumeLayout(false);
+            this.datecalcPN.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).EndInit();
@@ -5483,8 +5313,8 @@ SignInteger={9};", initConfigValue);
             this.morgagePN.PerformLayout();
             this.feMPG_PN.ResumeLayout(false);
             this.feMPG_PN.PerformLayout();
-            this.unitconvGB.ResumeLayout(false);
-            this.unitconvGB.PerformLayout();
+            this.unitconvPN.ResumeLayout(false);
+            this.unitconvPN.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -5524,7 +5354,7 @@ SignInteger={9};", initConfigValue);
             this.mem_recall.Location = new Point(90, 66);
             this.sqrt_bt.Location = new Point(168, 98);
             this.clearbt.Location = new Point(90, 98);
-            this.madd.Location = new Point(129, 66);
+            this.mem_add_bt.Location = new Point(129, 66);
             this.mem_minus_bt.Location = new Point(168, 66);
             this.mem_lb.Visible = (mem_num != 0);
 
@@ -5544,24 +5374,6 @@ SignInteger={9};", initConfigValue);
         /// </summary>
         private void scientificLoad(bool isReturn0)
         {
-            this.close_bracket.Location = new Point(168, 98);
-            this.btFactorial.Location = new Point(168, 130);
-            this._10x_bt.Location = new Point(168, 226);
-            this._3vx_bt.Location = new Point(168, 194);
-            this.nvx_bt.Location = new Point(168, 162);
-
-            this.open_bracket.Location = new Point(129, 98);
-            this.xn_bt.Location = new Point(129, 162);
-            this.log_bt.Location = new Point(129, 226);
-            this.x3_bt.Location = new Point(129, 194);
-            this.x2_bt.Location = new Point(129, 130);
-
-            this.modsciBT.Location = new Point(90, 226);
-            this.ln_bt.Location = new Point(90, 98);
-            this.tan_bt.Location = new Point(90, 194);
-            this.cos_bt.Location = new Point(90, 162);
-            this.sin_bt.Location = new Point(90, 130);
-
             this.sqrt_bt.Location = new Point(363, 98);
             this.percent_bt.Location = new Point(363, 130);
             this.invert_bt.Location = new Point(363, 162);
@@ -5573,7 +5385,7 @@ SignInteger={9};", initConfigValue);
             this.minusbt.Location = new Point(324, 194);
             this.addbt.Location = new Point(324, 226);
             this.changesignBT.Location = new Point(324, 98);
-            this.madd.Location = new Point(324, 65);
+            this.mem_add_bt.Location = new Point(324, 65);
 
             this.btdot.Location = new Point(285, 226);
             this.num9BT.Location = new Point(285, 130);
@@ -5594,6 +5406,24 @@ SignInteger={9};", initConfigValue);
             this.num4BT.Location = new Point(207, 162);
             this.num1BT.Location = new Point(207, 194);
             this.num0BT.Location = new Point(207, 226);
+
+            this.close_bracket.Location = new Point(168, 98);
+            this.btFactorial.Location = new Point(168, 130);
+            this._10x_bt.Location = new Point(168, 226);
+            this._3vx_bt.Location = new Point(168, 194);
+            this.nvx_bt.Location = new Point(168, 162);
+
+            this.open_bracket.Location = new Point(129, 98);
+            this.xn_bt.Location = new Point(129, 162);
+            this.log_bt.Location = new Point(129, 226);
+            this.x3_bt.Location = new Point(129, 194);
+            this.x2_bt.Location = new Point(129, 130);
+
+            this.modsciBT.Location = new Point(90, 226);
+            this.ln_bt.Location = new Point(90, 98);
+            this.tan_bt.Location = new Point(90, 194);
+            this.cos_bt.Location = new Point(90, 162);
+            this.sin_bt.Location = new Point(90, 130);
 
             this.exp_bt.Location = new Point(51, 226);
             this.sinh_bt.Location = new Point(51, 130);
@@ -5647,7 +5477,7 @@ SignInteger={9};", initConfigValue);
             this.minusbt.ContextMenu = helpCTMN;
             this.equal.ContextMenu = helpCTMN;
             this.invert_bt.ContextMenu = helpCTMN;
-            this.madd.ContextMenu = helpCTMN;
+            this.mem_add_bt.ContextMenu = helpCTMN;
             this.mem_minus_bt.ContextMenu = helpCTMN;
             this.mem_clear.ContextMenu = helpCTMN;
             this.mem_recall.ContextMenu = helpCTMN;
@@ -5729,7 +5559,6 @@ SignInteger={9};", initConfigValue);
             //hideProComponent(programmerMI.Checked);
             //hideStaComponent(statisticsMI.Checked);
 
-            configPath = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") + "\\calc.ini";
             copyMI.Text = "&Copy\tCtrl+C";
             pasteMI.Text = "&Paste\tCtrl+V";
             cancelEditHisMI.Text = "Ca&ncel edit\tEsc";
@@ -5775,7 +5604,7 @@ SignInteger={9};", initConfigValue);
 
         private void InitCancelOperation()
         {
-            if (co == null)
+            //if (co == null)
             {
                 co = new CancelOperation();
                 co.DoCancel += new CancelOperation.CancelProcess(co_DoCancel);
@@ -5863,7 +5692,7 @@ SignInteger={9};", initConfigValue);
             this.mem_store.Location = new Point(51, 170);
             this.mem_minus_bt.Location = new Point(168, 170);
             this.mem_recall.Location = new Point(90, 170);
-            this.madd.Location = new Point(129, 170);
+            this.mem_add_bt.Location = new Point(129, 170);
             this.mem_clear.Location = new Point(12, 170);
 
             this.gridPanel.Location = new Point(12, 12);
@@ -5928,7 +5757,7 @@ SignInteger={9};", initConfigValue);
             this.mulbt.Location = new Point(324, 265);
             this.divbt.Location = new Point(324, 234);
             this.changesignBT.Location = new Point(324, 202);
-            this.madd.Location = new Point(324, 170);
+            this.mem_add_bt.Location = new Point(324, 170);
 
             this.btdot.Location = new Point(285, 330);
             this.num3BT.Location = new Point(285, 298);
@@ -5989,7 +5818,7 @@ SignInteger={9};", initConfigValue);
             this.mem_minus_bt.Location = new Point(363, 129);
             this.mem_recall.Location = new Point(246, 129);
             this.changesignBT.Location = new Point(324, 161);
-            this.madd.Location = new Point(324, 129);
+            this.mem_add_bt.Location = new Point(324, 129);
             this.mem_store.Location = new Point(285, 129);
             this.mem_clear.Location = new Point(207, 129);
             this.ce.Location = new Point(246, 161);
@@ -6091,7 +5920,7 @@ SignInteger={9};", initConfigValue);
             this.mem_store.Location = new Point(51, 170);
             this.mem_minus_bt.Location = new Point(168, 170);
             this.mem_recall.Location = new Point(90, 170);
-            this.madd.Location = new Point(129, 170);
+            this.mem_add_bt.Location = new Point(129, 170);
             this.mem_clear.Location = new Point(12, 170);
 
             this.screenPN.Location = new Point(12, 116);
@@ -6163,7 +5992,7 @@ SignInteger={9};", initConfigValue);
             prcmdkey = !hisDGV.IsCurrentCellInEditMode || !staDGV.IsCurrentCellInEditMode;
             fromTB_LostFocus(null, null);
             if (fromTB.Focused || toTB.Focused || typeUnitCB.Focused) toLB.Focus();
-            if (datemethodCB.Focused || result2.Focused || result1.Focused
+            if (datemethodCB.Focused || tbResult2.Focused || tbResult1.Focused
                 || periodsDateUD.Focused || dtP1.Focused || dtP2.Focused)
             {
                 firstDate.Focus();
@@ -6242,7 +6071,7 @@ SignInteger={9};", initConfigValue);
         private Button mem_recall;
         private Button sqrt_bt;
         private Button clearbt;
-        private Button madd;
+        private Button mem_add_bt;
         private Button mem_minus_bt;
         private ToolTip toolTip1;
         private ToolTip toolTip2;
@@ -6290,7 +6119,7 @@ SignInteger={9};", initConfigValue);
         private INumericUpDown periodsYearUD;
         private INumericUpDown periodsMonthUD;
         private INumericUpDown periodsDateUD;
-        private IPanel datecalcGB;
+        private IPanel datecalcPN;
         private DateTimePicker dtP1;
         private Label addSubResultLB;
         private Label calmethodLB;
@@ -6302,8 +6131,8 @@ SignInteger={9};", initConfigValue);
         private Label yearAddSubLB;
         private RadioButton subrb;
         private RadioButton addrb;
-        private TextBox result1;
-        private TextBox result2;
+        private TextBox tbResult1;
+        private TextBox tbResult2;
         //------------------------------------------------------------------
         private Label typeUnitLB;
         private Label fromLB;
@@ -6316,7 +6145,7 @@ SignInteger={9};", initConfigValue);
         private Button invert_unit;
         private Button dnBT;
         private Button upBT;
-        private IPanel unitconvGB;
+        private IPanel unitconvPN;
         //------------------------------------------------------------------
         private MainMenu menuStrip1;
         private MenuItem viewMI;
@@ -6413,8 +6242,8 @@ SignInteger={9};", initConfigValue);
         //------------------------------------------------------------------
         private IPanel feMPG_PN;
         private Label typeFEmpgLB;
-        private ComboBox typeFECB1;
-        private ComboBox typeFECB2;
+        private ComboBox typeFEmpg;
+        private ComboBox typeFEl100;
         private Label fempgLB2;
         private Label fempgLB1;
         private TextBox fempgResultTB;

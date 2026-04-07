@@ -53,7 +53,8 @@ namespace Calculator
 
             local_precision = places + 8;
 
-            Copy(One, B);
+            // eo hieu sao doan nay de one no lai doc duoc la 0
+            Copy("1", B);
             Copy(src, C);
 
             ii = nexp & 1;
@@ -61,7 +62,7 @@ namespace Calculator
 
             if (ii != 0)                       /* exponent -was- odd */
             {
-                Mul(B, C, A);
+                Copy(C, A);     // <==> Mul(B, C, A);
                 Round(A, B, local_precision);
             }
 
@@ -298,7 +299,7 @@ namespace Calculator
         /// <summary>
         /// kiểm tra số nhập vào của hàm exp có quá lớn hay không
         /// </summary>
-        static int M_exp_compute_nn(ref int n, BigNumber b, BigNumber a)
+        static long M_exp_compute_nn(ref int n, BigNumber b, BigNumber a)
         {
             BigNumber tmp0, tmp1;
 
@@ -330,8 +331,8 @@ namespace Calculator
         static private void M_raw_exp(BigNumber xx, BigNumber rr, int places)
         {
             BigNumber tmp0, digit, term;
-            int tolerance, local_precision, prev_exp;
-            long m1;
+            int tolerance;
+            long m1, local_precision, prev_exp;
 
             tmp0 = new BigNumber();
             term = new BigNumber();
@@ -350,7 +351,7 @@ namespace Calculator
             {
                 SetFromLong(digit, m1);
                 Mul(term, xx, tmp0);
-                Div(tmp0, digit, term, local_precision);
+                Div(tmp0, digit, term, (int)local_precision);
                 Add(rr, term, tmp0);
                 Copy(tmp0, rr);
 
@@ -459,7 +460,7 @@ namespace Calculator
 
         static void Sqrt(BigNumber src, BigNumber dst, int places)
         {
-            int ii, nexp, tolerance, dplaces;
+            int ii, tolerance, dplaces;
             bool bflag;
 
             if (src.signum <= 0 && src.signum == -1)
@@ -476,7 +477,7 @@ namespace Calculator
 
             Copy(src, tmpN);
 
-            nexp = src.exponent / 2;
+            long nexp = src.exponent / 2;
             tmpN.exponent -= 2 * nexp;
 
             SQrtGuess(tmpN, guess);
@@ -531,7 +532,7 @@ namespace Calculator
         /// </summary>
         static private void Copy(BigNumber src, BigNumber dst)
         {
-            int j = (src.dataLength + 1) >> 1;
+            long j = (src.dataLength + 1) >> 1;
 
             if (j > dst.mantissa.Length)
             {
@@ -547,9 +548,9 @@ namespace Calculator
         /// <summary>
         /// compare 2 numbers
         /// </summary>
-        static public int Compare(BigNumber ltmp, BigNumber rtmp)
+        static public long Compare(BigNumber ltmp, BigNumber rtmp)
         {
-            int llen, rlen, lsign, rsign, j, lexp, rexp;
+            long llen, rlen, lsign, rsign, j, lexp, rexp;
 
             llen = ltmp.dataLength;
             rlen = rtmp.dataLength;
@@ -789,8 +790,7 @@ namespace Calculator
         static void M_log_near_1(BigNumber xx, BigNumber rr, int places)
         {
             BigNumber tmp0, tmp1, tmp2, tmpS, term;
-            int tolerance, dplaces, local_precision;
-            long m1;
+            long local_precision, m1;
 
             tmp0 = new BigNumber();
             tmp1 = new BigNumber();
@@ -798,8 +798,8 @@ namespace Calculator
             tmpS = new BigNumber();
             term = new BigNumber();
 
-            tolerance = xx.exponent - (places + 6);
-            dplaces = (places + 12) - xx.exponent;
+            long tolerance = xx.exponent - (places + 6);
+            long dplaces = (places + 12) - xx.exponent;
 
             Add(xx, Two, tmp0);
             Div(xx, tmp0, tmpS, (dplaces + 6));
@@ -883,7 +883,7 @@ namespace Calculator
         static void LogE(BigNumber src, BigNumber dst, int places)
         {
             BigNumber tmp0, tmp1, tmp2;
-            int mexp, dplaces;
+            int dplaces;
 
             if (src.signum <= 0)
             {
@@ -896,7 +896,7 @@ namespace Calculator
 
             dplaces = places + 8;
 
-            mexp = src.exponent;
+            long mexp = src.exponent;
 
             if (mexp == 0 || mexp == 1)
             {
@@ -951,11 +951,22 @@ namespace Calculator
             }
 
         }
+        /// <summary>
+        /// làm tròn kiểu xấp xỉ
+        /// </summary>
+        static void Approximate(BigNumber input)
+        {
+            BigNumber result = input.Round(29);
+            if (input.dataLength - result.dataLength > 10/* || (result - input).Abs() < 1e-29*/)
+            {
+                Copy(result, input);
+            }
+        }
 
-        static public void Round(BigNumber src, BigNumber dst, int places)
+        static public void Round(BigNumber src, BigNumber dst, long places)
         {
             BigNumber t0_5 = 5;
-            int ii = places + 1;
+            long ii = places + 1;
 
             if (src.dataLength <= ii)
             {
@@ -1002,7 +1013,7 @@ namespace Calculator
             }
         }
 
-        static int NextPowerOfTwo(int n)
+        static long NextPowerOfTwo(long n)
         {
             int ct, k;
             int size_flag = sizeof(int);
@@ -1027,12 +1038,12 @@ namespace Calculator
             return k;
         }
 
-        static private int Digits(BigNumber atm)
+        static private long Digits(BigNumber atm)
         {
             return atm.dataLength < 32 ? 32 : atm.dataLength;
         }
 
-        static private int MaxDigits(BigNumber a, BigNumber b)
+        static private long MaxDigits(BigNumber a, BigNumber b)
         {
             if (Digits(a) < Digits(b))
             {
@@ -1044,10 +1055,10 @@ namespace Calculator
             }
         }
 
-        static private void Scale(BigNumber ctmp, int count)
+        static private void Scale(BigNumber ctmp, long count)
         {
-            int ii, numb, ct;
-            ct = count;
+            long ii, numb;
+            long ct = count;
             byte numdiv = 0, numdiv2 = 0, numrem = 0;
 
             ii = (ctmp.dataLength + ct + 1) >> 1;
@@ -1142,7 +1153,7 @@ namespace Calculator
         /// expand mantissa array with given length and copy old content
         /// throws: ArgumentOutOfRangeException
         /// </summary>
-        static public void Expand(BigNumber atm, int newLength)
+        static public void Expand(BigNumber atm, long newLength)
         {
             if (newLength > atm.mantissa.Length)
             {
@@ -1152,8 +1163,8 @@ namespace Calculator
             }
             else
             {
-                //throw new Exception("'Expand', new length is smaller than current length");
-				return;
+                throw new Exception("'Expand', new length is smaller than current length");
+				//return;
             }
         }
         /// <summary>
@@ -1176,9 +1187,9 @@ namespace Calculator
             //lsb = s_LsbLookupMult[tbl_lookup];
         }
 
-        static private void Pad(BigNumber atm, int length)
+        static private void Pad(BigNumber atm, long length)
         {
-            int ct = length;
+            long ct = length;
             byte numdiv = 0, numref = 0;
 
             if (atm.dataLength >= ct)
@@ -1186,14 +1197,14 @@ namespace Calculator
                 return;
             }
 
-            int numb = (ct + 1) >> 1;
+            long numb = (ct + 1) >> 1;
 
             if (numb > atm.mantissa.Length)
             {
                 Expand(atm, numb + 32);
             }
 
-            int num1 = (atm.dataLength + 1) >> 1;
+            long num1 = (atm.dataLength + 1) >> 1;
 
             if ((atm.dataLength % 2) != 0)
             {
@@ -1201,7 +1212,7 @@ namespace Calculator
                 atm.mantissa[num1 - 1] = (byte)(10 * numdiv);
             }
 
-            for (int i = num1; i < numb; i++)
+            for (long i = num1; i < numb; i++)
             {
                 atm.mantissa[i] = 0;
             }
@@ -1214,9 +1225,10 @@ namespace Calculator
         static private void Normalize(BigNumber atm)
         {
             if (atm.signum == 0) return;
-            int ucp = 0, i, index;
-            int datalength = atm.dataLength;
-            int exponent = atm.exponent;
+            int i;
+            long datalength = atm.dataLength;
+            long exponent = atm.exponent;
+            long index, ucp = 0;
             byte numdiv = 0, numrem = 0, numrem2 = 0;
 
             Pad(atm, datalength + 3);
@@ -1237,7 +1249,7 @@ namespace Calculator
                     i = 0;
                     ucp = 0;
 
-                    while (atm.mantissa[ucp] == 0)
+                    while (atm.mantissa[ucp] == 0 && ucp < atm.mantissa.Length - 1)
                     {
                         ucp++;
                         i++;
@@ -1316,8 +1328,8 @@ namespace Calculator
             String res = "";
             byte numdiv = 0, numrem = 0;
 
-            int max_i = (atm.dataLength + 1) >> 1;
-            int exp = atm.exponent;
+            long max_i = (atm.dataLength + 1) >> 1;
+            long exp = atm.exponent;
 
             for (int i = 0; i < max_i; i++)
             {
@@ -1326,19 +1338,19 @@ namespace Calculator
                 res += (char)('0' + numrem);
             }
 
-            res = res.Substring(0, atm.dataLength);
+            res = res.Substring(0, (int)atm.dataLength);
 
             if (exp > 0)
             {
-                res = res.PadRight(exp, '0');
+                res = res.PadRight((int)exp, '0');
                 if (exp < res.Length)
                 {
-                    res = res.Insert(exp, Misc.DecimalSeparator);
+                    res = res.Insert((int)exp, Misc.DecimalSeparator);
                 }
             }
             else
             {
-                res = res.PadLeft(1 - exp + res.Length, '0');
+                res = res.PadLeft(1 - (int)exp + res.Length, '0');
                 if (res.Length >= 2)
                 {
                     res = res.Insert(1, Misc.DecimalSeparator);
@@ -1350,8 +1362,9 @@ namespace Calculator
 
         static private String ToExpString(BigNumber atm, int digits)
         {
-            int i, index, first, max_i, num_digits, dec_places;
+            int index, first, dec_places;
             byte numdiv = 0, numrem = 0;
+            long num_digits, max_i, i;
 
             var ctmp = new BigNumber();
             String res = "";
@@ -1457,9 +1470,10 @@ namespace Calculator
 
         static private String ToIntString(BigNumber atm)
         {
-            int ct, dl, numb, ii;
-            ct = atm.exponent;
-            dl = atm.dataLength;
+            int ii;
+            long ct = atm.exponent;
+            long dl = atm.dataLength;
+            long numb;
             String result = String.Empty;
 
             byte numdiv = 0, numrem = 0;
@@ -1503,10 +1517,10 @@ namespace Calculator
 
             if (ct > dl)
             {
-                result = result.PadRight(ct + 1 - dl + result.Length, '0');
+                result = result.PadRight((int)(ct + 1 - dl + result.Length), '0');
             }
 
-            result = result.Substring(0, ct + ii);
+            result = result.Substring(0, (int)(ct + ii));
 
             return result;
         }

@@ -14,7 +14,7 @@ namespace Calculator
 
         #region bien toan cuc
 
-        string str = "0", sci_exp = "", configPath;
+        string str = "0", sci_exp = "";
         bool confirm_num = true, prcmdkey = true, propertiesChange, sciexpAdd;
         int pre_bt = -1, pre_oprt;
         object[] initConfigValue, currentConfig;
@@ -32,12 +32,11 @@ namespace Calculator
         /// </summary>
         private void calc_Load(object sender, EventArgs e)
         {
-            if (WindowState != FormWindowState.Normal) WindowState = FormWindowState.Normal;
-            loadInfoFromFile();
+            WindowState = FormWindowState.Normal;
+            LoadInfo();
             getPaste(null, null);
-            // giá trị của prcmdkey tuỳ thuộc vào control nào của chương trình được focused
-            if (!basicMI.Checked)
-                prcmdkey = dtP1.Focused || dtP2.Focused || fromTB.Focused || toTB.Focused;
+            // lúc load thì dù có bật extra function hay không thì vẫn bật tính năng bắt sự kiện phím của chương trình
+            if (!basicMI.Checked) EnableKeyboardAndChangeFocus();
         }
         /// <summary>
         /// di chuyển form mà không cần đưa con trỏ lên title bar
@@ -116,7 +115,7 @@ namespace Calculator
         private void memclear_Click(object sender, EventArgs e)
         {
             mem_num = 0;
-            initConfigValue[4] = mem_num.StrValue;
+            currentConfig[4] = mem_num.StrValue;
             mem_lb.Visible = false;
             propertiesChange = confirm_num = true;
         }
@@ -235,7 +234,7 @@ namespace Calculator
                     hisDGV[0, hisDGV.RowCount - 1].Value = Misc.StandardExpression(sci_exp);
                     string content = hisDGV[0, hisDGV.RowCount - 1].Value.ToString();
                     hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
-                    hisDGV.AllowCellDoubleClick = true;
+                    //hisDGV.AllowCellDoubleClick = true;
                     hisDGV.AllowCellStateChanged = true;
                     rowIndex = hisDGV.CurrentCell.RowIndex;
                     ChangeDGVHeight(hisDGV);
@@ -325,9 +324,7 @@ namespace Calculator
             if (pex == null)
             {
                 var btn = sender as Button;
-                int tabIndex = btn.TabIndex;
                 math_func(btn);
-                pre_bt = tabIndex;
             }
         }
         //
@@ -352,7 +349,7 @@ namespace Calculator
             {
                 BigNumber scr_num = scr_lb.Text;
                 parser.EvaluateStd(sci_exp.Substring(0, sci_exp.Length - 1));
-                scr_num = scr_num / 100.0 * parser.StringResult;
+                scr_num = scr_num / 100 * parser.StringResult;
                 str = prevFunc = scr_num.StrValue;
             }
             DisplayToScreen();
@@ -368,14 +365,15 @@ namespace Calculator
             }
             if (!inv_ChkBox.Checked)
             {
-                str = BigNumber.BN_PI.StrValue;
-                prevFunc = "pi";
+                str = "31415926535897932384626433832795".Insert(1, Misc.DecimalSeparator);
+                //prevFunc = "pi";
             }
             else
             {
                 str = "6283185307179586476925286766559".Insert(1, Misc.DecimalSeparator);
-                prevFunc = "2 * pi";
+                //prevFunc = "2 * pi";
             }
+            prevFunc = str;
             DisplayToScreen();
             sciexpAdd = false;
 
@@ -414,51 +412,51 @@ namespace Calculator
             if (pex != null) inv_ChkBox.Checked = false;
             if (inv_ChkBox.Checked && pex == null)
             {
-                sin_bt.Font = new Font("Segoe UI", 7.25F);
+                sin_bt.Font = new Font(sin_bt.Font.FontFamily, 7.25F);
                 sin_bt.Text = "asin";
-                cos_bt.Font = new Font("Segoe UI", 7.5F);
+                cos_bt.Font = new Font(cos_bt.Font.FontFamily, 7.5F);
                 cos_bt.Text = "acos";
-                tan_bt.Font = new Font("Segoe UI", 7.5F);
+                tan_bt.Font = new Font(tan_bt.Font.FontFamily, 7.5F);
                 tan_bt.Text = "atan";
-                sinh_bt.Font = new Font("Segoe UI", 6.75F);
+                sinh_bt.Font = new Font(sinh_bt.Font.FontFamily, 6.75F);
                 sinh_bt.Text = "asinh";
-                cosh_bt.Font = new Font("Segoe UI", 6F);
+                cosh_bt.Font = new Font(cosh_bt.Font.FontFamily, 6F);
                 cosh_bt.Text = "acosh";
                 toolTip2.SetToolTip(cosh_bt, cosh_bt.Text); // chữ quá bé, dùng tootltip để hiện rõ hơn
-                tanh_bt.Font = new Font("Segoe UI", 6F);
+                tanh_bt.Font = new Font(sin_bt.Font.FontFamily, 6F);
                 tanh_bt.Text = "atanh";
                 toolTip2.SetToolTip(tanh_bt, tanh_bt.Text); // chữ quá bé, dùng tootltip để hiện rõ hơn
+                ln_bt.Font = new Font(ln_bt.Font.FontFamily, 8.25F);
                 ln_bt.Text = "eⁿ";
-                int_bt.Font = new Font("Segoe UI", 8.25F);
+                int_bt.Font = new Font(int_bt.Font.FontFamily, 7.5F);
                 int_bt.Text = "Frac";
-                int_bt.Font = new Font("Segoe UI", 7.5F);
                 dms_bt.Text = "deg";
+                pi_bt.Font = new Font(pi_bt.Font.FontFamily, 9F);
                 pi_bt.Text = "2*π";
-                pi_bt.Font = new Font("Tempus Sans ITC", 9F);
             }
             if (!inv_ChkBox.Checked && pex == null)
             {
-                sin_bt.Font = new Font("Segoe UI", 8.25F);
+                sin_bt.Font = new Font(sin_bt.Font.FontFamily, 8.25F);
                 sin_bt.Text = "sin";
-                cos_bt.Font = new Font("Segoe UI", 8.25F);
+                cos_bt.Font = new Font(cos_bt.Font.FontFamily, 8.25F);
                 cos_bt.Text = "cos";
-                tan_bt.Font = new Font("Segoe UI", 8.25F);
+                tan_bt.Font = new Font(tan_bt.Font.FontFamily, 8.25F);
                 tan_bt.Text = "tan";
-                sinh_bt.Font = new Font("Segoe UI", 7.25F);
+                sinh_bt.Font = new Font(sinh_bt.Font.FontFamily, 7.25F);
                 sinh_bt.Text = "sinh";
-                cosh_bt.Font = new Font("Segoe UI", 7.5F);
+                cosh_bt.Font = new Font(cosh_bt.Font.FontFamily, 7.5F);
                 cosh_bt.Text = "cosh";
                 toolTip2.SetToolTip(cosh_bt, "");
-                tanh_bt.Font = new Font("Segoe UI", 7.5F);
+                tanh_bt.Font = new Font(sin_bt.Font.FontFamily, 7.5F);
                 tanh_bt.Text = "tanh";
                 toolTip2.SetToolTip(tanh_bt, "");
+                ln_bt.Font = new Font(ln_bt.Font.FontFamily, 8.25F);
                 ln_bt.Text = "ln";
-                int_bt.Font = new Font("Segoe UI", 8.25F);
+                int_bt.Font = new Font(int_bt.Font.FontFamily, 8.25F);
                 int_bt.Text = "Int";
-                int_bt.Font = new Font("Segoe UI", 8.25F);
                 dms_bt.Text = "dms";
+                pi_bt.Font = new Font(pi_bt.Font.FontFamily, 12F);
                 pi_bt.Text = "π";
-                pi_bt.Font = new Font("Tempus Sans ITC", 12F);
             }
         }
         //
@@ -488,6 +486,13 @@ namespace Calculator
         //
         private void backspace_Click(object sender, EventArgs e)
         {
+            switch (pre_bt)
+            {
+                case 28: case 29: case 30: case 31: case 32: case 35: case 36:
+                case 37: case 38: case 39: case 40: case 42: case 43: case 44:
+                    return;
+            }
+
             if (!confirm_num)
             {
                 if (str.Length > 1)
@@ -524,6 +529,16 @@ namespace Calculator
         //
         private void open_bracket_Click(object sender, EventArgs e)
         {
+            if (pre_oprt == 0)
+            {
+                switch (pre_bt)
+                {
+                    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
+                    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
+                        equal_Click(null, null);
+                        return;
+                }
+            }
             if (pex == null && openBRK < 20)
             {
                 str = "0";
@@ -701,8 +716,8 @@ namespace Calculator
                 mortgageMI.Checked = false;
                 vehicleLeaseMI.Checked = false;
 
-                datecalcGB.Visible = false;
-                unitconvGB.Visible = false;
+                datecalcPN.Visible = false;
+                unitconvPN.Visible = false;
                 morgagePN.Visible = false;
                 VhPN.Visible = false;
                 feMPG_PN.Visible = false;
@@ -773,7 +788,7 @@ namespace Calculator
                 bool his = historyMI.Checked && historyMI.Enabled;
                 copyHistoryMI.Enabled = hisDGV.RowCount > 0;
                 editHistoryMI.Visible = !hisDGV.IsCurrentCellInEditMode;
-                editHistoryMI.Enabled = !hisDGV.IsCurrentCellInEditMode && hisDGV.RowCount > 0;
+                editHistoryMI.Enabled = !hisDGV.IsCurrentCellInEditMode && hisDGV.RowCount > 0 && !standardMI.Checked;
                 reCalculateMI.Visible = cancelEditHisMI.Enabled = hisDGV.IsCurrentCellInEditMode;
 
                 clearHistoryCTMN.Visible = his;
@@ -813,9 +828,9 @@ namespace Calculator
                         break;
                     case 37: keyData[i] = Keys.Shift | Keys.D5;
                         break;
-                    case 40: keyData[i] = Keys.OemOpenBrackets;
+                    case 40:  case 91: keyData[i] = Keys.OemOpenBrackets;
                         break;
-                    case 41: keyData[i] = Keys.OemCloseBrackets;
+                    case 41: case 93: keyData[i] = Keys.OemCloseBrackets;
                         break;
                     case 43: if (i > 0)
                         {
@@ -918,13 +933,13 @@ namespace Calculator
 
         private void cancelEditDSMI_Click(object sender, EventArgs e)
         {
-            //staDGV.CellEndEdit -= statisticsDGV_CellEndEdit;
+            //staDGV.CellEndEdit -= staDGV_CellEndEdit;
             staDGV.CancelEdit();
             staDGV.ReadOnly = true;
             staDGV[0, rowIndex].Selected = true;
             prcmdkey = true;
             dgv_OnEndEdit(staDGV);
-            //staDGV.CellEndEdit += statisticsDGV_CellEndEdit;
+            //staDGV.CellEndEdit += staDGV_CellEndEdit;
         }
 
         private void commitDSMI_Click(object sender, EventArgs e)
@@ -959,24 +974,15 @@ namespace Calculator
 
         private void pre_DoCheck(int spd, bool sign, bool fast, bool animate)
         {
-            string newContent = configContent;
-
             currentConfig[8] = spd;
             currentConfig[9] = animate ? 1 : 0;
             currentConfig[10] = fast ? 1 : 0;
             currentConfig[11] = sign ? 1 : 0;
 
-            for (int i = 0; i < initConfigValue.Length; i++)
-            {
-                newContent = newContent.Replace(string.Format("{0}={1};", optionName[i], initConfigValue[i]), 
-                    string.Format("{0}={1};", optionName[i], currentConfig[i]));
-            }
-
-            if (configContent != newContent)
+            if (!currentConfig.Equals(initConfigValue))
             {
                 propertiesChange = true;
             }
-            initConfigValue[4] = "9";
             
             if (programmerMI.Checked) PanelToScreen(true);
         }
@@ -986,8 +992,8 @@ namespace Calculator
         private void DateCalculationControlVisible(int selectIndex)
         {
             bool visible = selectIndex == 0;
-            addrb.Visible = subrb.Visible = yearAddSubLB.Visible = monthAddSubLB.Visible = dayAddSubLB.Visible = periodsDateUD.Visible = periodsMonthUD.Visible = periodsYearUD.Visible = !visible;
-            secondDate.Visible = dtP2.Visible = dateDifferenceLB.Visible = result1.Visible = visible;
+            addrb.Visible = subrb.Visible = yearAddSubLB.Visible = monthAddSubLB.Visible = dayAddSubLB.Visible = periodsDateUD.Visible = periodsMonthUD.Visible = periodsYearUD.Visible = selectIndex != 0;
+            secondDate.Visible = dtP2.Visible = dateDifferenceLB.Visible = tbResult1.Visible = selectIndex == 0;
         }
         //
         // su kien datetimepicker thay doi
@@ -996,7 +1002,7 @@ namespace Calculator
         {
             if (autocal_date.Checked) calculate_bt_Click(null, null);
             else
-            { result1.Text = ""; result2.Text = ""; }
+            { tbResult1.Text = ""; tbResult2.Text = ""; }
         }
         //
         // nut calculate
@@ -1009,10 +1015,10 @@ namespace Calculator
                 int diff = Misc.differenceBW2Dates(dtP1.Value, dtP2.Value);
 
                 if (diff == 1)
-                    result2.Text = "1 day";
+                    tbResult2.Text = "1 day";
                 else if (diff > 1)
-                    result2.Text = Misc.Group(diff) + " days";
-                else result1.Text = result2.Text = "Same date";
+                    tbResult2.Text = Misc.Group(diff) + " days";
+                else tbResult1.Text = tbResult2.Text = "Same date";
 
                 #region hiển thị kết quả lên textbox
                 string text = "";
@@ -1039,10 +1045,10 @@ namespace Calculator
                     if (differ[3] != 1) text += differ[3] + " days";
                     else text += "1 day";
                 }
-                result1.Text = text;
+                tbResult1.Text = text;
                 #endregion
 
-                if (result1.Text == "") result1.Text = result2.Text;
+                if (tbResult1.Text == "") tbResult1.Text = tbResult2.Text;
             }
             else
             {
@@ -1051,13 +1057,19 @@ namespace Calculator
                 dt = dt.AddYears((int)periodsYearUD.Value * sign);
                 dt = dt.AddMonths((int)periodsMonthUD.Value * sign);
                 dt = dt.AddDays((double)periodsDateUD.Value * sign);
-                result2.Text = dt.ToString(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern);
+                tbResult2.Text = dt.ToString(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern);
+            }
+            if (sender is Button)
+            {
+                tbResult1.Focus();
+                tbResult1.SelectionStart = 0;
+                tbResult1.SelectionLength = 0;
             }
         }
         //
-        // cal_method_SelectedIndexChanged
+        // datemethodCB_SelectedIndexChanged
         //
-        private void cal_method_SelectedIndexChanged(object sender, EventArgs e)
+        private void datemethodCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = ((ComboBox)sender).SelectedIndex;
             currentConfig[7] = index;
@@ -1070,10 +1082,10 @@ namespace Calculator
             else propertiesChange = true;
 
             DateCalculationControlVisible(selectIndex);
-            firstDate.Text = "From:";
+            firstDate.Text = "From";
             if (datemethodCB.SelectedIndex == 0)
             {
-                secondDate.Text = "To: ";
+                secondDate.Text = "To";
                 addSubResultLB.Text = "Difference (days)";
             }
             if (datemethodCB.SelectedIndex == 1)
@@ -1082,8 +1094,8 @@ namespace Calculator
                 addSubResultLB.Text = "Date:";
             }
 
-            result2.Text = "";
-            result1.Text = "";
+            tbResult2.Text = "";
+            tbResult1.Text = "";
             dtP_ValueChanged(null, null);
         }
 
@@ -1092,10 +1104,10 @@ namespace Calculator
             if (autocal_date.Checked) calculate_bt_Click(null, null);
         }
 
-        private void autocal_cb_CheckedChanged(object sender, EventArgs e)
+        private void autocal_date_CheckedChanged(object sender, EventArgs e)
         {
             currentConfig[6] = autocal_date.Checked ? 1 : 0;
-            if (result1.Text == "") dtP_ValueChanged(null, null);
+            if (tbResult1.Text == "") dtP_ValueChanged(null, null);
             propertiesChange = true;
         }
 
@@ -1116,7 +1128,7 @@ namespace Calculator
                     dt = dt.AddMonths(-(int)periodsMonthUD.Value);
                     dt = dt.AddDays(-(double)periodsDateUD.Value);
                 }
-                result2.Text = dt.ToString(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern);
+                tbResult2.Text = dt.ToString(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.LongDatePattern);
             }
         }
 
@@ -1310,12 +1322,10 @@ namespace Calculator
             countLB.Text = "";
         }
 
-        object oldValue;
         private void historyDGV_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
             hisDGV.MouseDown -= EnableKeyboardAndChangeFocus;
             pex = null;
-            oldValue = hisDGV[0, e.RowIndex].Value;
             prcmdkey = false;   // cai nay phai cho len truoc
             dgv_OnBeginEdit(sender);
             rowIndex = e.RowIndex;
@@ -1329,6 +1339,7 @@ namespace Calculator
         private void dgv_OnBeginEdit(object sender)
         {
             //int row = e.RowIndex;
+            inv_ChkBox.Checked = false;
             var dgv = sender as IDataGridView;
             dgv.Rows[rowIndex].DefaultCellStyle.BackColor = Color.White;
             screenPN.BackColor = BackColor;
@@ -1353,6 +1364,7 @@ namespace Calculator
         /// </summary>
         private void dgv_OnEndEdit(object sender)
         {
+            inv_ChkBox.Checked = false;
             var dgv = sender as IDataGridView;
             try
             {
@@ -1387,13 +1399,14 @@ namespace Calculator
             dgv.Rows[rowIndex].Height = (dgv[0, rowIndex].Value.ToString().Length / 51 + 1) * 20;
         }
 
-        private void hisDGV_DoubleClick(object sender, EventArgs e)
+        private void dGV_DoubleClick(object sender, EventArgs e)
         {
+            var dgv = sender as IDataGridView;
             // không hỗ trợ edit history cho standard calculator
-            if (scientificMI.Checked && hisDGV.CurrentCell != null && hisDGV.AllowCellDoubleClick)
+            if (!standardMI.Checked && dgv.CurrentCell != null && dgv.AllowCellDoubleClick)
             {
-                hisDGV.ReadOnly = false;
-                hisDGV.BeginEdit(false);
+                dgv.ReadOnly = false;
+                dgv.BeginEdit(false);
                 prcmdkey = false;
             }
         }
@@ -1402,6 +1415,7 @@ namespace Calculator
 
         private void historyDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
+
             hisDGV.AllowCellStateChanged = false;
             hisDGV.MouseDown += EnableKeyboardAndChangeFocus;
             dgv_OnEndEdit(sender);
@@ -1492,7 +1506,6 @@ namespace Calculator
                         resultCollection[rowindex] = str;
                     }
                     if (string.IsNullOrEmpty(str)) str = "0";
-                    DisplayToScreen();
                 }
                 else
                 {
@@ -1503,9 +1516,9 @@ namespace Calculator
                     else
                         pex = new Exception(str);
                     if (isRecalculate) expressionTB.Text = "";
-
-                    DisplayToScreen();
                 }
+                confirm_num = true;
+                DisplayToScreen();
             }
             catch { return; }
             //return pex;
@@ -1516,7 +1529,7 @@ namespace Calculator
         private void directionBT_Click(object sender, MouseEventArgs e)
         {
             var btn = sender as Button;
-            ProcessUpOrDown(e.Delta / 120);
+            ProcessUpOrDown(e.Delta / Math.Abs(e.Delta));
         }
 
         private void directionBT_Click(object sender, EventArgs e)
@@ -1925,24 +1938,6 @@ namespace Calculator
             DisplayToScreen();
         }
 
-        private void statisticsDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            try
-            {
-                string vl = staDGV[0, e.RowIndex].Value.ToString();
-                double.Parse(vl);
-                vl = vl.Replace(",", Misc.DecimalSeparator).Replace(".", Misc.DecimalSeparator);
-                staDGV[0, e.RowIndex].Value = vl;
-            }
-            catch (FormatException)
-            {
-                staDGV[0, e.RowIndex].Value = "0";
-            }
-            dgv_OnEndEdit(sender);
-            //staDGV.MouseDown += EnableKeyboardAndChangeFocus;
-            prcmdkey = true;
-        }
-
         private void staDGV_CellStateChanged(object sender, DataGridViewCellStateChangedEventArgs e)
         {
             if (e.StateChanged == DataGridViewElementStates.Selected)
@@ -1954,17 +1949,37 @@ namespace Calculator
 
         private void staDGV_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
+            staDGV.MouseDown -= EnableKeyboardAndChangeFocus;
             prcmdkey = false;
             rowIndex = e.RowIndex;
             dgv_OnBeginEdit(sender);
             //statisticsOptionEnabled();
+        }
+
+        private void staDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                staDGV.MouseDown += EnableKeyboardAndChangeFocus;
+                string vl = staDGV[0, e.RowIndex].Value.ToString();
+                double.Parse(vl);
+                vl = vl.Replace(",", Misc.DecimalSeparator).Replace(".", Misc.DecimalSeparator);
+                staDGV[0, e.RowIndex].Value = vl;
+                dgv_OnEndEdit(sender);
+            }
+            catch (FormatException)
+            {
+                staDGV[0, e.RowIndex].Value = "0";
+            }
+            //staDGV.MouseDown += EnableKeyboardAndChangeFocus;
+            prcmdkey = true;
         }
         #endregion
 
         #region sub extra functions
         private void typeFECB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (typeFECB1.SelectedIndex)
+            switch (typeFEmpg.SelectedIndex)
             {
                 case 0:
                     if (fe_MPG_MI.Checked) fempgLB1.Text = "Fuel used (gallons)";
@@ -2017,7 +2032,7 @@ namespace Calculator
                 }
             }
             double resultfe = 0;
-            if (fe_MPG_MI.Checked) switch (typeFECB1.SelectedIndex)
+            if (fe_MPG_MI.Checked) switch (typeFEmpg.SelectedIndex)
                 {
                     case 0:
                         resultfe = db[0] * db[1];
@@ -2026,7 +2041,7 @@ namespace Calculator
                         resultfe = db[0] / db[1];
                         break;
                 }
-            if (feL100_MI.Checked) switch (typeFECB2.SelectedIndex)
+            if (feL100_MI.Checked) switch (typeFEl100.SelectedIndex)
                 {
                     case 0:
                         resultfe = db[0] / db[1] * 100;
@@ -2126,12 +2141,12 @@ namespace Calculator
 
         private void unitconvGB_SizeChanged(object sender, EventArgs e)
         {
-            VhPN.Size = morgagePN.Size = feMPG_PN.Size = datecalcGB.Size = unitconvGB.Size;
+            VhPN.Size = morgagePN.Size = feMPG_PN.Size = datecalcPN.Size = unitconvPN.Size;
         }
 
         private void unitconvGB_LocationChanged(object sender, EventArgs e)
         {
-            VhPN.Location = morgagePN.Location = feMPG_PN.Location = datecalcGB.Location = unitconvGB.Location;
+            VhPN.Location = morgagePN.Location = feMPG_PN.Location = datecalcPN.Location = unitconvPN.Location;
         }
 
         private void screenPN_BackColorChanged(object sender, EventArgs e)

@@ -65,15 +65,6 @@ namespace Calculator
             base.OnClosed(e);
         }
 
-        private void MoveForm(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                Misc.ReleaseCapture();
-                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
-            }
-        }
-
         [DllImport("user32")]
         static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
         [DllImport("user32")]
@@ -83,6 +74,17 @@ namespace Calculator
         {
             var sm = GetSystemMenu(Handle, false);
             EnableMenuItem(sm, 0xF060, 2);
+        }
+        /// <summary>
+        /// di chuyển form mà không cần đưa con trỏ lên title bar
+        /// </summary>
+        private void MoveFormWithoutMouseAtTitleBar(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Misc.ReleaseCapture();
+                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
+            }
         }
     }
 }

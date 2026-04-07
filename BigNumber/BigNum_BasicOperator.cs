@@ -7,12 +7,12 @@ namespace Calculator
         private const int RDFT_LOOP_DIV = 64;
         static readonly double WR5000 = 0.707106781186547524400844362104849039284835937688;
 
-        static private void M_bitrv2(int n, double[] a)
+        static private void M_bitrv2(long n, double[] a)
         {
-            int j0, k0, j1, k1, l, m, i, j, k;
+            long j0, k0, j1, k1, m, i, j, k;
             double xr, xi, yr, yi;
 
-            l = n >> 2;
+            long l = n >> 2;
             m = 2;
             while (m < l)
             {
@@ -113,9 +113,9 @@ namespace Calculator
             }
         }
 
-        static private void M_cftfsub(int n, double[] a)
+        static private void M_cftfsub(long n, double[] a)
         {
-            int j, j1, j2, j3, l;
+            long j, j1, j2, j3, l;
             double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
             l = 2;
@@ -169,9 +169,9 @@ namespace Calculator
             }
         }
 
-        static private void M_cftbsub(int n, double[] a)
+        static private void M_cftbsub(long n, double[] a)
         {
-            int j, j1, j2, j3, l;
+            long j, j1, j2, j3, l;
             double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
             l = 2;
@@ -225,9 +225,10 @@ namespace Calculator
             }
         }
 
-        static private void M_cft1st(int n, double[] a)
+        static private void M_cft1st(long n, double[] a)
         {
-            int j, kj, kr;
+            int j;
+            long kj, kr;
             double ew, wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i;
             double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
@@ -331,9 +332,9 @@ namespace Calculator
             }
         }
 
-        static private void M_cftmdl(int n, int l, double[] a)
+        static private void M_cftmdl(long n, long l, double[] a)
         {
-            int j, j1, j2, j3, k, kj, kr, m, m2;
+            long j, j1, j2, j3, k, kj, kr, m, m2;
             double ew, wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i;
             double x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i;
 
@@ -463,9 +464,9 @@ namespace Calculator
             }
         }
 
-        static private void M_rftfsub(int n, double[] a)
+        static private void M_rftfsub(long n, double[] a)
         {
-            int i, i0, j, k;
+            long i, i0, j, k;
             double ec, w1r, w1i, wkr, wki, wdr, wdi, ss, xr, xi, yr, yi;
 
             ec = 2 * PiHalf / n;
@@ -527,9 +528,9 @@ namespace Calculator
             a[n - 1] -= yi;
         }
 
-        static private void M_rftbsub(int n, double[] a)
+        static private void M_rftbsub(long n, double[] a)
         {
-            int i, i0, j, k;
+            long i, i0, j, k;
             double ec, w1r, w1i, wkr, wki, wdr, wdi, ss, xr, xi, yr, yi;
 
             ec = 2 * PiHalf / n;
@@ -595,7 +596,7 @@ namespace Calculator
             a[1] = -a[1];
         }
 
-        static private void M_rdft(int n, int isgn, double[] a)
+        static private void M_rdft(long n, int isgn, double[] a)
         {
             double xi;
 
@@ -632,16 +633,16 @@ namespace Calculator
             }
         }
 
-        static private void FastMulFFT(byte[] ww, byte[] uu, byte[] vv, int nbytes)
+        static private void FastMulFFT(byte[] ww, byte[] uu, byte[] vv, long nbytes)
         {
-            int j;
+            long j;
             ulong ul;
             double dtemp;
             double[] a;
             double[] b;
 
-            int nn = nbytes;
-            int nn2 = nbytes >> 1;
+            long nn = nbytes;
+            long nn2 = nbytes >> 1;
 
             if (nn > 8200)
             {
@@ -725,7 +726,7 @@ namespace Calculator
 
         static private void FastMul(BigNumber aa, BigNumber bb, BigNumber rr)
         {
-            int ii, k, nexp, sign;
+            long ii, k, nexp, sign;
             BigNumber M_ain = new BigNumber();
             BigNumber M_bin = new BigNumber();
 
@@ -769,11 +770,11 @@ namespace Calculator
         /// </summary>
         static private void Mul(BigNumber aa, BigNumber bb, BigNumber rr)
         {
-            int ai, itmp, nexp, ii, jj, indexa, indexb, index0, numdigits;
+            int ai, itmp;
             sbyte sign;
 
             sign = (sbyte)(aa.signum * bb.signum);
-            nexp = aa.exponent + bb.exponent;
+            long nexp = aa.exponent + bb.exponent;
 
             if (sign == 0)
             {
@@ -781,9 +782,9 @@ namespace Calculator
                 return;
             }
 
-            numdigits = aa.dataLength + bb.dataLength;
-            indexa = (aa.dataLength + 1) >> 1;
-            indexb = (bb.dataLength + 1) >> 1;
+            long numdigits = aa.dataLength + bb.dataLength;
+            long indexa = (aa.dataLength + 1) >> 1;
+            long indexb = (bb.dataLength + 1) >> 1;
 
             if (indexa >= 48 && indexb >= 48)
             {
@@ -791,14 +792,14 @@ namespace Calculator
                 return;
             }
 
-            ii = (numdigits + 1) >> 1;
+            long ii = (numdigits + 1) >> 1;
 
             if (ii >= rr.mantissa.Length)
             {
                 Expand(rr, ii + 31);
             }
 
-            index0 = indexa + indexb;
+            long index0 = indexa + indexb;
             rr.mantissa = new byte[index0 + 1];
 
             ii = indexa;
@@ -806,8 +807,8 @@ namespace Calculator
             do
             {
                 index0--;
-                int crp = index0;
-                jj = indexb;
+                long crp = index0;
+                long jj = indexb;
                 ai = aa.mantissa[--ii];
 
                 do
@@ -844,12 +845,11 @@ namespace Calculator
             Normalize(rr);
         }
 
-
-        static private void Div(BigNumber aa, BigNumber bb, BigNumber rr, int places)
+        static private void Div(BigNumber aa, BigNumber bb, BigNumber rr, long places)
         {
-            int j, k, m, b0, nexp, indexr, icompare, iterations;
+            int j, m, b0, indexr;
             sbyte sign;
-            long trial_numer;
+            long trial_numer, nexp, iterations, k, icompare;
 
             BigNumber M_div_worka = new BigNumber();
             BigNumber M_div_workb = new BigNumber();
@@ -1033,12 +1033,46 @@ namespace Calculator
             Normalize(rr);
         }
 
+        static void DivGetRemainder(BigNumber c1, BigNumber c2, BigNumber res)
+        {
+            if (Compare(c1.Abs(), c2.Abs()) < 0) { Copy(c1, res); return; }
+            //if (c1 >= 0) res = c1 - (c1 / c2).Floor() * c2;
+            //else res = c1 + (-c1 / c2).Floor() * c2;
+            BigNumber sig = new BigNumber();
+            BigNumber div = new BigNumber();
+            BigNumber divRound = new BigNumber();
+            BigNumber mul = new BigNumber();
+            BigNumber c1abs = new BigNumber();
+            BigNumber c2abs = new BigNumber();
+
+            #region code cu ok
+            Copy(c2, sig);
+            sig.signum = c1.signum;
+            Div(c1, c2, div);
+            Floor(divRound, div.Abs());
+            Mul(sig, divRound, mul);
+            Sub(c1, mul, res);
+            #endregion
+
+            #region code moi dang test
+            //// truoc het lam viec tren tri tuyet doi cua 2 so
+            //Abs(c1abs, c1);
+            //Abs(c2abs, c2);
+            //Div(c1, c2, div);
+            //Floor(div, div);
+            //Mul(c2abs, div, mul);
+            //Sub(c1abs, mul, res);
+            //// dau cua ket qua chinh la dau cua so dau tien
+            //res.signum = c1.signum;
+            #endregion
+        }
+
 		/// <summary>
         /// rr = aa / bb
         /// </summary>
         static public void Div(BigNumber aa, BigNumber bb, BigNumber rr)
         {
-            int places = MaxDigits(aa, bb);
+            long places = MaxDigits(aa, bb);
             Div(aa, bb, rr, places);
         }
         /// <summary>
@@ -1046,8 +1080,9 @@ namespace Calculator
         /// </summary>
         static public void Add(BigNumber src, BigNumber dst, BigNumber result)
         {
-            int j, carry, aexp, bexp, adigits, bdigits;
+            int carry;
             sbyte sign;
+            long aexp, bexp, adigits, bdigits, j;
             BigNumber A = 0, B = 0;
 
             if (src.signum == 0)
@@ -1142,8 +1177,9 @@ namespace Calculator
         /// </summary>
         static public void Sub(BigNumber src, BigNumber dst, BigNumber result)
         {
-            int itmp, j, ChangeOrderFlag, icompare, aexp, bexp, borrow, adigits, bdigits;
+            int itmp, ChangeOrderFlag, borrow;
             sbyte sign;
+            long adigits, bdigits, icompare, aexp, bexp, j;
             BigNumber A = 0, B = 0;
             if (src == 0) { Neg(dst, result); return; }
             if (dst.signum == 0)
@@ -1295,7 +1331,7 @@ namespace Calculator
                 ascii_number += "0";
             }
 
-            int nbytes = (atm.exponent + 1) >> 1;    // display 2 digits per byte
+            long nbytes = (atm.exponent + 1) >> 1;    // display 2 digits per byte
 
             // allocate data array
             atm.mantissa = new byte[atm.exponent + 1];
@@ -1307,6 +1343,7 @@ namespace Calculator
                 atm.mantissa[ii] = (byte)(10 * ascii_number[p] + ascii_number[p + 1] - 528);
                 p += 2;
             }
+            Normalize(atm);
         }
 
         static private void SetFromString(BigNumber atm, string value)
@@ -1315,7 +1352,7 @@ namespace Calculator
 
             int p;
             sbyte sign = 1;
-            int exponent = 0;
+            long exponent = 0;
 
             value = value.Trim().Replace(" ", "");  // trim whitespace
             value = value.ToLower();                // convert to lower
@@ -1342,7 +1379,7 @@ namespace Calculator
                 try
                 {
                     if (com[1][0] == '+') throw new Exception("Input string is invalid");
-                    exponent = Convert.ToInt32(com[1]);
+                    exponent = Convert.ToInt64(com[1]);
                 }
                 catch { throw new Exception("Number is too large"); }
 

@@ -8,76 +8,62 @@ namespace Calculator
         /// tìm sinx
         /// </summary>
         /// <param name="src">x</param>
-        private BigNumber Sinx(BigNumber src)
+        static void Sinx(BigNumber src, ref BigNumber dst)
         {
-            //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
-            BigNumber src_Temp = src;
-            if (src.Abs() > BN_DoublePI)
-            {
-                src_Temp = src - src.signum * BN_DoublePI * (src / BN_DoublePI).Round(10).Floor();
-            }
-            BigNumber result = src_Temp, f_comma_x = 0;
+            if (Compare(src, 0) == 0) { SetZero(dst); return; }
+            BigNumber f_comma_x = 0;
             BigNumber lastFactorial = 6;
+            BigNumber pow = 0;
+            BigNumber div = 0;
             int n = 1, sign = -1;
+            dst = src;
             do
             {
-                //fx = ((n & 1) == 0 ? 1 : -1) / lastFactorial;  //fx=(-1)^n / (2n+1)!
-                //fx = sign / lastFactorial;  //fx=(-1)^n / (2n+1)!
-                f_comma_x = (sign / lastFactorial * src_Temp.Pow(2 * n + 1, 31)).Round(36);       //f'(x)
-                result = (result + f_comma_x).Round(36);
+                Power(src, 2 * n + 1, pow, numDefaultPlaces);
+                pow.signum = (sbyte)(sign * src.signum);
+                Div(pow, lastFactorial, f_comma_x, numDefaultPlaces);   //f'(x)=(-1)^n / (2n+1)!
+                //f_comma_x = (sign * src.Pow(2 * n + 1) / lastFactorial);
+                dst = dst + f_comma_x;
                 n++;
                 lastFactorial = lastFactorial * (2 * n) * (2 * n + 1);
 				sign = -sign;
             }
-            while (f_comma_x.Abs() > 1E-40);
-            return result;
-        }
-        /// <summary>
-        /// Sin(x)
-        /// </summary>
-        public BigNumber Sin()
-        {
-            return Sinx(this);
+            while (Compare(f_comma_x.Abs(), 1E-50) > 0);
+            Approximate(dst);
         }
         /// <summary>
         /// tìm cosx
         /// </summary>
-        /// <param name="x">x</param>
-        private BigNumber Cosx(BigNumber x)
+        /// <param name="src">x</param>
+        static void Cosx(BigNumber src, ref BigNumber res)
         {
-            return Sinx(BN_PI / 2 - x);
-        }
-        /// <summary>
-        /// Cos(x)
-        /// </summary>
-        public BigNumber Cos()
-        {
-            return Cosx(this);
+            if (Compare(src, 0) == 0) return;
+            if (Compare(src, BN_PI / 2) == 0) return;
+            BigNumber div = new BigNumber();
+            BigNumber param = new BigNumber();
+            Div(BN_PI, Two, div);
+            Sub(div, src, param);
+            // neu param qua nho so voi src thi coi nhu bang div==src
+            Div(param, src, div);
+            if (Compare(div.Abs(), 1e-16) < 0) SetZero(param);
+            Sinx(param, ref res);
         }
         /// <summary>
         /// tìm tanx
         /// </summary>
         /// <param name="src">x</param>
-        private BigNumber Tanx(BigNumber src)
+        static void Tanx(BigNumber src, BigNumber dst)
         {
             BigNumber src_Temp = src;
-            if (src.Abs() > BN_DoublePI)
-            {
-                src_Temp = src - src.signum * BN_DoublePI * (src / BN_DoublePI).Floor();
-            }
             // neu src_Temp la boi cua pi/2
-            var epsilon = src_Temp.Abs() / BN_PI * 2;   //3.2637657012293963088473017370737
+            var epsilon = src_Temp.Abs() / BN_PI * 2;
             // epsilon = | |src| / (pi/2) |, neu epsilon lam tron den 10 chu so ma ra so nguyen thi tra ve exception
             if (IsInteger(epsilon.Round(10))) throw new Exception("Invalid parameter for this function");
-
-            return Sinx(src_Temp) / Cosx(src_Temp);
-        }
-        /// <summary>
-        /// Tan(x)
-        /// </summary>
-        public BigNumber Tan()
-        {
-            return Tanx(this);
+            BigNumber sin = new BigNumber();
+            BigNumber cos = new BigNumber();
+            Sinx(src_Temp, ref sin);
+            Cosx(src_Temp, ref cos);
+            Div(sin, cos, dst);
         }
         /// <summary>
         /// tìm arcsinx
@@ -91,6 +77,7 @@ namespace Calculator
                 throw new Exception("Invalid argument in arcsin/arccos function");
             }
             BigNumber result = src, fx = 0.5, f_comma_x = 0, xPow = src;    //f'(x)
+            // neu |src| cang gan voi 1 thi thoi gian tinh cang lau
             if (src.Abs() < 0.8)
             {
                 int n = 1;
@@ -102,7 +89,7 @@ namespace Calculator
                     n++;
                     fx = fx * (2 * n - 1) / (2 * n);	//fx=(2n-1)!! / (2n)!!
                 }
-                while (f_comma_x.Abs() > 1e-35);
+                while (Compare(f_comma_x.Abs(), 1e-35) > 0);
                 return result.Round(31);
             }
             var source = (1 - src * src).Sqrt(numDefaultPlaces);
@@ -160,8 +147,8 @@ namespace Calculator
             BigNumber ex = x.Floor();
             x = Ten.Pow(x - ex);
 
-            try { x.exponent = int.Parse(ex.IntString) + 1; }
-            catch { throw new Exception("Exponent is too overflow"); }
+            try { x.exponent = long.Parse(ex.IntString) + 1; }
+            catch { throw new Exception("Exponent is too large"); }
 
             x = x.Round(23);
             return x.StrValue;

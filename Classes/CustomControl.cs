@@ -114,6 +114,7 @@ namespace Calculator
                 Graphics gr = e.Graphics;
                 gr.DrawRectangle(new Pen(Color.FromArgb(134, 150, 170), 1.0f), 0, 0, Size.Width - 1, Size.Height - 1);
             }
+
             base.OnPaint(e);
         }
     }
@@ -122,19 +123,6 @@ namespace Calculator
     /// </summary>
     class ILabel : Label
     {
-        [Browsable(true)]
-        public override ContextMenu ContextMenu
-        {
-            get { return base.ContextMenu; }
-            set { base.ContextMenu = value; }
-        }
-        [Browsable(false)]
-        public override ContextMenuStrip ContextMenuStrip
-        {
-            get { return base.ContextMenuStrip; }
-            set { base.ContextMenuStrip = value; }
-        }
-
         private bool allowTextChanged = true;
         public virtual bool AllowTextChanged
         {
@@ -142,7 +130,7 @@ namespace Calculator
             set { allowTextChanged = value; }
         }
 
-        protected override void OnTextChanged(System.EventArgs e)
+        protected override void OnTextChanged(EventArgs e)
         {
             if (allowTextChanged) base.OnTextChanged(e);
         }
@@ -179,7 +167,7 @@ namespace Calculator
         //
         // lost focus
         //
-        protected override void OnLostFocus(System.EventArgs e)
+        protected override void OnLostFocus(EventArgs e)
         {
             if (this.Text == "")
             {
@@ -222,20 +210,6 @@ namespace Calculator
         /// giá trị ở hệ xx-phân mà radio này mang tên
         /// </summary>
         public string Value { get; set; }
-
-        [Browsable(true)]
-        public override ContextMenu ContextMenu
-        {
-            get { return base.ContextMenu; }
-            set { base.ContextMenu = value; }
-        }
-
-        [Browsable(false)]
-        public override ContextMenuStrip ContextMenuStrip
-        {
-            get { return base.ContextMenuStrip; }
-            set { base.ContextMenuStrip = value; }
-        }
     }
 
     class INumericUpDown : NumericUpDown

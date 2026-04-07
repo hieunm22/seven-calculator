@@ -30,66 +30,42 @@ namespace Calculator
         /// </summary>
         private void InitializeComponent()
         {
-            this.exitBT = new System.Windows.Forms.Button();
-            this.formBorder = new System.Windows.Forms.Panel();
-            this.hotkeyLB = new System.Windows.Forms.Label();
-            this.displayText = new System.Windows.Forms.Label();
-            this.formBorder.SuspendLayout();
+            this.borderPN = new System.Windows.Forms.Panel();
+            this.displayText = new System.Windows.Forms.TextBox();
+            this.borderPN.SuspendLayout();
             this.SuspendLayout();
-            //
-            // exitBT
-            //
-            this.exitBT.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.exitBT.Location = new System.Drawing.Point(63, 5);
-            this.exitBT.Name = "exitBT";
-            this.exitBT.Size = new System.Drawing.Size(1, 1);
-            this.exitBT.TabIndex = 1;
-            this.exitBT.Text = "E&xit";
-            this.exitBT.UseVisualStyleBackColor = true;
-            this.exitBT.Click += new System.EventHandler(this.toolTip_Click);
-            //
-            // formBorder
-            //
-            this.formBorder.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.formBorder.Controls.Add(this.hotkeyLB);
-            this.formBorder.Controls.Add(this.exitBT);
-            this.formBorder.Controls.Add(this.displayText);
-            this.formBorder.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.formBorder.Location = new System.Drawing.Point(0, 0);
-            this.formBorder.Name = "formBorder";
-            this.formBorder.Size = new System.Drawing.Size(128, 28);
-            this.formBorder.TabIndex = 0;
-            this.formBorder.Click += new System.EventHandler(this.toolTip_Click);
-            //
-            // hotkeyLB
-            //
-            this.hotkeyLB.AutoSize = true;
-            this.hotkeyLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.hotkeyLB.Location = new System.Drawing.Point(96, 7);
-            this.hotkeyLB.Name = "hotkeyLB";
-            this.hotkeyLB.Size = new System.Drawing.Size(0, 13);
-            this.hotkeyLB.TabIndex = 1;
-            this.hotkeyLB.Click += new System.EventHandler(this.toolTip_Click);
-            //
+            // 
+            // borderPN
+            // 
+            this.borderPN.BackColor = System.Drawing.Color.Transparent;
+            this.borderPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.borderPN.Controls.Add(this.displayText);
+            this.borderPN.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.borderPN.Location = new System.Drawing.Point(0, 0);
+            this.borderPN.Name = "borderPN";
+            this.borderPN.Size = new System.Drawing.Size(324, 100);
+            this.borderPN.TabIndex = 0;
+            // 
             // displayText
-            //
-            this.displayText.AutoSize = true;
-            this.displayText.Location = new System.Drawing.Point(12, 7);
+            // 
+            this.displayText.BackColor = System.Drawing.SystemColors.Info;
+            this.displayText.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.displayText.Location = new System.Drawing.Point(5, 5);
+            this.displayText.Multiline = true;
             this.displayText.Name = "displayText";
-            this.displayText.Size = new System.Drawing.Size(88, 13);
+            this.displayText.ReadOnly = true;
+            this.displayText.Size = new System.Drawing.Size(312, 88);
             this.displayText.TabIndex = 0;
-            this.displayText.Text = "Key equivalent is";
-            this.displayText.Click += new System.EventHandler(this.toolTip_Click);
-            //
+            // 
             // Info
-            //
+            // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Info;
-            this.CancelButton = this.exitBT;
-            this.ClientSize = new System.Drawing.Size(128, 28);
-            this.Controls.Add(this.formBorder);
-            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ClientSize = new System.Drawing.Size(324, 100);
+            this.Controls.Add(this.borderPN);
+            this.Enabled = false;
+            this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Info";
             this.ShowInTaskbar = false;
@@ -98,17 +74,17 @@ namespace Calculator
             this.Activated += new System.EventHandler(this.toolTip_Activated);
             this.Deactivate += new System.EventHandler(this.toolTip_Click);
             this.Click += new System.EventHandler(this.toolTip_Click);
-            this.formBorder.ResumeLayout(false);
-            this.formBorder.PerformLayout();
+            this.borderPN.ResumeLayout(false);
+            this.borderPN.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private Button exitBT;
-        private Panel formBorder;
-        private Label hotkeyLB;
-        private Label displayText;
+        private Panel borderPN;
+        private TextBox displayText;
+
+
     }
 }
