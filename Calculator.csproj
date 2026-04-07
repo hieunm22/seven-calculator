@@ -109,6 +109,12 @@
     <Compile Include="ExtraForms\Info.Designer.cs">
       <DependentUpon>Info.cs</DependentUpon>
     </Compile>
+    <Compile Include="ExtraForms\TextField.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ExtraForms\TextField.Designer.cs">
+      <DependentUpon>TextField.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExtraForms\Preferences.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -129,6 +135,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ExtraForms\Info.resx">
       <DependentUpon>Info.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExtraForms\TextField.resx">
+      <DependentUpon>TextField.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ExtraForms\Preferences.resx">
       <DependentUpon>Preferences.cs</DependentUpon>

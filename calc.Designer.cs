@@ -11,10 +11,33 @@ namespace Calculator
         /// Required designer variable.
         /// </summary>
         private IContainer components = null;
+
+        #region constant string array
+        /// <summary>
+        /// list options name
+        /// </summary>
+        private readonly string[] optionName = new string[]{
+         
+            #region init item members
+            "CalculatorType",
+            "DigitGrouping",
+            "ExtraFunction",
+            "History",
+            "MemoryNumber",
+            "TypeUnitCB",
+            "AutoCalculate",
+            "Method",
+            "CollapseSpeed",
+            "Animate",
+            "FastFactorial",
+            "SignInteger"
+            #endregion
+
+        };
         /// <summary>
         /// combobox item member
         /// </summary>
-        private readonly object[][] unitTypeItemMember = new object[][]{
+        private readonly string[][] unitTypeItemMember = new string[][]{
 
             #region init item members
             new string[]{
@@ -127,26 +150,63 @@ namespace Calculator
 
         };
         /// <summary>
-        /// list options name
+        /// combobox item member
         /// </summary>
-        private readonly string[] optionName = new string[]{
-         
+        private readonly string[][] worksheetsLabel = new string[][]{
+
             #region init item members
-            "CalculatorType",
-            "DigitGrouping",
-            "ExtraFunction",
-            "History",
-            "MemoryNumber",
-            "TypeUnitCB",
-            "AutoCalculate",
-            "Method",
-            "CollapseSpeed",
-            "Animate",
-            "FastFactorial",
-            "SignInteger"
+            new string[]{
+            "Purchase price",
+            "Term (years)",
+            "Interest rate (%)",
+            "Monthly payment",
+            "Down payment"},
+            new string[]{
+            "Lease value",
+            "Payments per year",
+            "Residual value",
+            "Interest rate (%)",
+            "Periodic payment",
+            "Lease period"},
+            new string[]{
+            "Fuel used (gallons)",
+            "Distance (miles)",
+            "Fuel economy (mpg)"},
+            new string[]{
+            "Fuel used (liters)",
+            "Distance (kilometers)",
+            "Fuel economy (L/100 km)"}
             #endregion
 
         };
+        /// <summary>
+        /// combobox item member
+        /// </summary>
+        private readonly string[][] worksheetsComboBox = new string[][]{
+
+            #region init item members
+            new string[]{
+            "Down Payment",
+            "Monthly Payment",
+            "Purchase price",
+            "Term (years)"},
+            new string[]{
+            "Lease period",
+            "Lease value",
+            "Periodic payment",
+            "Residual value"},
+            new string[]{
+            "Distance (miles)",
+            "Fuel economy (mpg)",
+            "Fuel used (gallons)"},
+            new string[]{
+            "Distance (kilometers)",
+            "Fuel economy (L/100 km)",
+            "Fuel used (liters)"}
+            #endregion
+
+        }; 
+        #endregion
 
         #region ham main
         /// <summary>
@@ -431,7 +491,7 @@ namespace Calculator
                         break;
                     case 65589:     // %
                         if (percent_bt.Enabled) percent_Click(null, null);
-                        if (programmerMI.Checked) bitOperatorsBT_Click(modproBT, null);
+                        if (programmerMI.Checked) operatorBT_Click(modproBT, null);
                         break;
                     case 65728:     // ~ not
                         if (programmerMI.Checked) notBT_Click(null, null);
@@ -448,11 +508,11 @@ namespace Calculator
                     case 65590: case 65591: case 65756: case 65724: case 65726: // ^ & | < >
                         if (programmerMI.Checked)
                         {
-                            if (key_hc == 65590) bitOperatorsBT_Click(XorBT, null);
-                            if (key_hc == 65591) bitOperatorsBT_Click(AndBT, null);
-                            if (key_hc == 65756) bitOperatorsBT_Click(or_BT, null);
-                            if (key_hc == 65724) bitOperatorsBT_Click(LshBT, null);
-                            if (key_hc == 65726) bitOperatorsBT_Click(RshBT, null);
+                            if (key_hc == 65590) operatorBT_Click(XorBT, null);
+                            if (key_hc == 65591) operatorBT_Click(AndBT, null);
+                            if (key_hc == 65756) operatorBT_Click(or_BT, null);
+                            if (key_hc == 65724) operatorBT_Click(LshBT, null);
+                            if (key_hc == 65726) operatorBT_Click(RshBT, null);
                         }
                         break;
                     case 65586:     // sqrt
@@ -505,6 +565,11 @@ namespace Calculator
                         break;
                     case 131161:    // control Y
                         sci_operation(34);  // yx
+                        break;
+                    case 262211:    // alt C
+                        if (dateCalculationMI.Checked) calculate_bt_Click(null, null);
+                        if (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked) 
+                            workSheetCalculateBT_Click(null, null);
                         break;
                     #endregion
                 }
@@ -605,7 +670,7 @@ namespace Calculator
 
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
-                feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
+                workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
                 staDGV.Visible = false;
@@ -641,7 +706,7 @@ namespace Calculator
                 this.hisDGV.Size = new Size(scientificMI.Checked ? 385 : 190, hisDGV.Size.Height);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
-                feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
+                workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 unitconvPN.Location = new Point(408, 12);
                 unitconvPN.Size = new Size(362, 241 + 103 * his);
@@ -678,7 +743,7 @@ namespace Calculator
                 hideStaComponent(false);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
-                feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
+                workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
                 programmerMode();
 
                 historyMI.Enabled = false;
@@ -712,7 +777,7 @@ namespace Calculator
                 hideStaComponent(true);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
-                feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
+                workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 gridPanel.Visible = true;
                 hisDGV.Visible = false;
@@ -902,7 +967,7 @@ namespace Calculator
             hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
             staDGV.Visible = /*countLB.Visible = */!historyMI.Checked || !historyMI.Enabled;
 
-            countLB.Text = "";
+            //countLB.Text = "";
 
             FormSizeChanged(new Size(216 + 197 * sci + 374 * exf, 310 + 104 * his), isLoaded);
 
@@ -923,31 +988,47 @@ namespace Calculator
             currentConfig[2] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : 0);
             datecalcPN.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
             unitconvPN.Visible = unitConversionMI.Checked = (menuitem == unitConversionMI);
-            feMPG_PN.Visible = (menuitem == fe_MPG_MI || menuitem == feL100_MI);
-            morgagePN.Visible = (menuitem == mortgageMI);
-            VhPN.Visible = (menuitem == vehicleLeaseMI);
-
-            switch (menuitem.Index)
-            {
-                case 0: InitCustomControls(ref morgageTB, morgagePN, 4);
-                    break;
-                case 1: InitCustomControls(ref VhTB, VhPN, 5);
-                    break;
-                case 2: case 3: InitCustomControls(ref fempgTB, feMPG_PN, 2);
-                    break;
-            }
+            workSheetPN.Visible = (menuitem == mortgageMI || menuitem == fe_MPG_MI || menuitem == feL100_MI || menuitem == vehicleLeaseMI);
 
             mortgageMI.Checked = (menuitem == mortgageMI);
             vehicleLeaseMI.Checked = (menuitem == vehicleLeaseMI);
             fe_MPG_MI.Checked = (menuitem == fe_MPG_MI);
             feL100_MI.Checked = (menuitem == feL100_MI);
 
+            typeWorkSheetCB.Items.Clear();
+            if (menuitem.Parent == worksheetsMI) typeWorkSheetCB.Items.AddRange(worksheetsComboBox[menuitem.Index]);
+            switch (menuitem.Index)
+            {
+                case 0:
+                    if (mortgageTF == null) InitCustomControls(ref mortgageTF, 5, 0);
+                    HideWorkSheetTextField(mortgageTF);
+                    typeWorkSheetCB.SelectedIndex = 1;
+                    break;
+                case 1:
+                    if (VhTF == null) InitCustomControls(ref VhTF, 6, 1);
+                    HideWorkSheetTextField(VhTF);
+                    typeWorkSheetCB.SelectedIndex = 2;
+                    break;
+                case 2:
+                    if (fe_MPGTF == null) InitCustomControls(ref fe_MPGTF, 3, 2);
+                    HideWorkSheetTextField(fe_MPGTF);
+                    typeWorkSheetCB.SelectedIndex = 1;
+                    break;
+                case 3:
+                    if (feL100TF == null) InitCustomControls(ref feL100TF, 3, 3);
+                    HideWorkSheetTextField(feL100TF);
+                    typeWorkSheetCB.SelectedIndex = 1;
+                    break;
+            }
+
             unitconvPN.Size = new Size(362, 241 + 63 * pro + 103 * his);
             unitconvPN.Location = new Point(213 + 195 * (sci + pro), 12);
 
             basicMI.Checked = false;
 
-            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = fuelEconomyBT;
+            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = workSheetCalculateBT;
+
+            typeWorkSheetCB.Visible = (menuitem == mortgageMI || menuitem == vehicleLeaseMI || menuitem == fe_MPG_MI || menuitem == feL100_MI);
 
             if (isLoaded)
             {
@@ -964,28 +1045,34 @@ namespace Calculator
                 propertiesChange = true;
                 if (menuitem == unitConversionMI) { typeUnitCB.Focus(); typeUnitCB.Focus(); }
                 if (menuitem == dateCalculationMI) datemethodCB.Focus();
-                if (mortgageMI.Checked) typeMorgageCB.Focus();
-                if (vehicleLeaseMI.Checked) typeVhCB.Focus();
-                if (fe_MPG_MI.Checked) typeFEmpg.Focus();
-                if (feL100_MI.Checked) typeFEl100.Focus();
+                if (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked) typeWorkSheetCB.Focus();
             }
             toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
             assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
             toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
 
-            typeFEmpg.Visible = (menuitem == fe_MPG_MI);
-            typeFEl100.Visible = (menuitem == feL100_MI);
-
-            typeMorgageCB.SelectedIndex = 1;
-            typeVhCB.SelectedIndex = 2;
-            typeFEmpg.SelectedIndex = 1;
-            typeFEl100.SelectedIndex = 1;
-
             autocal_date.Checked = (int)currentConfig[6] == 1;
             if (dateCalculationMI.Checked) this.AcceptButton = calculate_date;
-            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = fuelEconomyBT;
+            if (mortgageMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = workSheetCalculateBT;
 
-            prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused && !typeFEl100.Focused && !typeFEmpg.Focused;
+            prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused && !typeWorkSheetCB.Focused;
+        }
+        /// <summary>
+        /// ẩn các text field của các hàm worksheet khác khi worksheet này được chọn
+        /// </summary>
+        /// <param name="itfList"></param>
+        private void HideWorkSheetTextField(TextField[] itfList)
+        {
+            foreach (TextField[] item in new object[] { mortgageTF, VhTF, fe_MPGTF, feL100TF })
+            {
+                if (item != itfList && item != null)
+                {
+                    for (int i = 0; i < item.Length; i++)
+                    {
+                        item[i].Visible = false;
+                    }
+                }
+            }
         }
         /// <summary>
         /// ẩn các control đặc biệt của form standard
@@ -1035,7 +1122,6 @@ namespace Calculator
             btFactorial.Visible = bl;
             modsciBT.Visible = bl;
             open_bracket.Visible = bl;
-            openProBT.Visible = !bl;
             close_bracket.Visible = bl;
             bracketTime_lb.Visible = bl;
             //str = "0";
@@ -1060,7 +1146,6 @@ namespace Calculator
             NotBT.Visible = bl;
             AndBT.Visible = bl;
             bracketTime_lb.Visible = bl;
-            open_bracket.Visible = !bl;
             openProBT.Visible = bl;
             close_bracket.Visible = bl;
             modproBT.Visible = bl;
@@ -1182,7 +1267,7 @@ namespace Calculator
             {
                 parameter = prevFunc;
             }
-            else if (pre_bt == 152) parameter = bracketExp[openBRK - closeBRK];
+            else if (pre_bt == 152) parameter = bracketExp[openBRKLevel];
             int len = prevFunc.Length;
 
             while (parameter.StartsWith("(") && parameter.EndsWith(")"))
@@ -1334,52 +1419,23 @@ namespace Calculator
             //if (pex == null) DisplayToScreen();
         }
         /// <summary>
-        /// đưa kết quả các phép tính +-*/ và nhị phân của form programmer lên màn hình
-        /// </summary>
-        private void programmerOperation()
-        {
-            /*
-             * tìm nhị phân trước rồi mới tìm các hệ khác vì kết quả cuối cùng phụ thuộc vào nhị phân
-             * (giá trị của kết quả nhị phân phụ thuộc vào các radiobutton qword, dword...)
-             *
-             * */
-            try
-            {
-                binRB.Value = Binary.dec_to_other(resultpro.StrValue, 2, SizeBin, (int)currentConfig[11] == 1);
-                decRB.Value = Binary.other_to_dec(binRB.Value, 2, SizeBin, (int)currentConfig[11] == 1);
-
-                octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
-                hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
-            }
-            catch (Exception ex)
-            {
-                pex = ex;
-                scr_lb.TextChanged -= scr_lb_TextChanged;
-                scr_lb.Text = str = "Result is too large";
-                scr_lb.Font = new Font("Consolas", 9.75F);
-                scr_lb.TextChanged += scr_lb_TextChanged;
-                return;
-            }
-            binnum64 = binRB.Value.PadLeft(64, '0');
-            for (int i = 0; i < 16; i++)
-            {
-                bin_digit[i].Text = binnum64.Substring(64 - (i + 1) * 4, 4);
-            }
-
-            if (binRB.Checked) str = binRB.Value;
-            if (octRB.Checked) str = octRB.Value;
-            if (decRB.Checked) str = decRB.Value;
-            if (hexRB.Checked) str = hexRB.Value;
-            scr_lb.Text = str;
-        }
-        /// <summary>
         /// nút xoá số
         /// </summary>
         /// <param name="c_bt">biến kiểm tra xem nút xoá có phải nút C hay không</param>
         private void clear_num(bool c_bt)
         {
+            if (isFuncClicked)
+            {
+                if (pre_oprt == 0 && pre_bt != 32) equal_Click(null, null);
+                if (pre_oprt != 0 && pre_bt != 32 && !c_bt)
+                {
+                    sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length).Trim();
+                    expressionTB.Text = Misc.StandardExpression(sci_exp); ;
+                }
+            }
             scr_lb.Text = str = "0";
             isFuncClicked = false;
+            sciexpAdd = false;
             prcmdkey = confirm_num = true;
 
             scr_lb.Font = new Font("Consolas", 15.75F);
@@ -1388,14 +1444,16 @@ namespace Calculator
             if (c_bt)
             {
                 pex = null;
-                pre_oprt = pre_priority = priority = openBRK = closeBRK = 0;
+                pre_oprt = pre_priority = priority = openBRKLevel = 0;
                 prevFunc = "0";
-                expressionTB.Text = bracketTime_lb.Text = sci_exp = "";
+                expressionTB.Text = bracketTime_lb.Text = sci_exp = pro_exp = "";
                 result = 0;
                 pre_bt = -1;
-                inv_ChkBox.Checked = fe_ChkBox.Checked = sciexpAdd = false;
+                inv_ChkBox.Checked = fe_ChkBox.Checked = false;
                 slow = false;
-                mulDivFunc = power_Func = "";
+                power_Exp = mul_div_Exp = "";
+                bracketExp = new string[20];
+                priorityExpression = new string[7];
             }
             if (bin_digit != null)
             {
@@ -1462,14 +1520,14 @@ namespace Calculator
                 sciexpAdd = false;
                 expressionTB.Text = Misc.StandardExpression(sci_exp);
             }
-            if (pre_bt == 152 && openBRK - closeBRK > 0)
+            if (pre_bt == 152 && openBRKLevel > 0)
             {
-                string brkexp = bracketExp[openBRK - closeBRK - 1];
+                string brkexp = bracketExp[openBRKLevel - 1];
                 brkexp = brkexp.Substring(0, brkexp.Length - prevFunc.Length);
-                bracketExp[openBRK - closeBRK - 1] = brkexp;
-                bracketExp[openBRK - closeBRK] = null;
+                bracketExp[openBRKLevel - 1] = brkexp;
+                bracketExp[openBRKLevel] = null;
             }
-            if (pre_bt == 152 && openBRK - closeBRK == 0)
+            if (pre_bt == 152 && openBRKLevel == 0)
             {
                 bracketExp = new string[20];
             }
@@ -1515,15 +1573,17 @@ namespace Calculator
                             && (BigNumber)strTemp < "1e32") str = strTemp;
                         else return;
                     }
+                    prevFunc = str;
+                    isFuncClicked = false;
                 }
                 else
                 {
                     str = index.ToString();
+                    prevFunc = str;
+                    isFuncClicked = false;
                     FixNumberWhenChange();
                 }
                 //expressionTB.Text = Misc.StandardExpression(sci_exp);
-                isFuncClicked = false;
-                prevFunc = str;
                 goto breakpoint;
             }
             if (index == 10 && pex == null)    // dấu thập phân
@@ -1772,8 +1832,8 @@ namespace Calculator
             isFuncClicked = false;
         }
 
-        string power_Func = "", mulDivFunc = "";
-        int priority, pre_priority, preoperLength = 0;
+        string power_Exp = "", mul_div_Exp = "";
+        int priority = -1, pre_priority = -1, preoperLength = 0;
         #warning 08/04/2014 xử lý từ đây trước và hàm equal của nó
         /// <summary>
         /// các toán tử +-*/ của form scientific
@@ -1782,13 +1842,13 @@ namespace Calculator
         {
             pre_priority = priority;
             string oper = "";
-            if (index == 12) { oper = "+"; priority = 1; }
-            if (index == 13) { oper = "-"; priority = 1; }
-            if (index == 14) { oper = "*"; priority = 2; }
-            if (index == 15) { oper = "/"; priority = 2; }
-            if (index == 33) { oper = "^"; priority = 3; }
-            if (index == 34) { oper = "yroot"; priority = 3; }
-            if (index == 43) { oper = "mod"; priority = 2; }
+            if (index == 12) { oper = "+"; priority = 4; }
+            if (index == 13) { oper = "-"; priority = 4; }
+            if (index == 14) { oper = "*"; priority = 5; }
+            if (index == 15) { oper = "/"; priority = 5; }
+            if (index == 33) { oper = "^"; priority = 6; }
+            if (index == 34) { oper = "yroot"; priority = 6; }
+            if (index == 43) { oper = "mod"; priority = 5; }
             if (pre_oprt != 0)
             {
                 switch (pre_bt)
@@ -1796,16 +1856,16 @@ namespace Calculator
                     case 12: case 13: case 14: case 15: case 33: case 34: case 43:
                         if (pre_bt == 12 || pre_bt == 13)
                         {
-                            mulDivFunc = prevFunc + oper;
-                            power_Func = prevFunc + oper;
+                            mul_div_Exp = prevFunc + oper;
+                            power_Exp = prevFunc + oper;
                         }
                         string format = "({0}){1}";
                         if (priority <= pre_priority || (sci_exp.StartsWith("(") && sci_exp[sci_exp.Length - 2] == ')')) format = "{0}{1}";
                         sci_exp = string.Format(format, sci_exp.Substring(0, sci_exp.Length - preoperLength), oper);
                         if (pre_bt == 14 || pre_bt == 15 || pre_bt == 43)
-                            mulDivFunc = string.Format(format, mulDivFunc.Substring(0, mulDivFunc.Length - preoperLength), oper);
+                            mul_div_Exp = string.Format(format, mul_div_Exp.Substring(0, mul_div_Exp.Length - preoperLength), oper);
                         if (pre_bt == 33 || pre_bt == 34)
-                            power_Func = string.Format(format, power_Func.Substring(0, power_Func.Length - preoperLength), oper);
+                            power_Exp = string.Format(format, power_Exp.Substring(0, power_Exp.Length - preoperLength), oper);
                         goto breakpoint;    // thoat tai day
                 }
                 //case 17: case 19: case 28: case 29: case 30: case 31: case 35: case 36:
@@ -1816,61 +1876,61 @@ namespace Calculator
                 if (sciexpAdd) sci_exp += oper;
                 else sci_exp += prevFunc + oper;
 
-                if (openBRK > closeBRK)
+                if (openBRKLevel > 0)
                 {
-                    if (!sciexpAdd) bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
-                    else bracketExp[openBRK - closeBRK - 1] += oper;
+                    if (!sciexpAdd) bracketExp[openBRKLevel - 1] += prevFunc + oper;
+                    else bracketExp[openBRKLevel - 1] += oper;
                 }
                 if (index == 33 || index == 34)
                 {
-                    power_Func += (prevFunc + oper);
-                    pex = parser.EvaluateSci(power_Func.Substring(0, power_Func.Length - 1));
+                    power_Exp += (prevFunc + oper);
+                    pex = parser.EvaluateSci(power_Exp.Substring(0, power_Exp.Length - 1));
                     str = parser.StringResult;
                 }
                 if (index == 14 || index == 15 || index == 43)
                 {
                     if (pre_oprt == 33 || pre_oprt == 34)
                     {
-                        power_Func += prevFunc;
-                        pex = parser.EvaluateSci(power_Func);
-                        mulDivFunc += parser.StringResult;
-                        pex = parser.EvaluateSci(mulDivFunc);
+                        power_Exp += prevFunc;
+                        pex = parser.EvaluateSci(power_Exp);
+                        mul_div_Exp += parser.StringResult;
+                        pex = parser.EvaluateSci(mul_div_Exp);
                         str = parser.StringResult;
-                        mulDivFunc += oper;
+                        mul_div_Exp += oper;
                     }
                     if (pre_oprt == 12 || pre_oprt == 13 || pre_oprt == 14 || pre_oprt == 15)
                     {
-                        mulDivFunc += prevFunc;
-                        pex = parser.EvaluateSci(mulDivFunc);
+                        mul_div_Exp += prevFunc;
+                        pex = parser.EvaluateSci(mul_div_Exp);
                         str = parser.StringResult;
-                        mulDivFunc += oper;
+                        mul_div_Exp += oper;
                     }
-                    power_Func = "";
+                    power_Exp = "";
                 }
                 if (index == 12 || index == 13)
                 {
-                    if (openBRK - closeBRK == 0) pex = parser.EvaluateSci(sci_exp.Substring(0, sci_exp.Length - 1));
-                    else pex = parser.EvaluateSci(bracketExp[openBRK - closeBRK - 1].Substring(0, bracketExp[openBRK - closeBRK - 1].Length - 1));
+                    if (openBRKLevel == 0) pex = parser.EvaluateSci(sci_exp.Substring(0, sci_exp.Length - 1));
+                    else pex = parser.EvaluateSci(bracketExp[openBRKLevel - 1].Substring(0, bracketExp[openBRKLevel - 1].Length - 1));
                     str = parser.StringResult;
-                    power_Func = "";
-                    mulDivFunc = "";
+                    power_Exp = "";
+                    mul_div_Exp = "";
                 }
             }
             else    // pre_oprt == 0
             {
                 if (pre_bt == 46) { numinput(changesignBT); return; }
-                if (openBRK > 0)
+                if (openBRKLevel > 0)
                 {
                     if (!sciexpAdd)
                     {
                         sci_exp += prevFunc + oper;
-                        //bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
+                        //bracketExp[openBRKLevel - 1] += prevFunc + oper;
                     }
                     else
                     {
                         sci_exp += oper;
                     }
-                    bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
+                    bracketExp[openBRKLevel - 1] += prevFunc + oper;
                 }
                 else
                 {
@@ -1879,11 +1939,11 @@ namespace Calculator
                 //-----------------------------------------------------------------
                 if (index == 33 || index == 34)
                 {
-                    power_Func = prevFunc + oper;
+                    power_Exp = prevFunc + oper;
                 }
                 if (index == 14 || index == 15 || index == 43)
                 {
-                    mulDivFunc = prevFunc + oper;
+                    mul_div_Exp = prevFunc + oper;
                 }
             }       // pre_oprt != 0
 
@@ -1897,58 +1957,66 @@ namespace Calculator
             confirm_num = true;
         }
 
-        BigNumber num1pro, num2pro = 0, resultpro = 0;
+        int lowestOperator = 7;
+        string[] priorityExpression = new string[7];
         /// <summary>
         /// các toán tử +-*/ của form programmer
         /// </summary>
         private void pro_operation(int index)
         {
-            confirm_num = true;
+            pre_priority = priority;
+            string oper = "";
+            if (index == 012) { oper = "+"; priority = 4; }
+            if (index == 013) { oper = "-"; priority = 4; }
+            if (index == 014) { oper = "*"; priority = 5; }
+            if (index == 015) { oper = "/"; priority = 5; }
+            if (index == 211) { oper = "%"; priority = 5; }
+            if (index == 200) { oper = "<<"; priority = 3; }
+            if (index == 210) { oper = ">>"; priority = 3; }
+            if (index == 204) { oper = "&"; priority = 2; }
+            if (index == 199) { oper = "|"; priority = 1; }
+            if (index == 205) { oper = "^"; priority = 0; }
 
-            ScreenToPanel();
-            if (pre_oprt == 0)
+            if (pre_oprt == 0) lowestOperator = priority;
+            // hien tai co muc uu tien CAO hon phep tinh truoc do
+            if (pre_priority < priority)
             {
-                num1pro = decRB.Value;
-                resultpro = num1pro;
+                priorityExpression[priority] = decRB.Value + oper;
             }
+            // hien tai co muc uu tien THAP hon phep tinh truoc do
+            else if (priority < pre_priority)
+            {
+                priorityExpression[pre_priority] += decRB.Value;
+                pex = parser.EvaluatePro(priorityExpression[pre_priority], (int)currentConfig[11] == 1);
+                str = parser.StringResult;
+                priorityExpression[priority] += str;
+                // neu phep tinh hien tai co muc uu tien thap nhat trong bieu thuc thi tinh luon ca bieu thuc roi gan vao bien str
+                if (priority <= lowestOperator && priority >= 0)
+                {
+                    pex = parser.EvaluatePro(priorityExpression[priority], (int)currentConfig[11] == 1);
+                    str = parser.StringResult;
+                }
+                priorityExpression[priority] += oper;
+            }
+            // hien tai co muc uu tien bang phep tinh truoc do
             else
             {
-                switch (pre_oprt)
+                priorityExpression[priority] += decRB.Value;
+                // neu phep tinh hien tai co muc uu tien thap nhat trong bieu thuc thi tinh luon ca bieu thuc roi gan vao bien str
+                if (priority <= lowestOperator && priority >= 0)
                 {
-                    case 12: case 13: case 14: case 15: case 211:
-                        num1pro = resultpro;
-                        num2pro = decRB.Value;
-                        if (pre_oprt == 12) resultpro = num1pro + num2pro;
-                        if (pre_oprt == 13) resultpro = num1pro - num2pro;
-                        if (pre_oprt == 14) resultpro = num1pro * num2pro;
-                        if (pre_oprt == 15)
-                        {
-                            if (num2pro != 0)
-                            {
-                                resultpro = num1pro / num2pro;
-                            }
-                            else
-                            {
-                                scr_lb.Text = "Cannot devide by zero";
-                                goto jump;
-                            }
-                        }
-                        if (pre_oprt == 211) resultpro = num1pro - num2pro * (num1pro / num2pro).Floor();
-                        break;
-                    default:
-                        //Button tabIndex = modproBT;
-                        //if (index == 199) tabIndex = or_BT;
-                        //if (index == 200) tabIndex = LshBT;
-                        //if (index == 204) tabIndex = AndBT;
-                        //if (index == 205) tabIndex = XorBT;
-                        //if (index == 210) tabIndex = RshBT;
-                        bitWiseOperators(index);
-                        resultpro = str;
-                        break;
+                    pex = parser.EvaluatePro(priorityExpression[priority], (int)currentConfig[11] == 1);
+                    str = parser.StringResult;
                 }
-                programmerOperation();
+                priorityExpression[priority] += oper;
             }
-            jump: pre_oprt = pre_bt = index;
+
+            pro_exp += decRB.Value + oper;
+
+            DisplayToScreen();
+            preoperLength = oper.Length;
+            confirm_num = true;
+            pre_oprt = pre_bt = index;
         }
 
         CancelOperation co;
@@ -2226,33 +2294,11 @@ namespace Calculator
             this.periodsDateUD = new Calculator.INumericUpDown();
             this.periodsMonthUD = new Calculator.INumericUpDown();
             this.periodsYearUD = new Calculator.INumericUpDown();
-            this.VhPN = new Calculator.IPanel();
-            this.typeVhLB = new System.Windows.Forms.Label();
-            this.typeVhCB = new System.Windows.Forms.ComboBox();
-            this.VhLB3 = new System.Windows.Forms.Label();
-            this.VhLB1 = new System.Windows.Forms.Label();
-            this.VhLB5 = new System.Windows.Forms.Label();
-            this.VhLB4 = new System.Windows.Forms.Label();
-            this.VhBT = new System.Windows.Forms.Button();
-            this.VhLB2 = new System.Windows.Forms.Label();
-            this.VhResultTB = new System.Windows.Forms.TextBox();
-            this.morgagePN = new Calculator.IPanel();
+            this.workSheetPN = new Calculator.IPanel();
             this.typeMorgageLB = new System.Windows.Forms.Label();
-            this.typeMorgageCB = new System.Windows.Forms.ComboBox();
-            this.morgageLB3 = new System.Windows.Forms.Label();
-            this.morgageLB1 = new System.Windows.Forms.Label();
-            this.morgageLB4 = new System.Windows.Forms.Label();
-            this.morgageBT = new System.Windows.Forms.Button();
-            this.morgageLB2 = new System.Windows.Forms.Label();
-            this.morgageResultTB = new System.Windows.Forms.TextBox();
-            this.feMPG_PN = new Calculator.IPanel();
-            this.typeFEmpgLB = new System.Windows.Forms.Label();
-            this.typeFEl100 = new System.Windows.Forms.ComboBox();
-            this.typeFEmpg = new System.Windows.Forms.ComboBox();
-            this.fempgLB2 = new System.Windows.Forms.Label();
-            this.fempgLB1 = new System.Windows.Forms.Label();
-            this.fuelEconomyBT = new System.Windows.Forms.Button();
-            this.fempgResultTB = new System.Windows.Forms.TextBox();
+            this.typeWorkSheetCB = new System.Windows.Forms.ComboBox();
+            this.workSheetCalculateBT = new System.Windows.Forms.Button();
+            this.workSheetResultTB = new System.Windows.Forms.TextBox();
             this.unitconvPN = new Calculator.IPanel();
             this.toCombobox = new System.Windows.Forms.ComboBox();
             this.typeUnitLB = new System.Windows.Forms.Label();
@@ -2293,9 +2339,7 @@ namespace Calculator
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).BeginInit();
-            this.VhPN.SuspendLayout();
-            this.morgagePN.SuspendLayout();
-            this.feMPG_PN.SuspendLayout();
+            this.workSheetPN.SuspendLayout();
             this.unitconvPN.SuspendLayout();
             this.num2BT_PN.SuspendLayout();
             this.num3BT_PN.SuspendLayout();
@@ -3033,7 +3077,7 @@ namespace Calculator
             this.XorBT.TabStop = false;
             this.XorBT.Text = "Xor";
             this.XorBT.UseVisualStyleBackColor = true;
-            this.XorBT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.XorBT.Click += new System.EventHandler(this.operatorBT_Click);
             this.XorBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.XorBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.XorBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -3065,7 +3109,7 @@ namespace Calculator
             this.AndBT.TabStop = false;
             this.AndBT.Text = "And";
             this.AndBT.UseVisualStyleBackColor = true;
-            this.AndBT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.AndBT.Click += new System.EventHandler(this.operatorBT_Click);
             this.AndBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.AndBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.AndBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -3081,7 +3125,7 @@ namespace Calculator
             this.RshBT.TabStop = false;
             this.RshBT.Text = "Rsh";
             this.RshBT.UseVisualStyleBackColor = true;
-            this.RshBT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.RshBT.Click += new System.EventHandler(this.operatorBT_Click);
             this.RshBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.RshBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.RshBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -3113,7 +3157,7 @@ namespace Calculator
             this.LshBT.TabStop = false;
             this.LshBT.Text = "Lsh";
             this.LshBT.UseVisualStyleBackColor = true;
-            this.LshBT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.LshBT.Click += new System.EventHandler(this.operatorBT_Click);
             this.LshBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.LshBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.LshBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -3129,7 +3173,7 @@ namespace Calculator
             this.or_BT.TabStop = false;
             this.or_BT.Text = "Or";
             this.or_BT.UseVisualStyleBackColor = true;
-            this.or_BT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.or_BT.Click += new System.EventHandler(this.operatorBT_Click);
             this.or_BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.or_BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.or_BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -3161,7 +3205,7 @@ namespace Calculator
             this.modproBT.TabStop = false;
             this.modproBT.Text = "Mod";
             this.modproBT.UseVisualStyleBackColor = true;
-            this.modproBT.Click += new System.EventHandler(this.bitOperatorsBT_Click);
+            this.modproBT.Click += new System.EventHandler(this.operatorBT_Click);
             this.modproBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.modproBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.modproBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
@@ -4759,166 +4803,20 @@ namespace Calculator
             this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // VhPN
+            // workSheetPN
             // 
-            this.VhPN.BackColor = System.Drawing.Color.White;
-            this.VhPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.VhPN.Controls.Add(this.typeVhLB);
-            this.VhPN.Controls.Add(this.typeVhCB);
-            this.VhPN.Controls.Add(this.VhLB3);
-            this.VhPN.Controls.Add(this.VhLB1);
-            this.VhPN.Controls.Add(this.VhLB5);
-            this.VhPN.Controls.Add(this.VhLB4);
-            this.VhPN.Controls.Add(this.VhBT);
-            this.VhPN.Controls.Add(this.VhLB2);
-            this.VhPN.Controls.Add(this.VhResultTB);
-            this.VhPN.Location = new System.Drawing.Point(234, 12);
-            this.VhPN.Name = "VhPN";
-            this.VhPN.Size = new System.Drawing.Size(356, 241);
-            this.VhPN.TabIndex = 35;
-            this.VhPN.Visible = false;
-            this.VhPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // typeVhLB
-            // 
-            this.typeVhLB.AutoSize = true;
-            this.typeVhLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeVhLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.typeVhLB.Location = new System.Drawing.Point(12, 9);
-            this.typeVhLB.Name = "typeVhLB";
-            this.typeVhLB.Size = new System.Drawing.Size(205, 13);
-            this.typeVhLB.TabIndex = 8;
-            this.typeVhLB.Text = "Select the Speed you want to calculate";
-            this.typeVhLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // typeVhCB
-            // 
-            this.typeVhCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeVhCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeVhCB.FormattingEnabled = true;
-            this.typeVhCB.Items.AddRange(new object[] {
-            "Lease period",
-            "Lease Speed",
-            "Periodic payment",
-            "Residual Speed"});
-            this.typeVhCB.Location = new System.Drawing.Point(12, 32);
-            this.typeVhCB.MaxDropDownItems = 11;
-            this.typeVhCB.Name = "typeVhCB";
-            this.typeVhCB.Size = new System.Drawing.Size(330, 21);
-            this.typeVhCB.TabIndex = 9;
-            this.typeVhCB.SelectedIndexChanged += new System.EventHandler(this.typeVhCB_SelectedIndexChanged);
-            this.typeVhCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // VhLB3
-            // 
-            this.VhLB3.AutoSize = true;
-            this.VhLB3.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.VhLB3.Location = new System.Drawing.Point(12, 110);
-            this.VhLB3.Name = "VhLB3";
-            this.VhLB3.Size = new System.Drawing.Size(99, 13);
-            this.VhLB3.TabIndex = 6;
-            this.VhLB3.Text = "Payments per year";
-            this.VhLB3.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // VhLB1
-            // 
-            this.VhLB1.AutoSize = true;
-            this.VhLB1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.VhLB1.Location = new System.Drawing.Point(12, 62);
-            this.VhLB1.Name = "VhLB1";
-            this.VhLB1.Size = new System.Drawing.Size(70, 13);
-            this.VhLB1.TabIndex = 6;
-            this.VhLB1.Text = "Lease Speed";
-            this.VhLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // VhLB5
-            // 
-            this.VhLB5.AutoSize = true;
-            this.VhLB5.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB5.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.VhLB5.Location = new System.Drawing.Point(12, 158);
-            this.VhLB5.Name = "VhLB5";
-            this.VhLB5.Size = new System.Drawing.Size(87, 13);
-            this.VhLB5.TabIndex = 8;
-            this.VhLB5.Text = "Interest rate (%)";
-            this.VhLB5.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB5.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // VhLB4
-            // 
-            this.VhLB4.AutoSize = true;
-            this.VhLB4.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.VhLB4.Location = new System.Drawing.Point(12, 134);
-            this.VhLB4.Name = "VhLB4";
-            this.VhLB4.Size = new System.Drawing.Size(86, 13);
-            this.VhLB4.TabIndex = 7;
-            this.VhLB4.Text = "Residual Speed";
-            this.VhLB4.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // VhBT
-            // 
-            this.VhBT.Enabled = false;
-            this.VhBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhBT.Location = new System.Drawing.Point(12, 210);
-            this.VhBT.Name = "VhBT";
-            this.VhBT.Size = new System.Drawing.Size(82, 22);
-            this.VhBT.TabIndex = 12;
-            this.VhBT.Text = "Calculate";
-            this.VhBT.UseVisualStyleBackColor = true;
-            this.VhBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
-            this.VhBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // VhLB2
-            // 
-            this.VhLB2.AutoSize = true;
-            this.VhLB2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.VhLB2.Location = new System.Drawing.Point(12, 86);
-            this.VhLB2.Name = "VhLB2";
-            this.VhLB2.Size = new System.Drawing.Size(72, 13);
-            this.VhLB2.TabIndex = 7;
-            this.VhLB2.Text = "Lease period";
-            this.VhLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // VhResultTB
-            // 
-            this.VhResultTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.VhResultTB.Location = new System.Drawing.Point(177, 212);
-            this.VhResultTB.MaxLength = 20;
-            this.VhResultTB.Name = "VhResultTB";
-            this.VhResultTB.ReadOnly = true;
-            this.VhResultTB.Size = new System.Drawing.Size(165, 22);
-            this.VhResultTB.TabIndex = 15;
-            this.VhResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.VhResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
-            // morgagePN
-            // 
-            this.morgagePN.BackColor = System.Drawing.Color.White;
-            this.morgagePN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.morgagePN.Controls.Add(this.typeMorgageLB);
-            this.morgagePN.Controls.Add(this.typeMorgageCB);
-            this.morgagePN.Controls.Add(this.morgageLB3);
-            this.morgagePN.Controls.Add(this.morgageLB1);
-            this.morgagePN.Controls.Add(this.morgageLB4);
-            this.morgagePN.Controls.Add(this.morgageBT);
-            this.morgagePN.Controls.Add(this.morgageLB2);
-            this.morgagePN.Controls.Add(this.morgageResultTB);
-            this.morgagePN.Location = new System.Drawing.Point(234, 12);
-            this.morgagePN.Name = "morgagePN";
-            this.morgagePN.Size = new System.Drawing.Size(356, 241);
-            this.morgagePN.TabIndex = 34;
-            this.morgagePN.Visible = false;
-            this.morgagePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.workSheetPN.BackColor = System.Drawing.Color.White;
+            this.workSheetPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.workSheetPN.Controls.Add(this.typeMorgageLB);
+            this.workSheetPN.Controls.Add(this.typeWorkSheetCB);
+            this.workSheetPN.Controls.Add(this.workSheetCalculateBT);
+            this.workSheetPN.Controls.Add(this.workSheetResultTB);
+            this.workSheetPN.Location = new System.Drawing.Point(234, 12);
+            this.workSheetPN.Name = "workSheetPN";
+            this.workSheetPN.Size = new System.Drawing.Size(356, 241);
+            this.workSheetPN.TabIndex = 34;
+            this.workSheetPN.Visible = false;
+            this.workSheetPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // typeMorgageLB
             // 
@@ -4927,223 +4825,53 @@ namespace Calculator
             this.typeMorgageLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
             this.typeMorgageLB.Location = new System.Drawing.Point(12, 9);
             this.typeMorgageLB.Name = "typeMorgageLB";
-            this.typeMorgageLB.Size = new System.Drawing.Size(205, 13);
+            this.typeMorgageLB.Size = new System.Drawing.Size(200, 13);
             this.typeMorgageLB.TabIndex = 8;
-            this.typeMorgageLB.Text = "Select the Speed you want to calculate";
+            this.typeMorgageLB.Text = "Select the value you want to calculate";
             this.typeMorgageLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
-            // typeMorgageCB
+            // typeWorkSheetCB
             // 
-            this.typeMorgageCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeMorgageCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeMorgageCB.FormattingEnabled = true;
-            this.typeMorgageCB.Items.AddRange(new object[] {
+            this.typeWorkSheetCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeWorkSheetCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeWorkSheetCB.FormattingEnabled = true;
+            this.typeWorkSheetCB.Items.AddRange(new object[] {
             "Down payment",
             "Monthly payment",
-            "Perchase price",
+            "Purchase price",
             "Term (years)"});
-            this.typeMorgageCB.Location = new System.Drawing.Point(12, 32);
-            this.typeMorgageCB.MaxDropDownItems = 11;
-            this.typeMorgageCB.Name = "typeMorgageCB";
-            this.typeMorgageCB.Size = new System.Drawing.Size(330, 21);
-            this.typeMorgageCB.TabIndex = 9;
-            this.typeMorgageCB.SelectedIndexChanged += new System.EventHandler(this.typeMorgageCB_SelectedIndexChanged);
-            this.typeMorgageCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.typeWorkSheetCB.Location = new System.Drawing.Point(12, 32);
+            this.typeWorkSheetCB.MaxDropDownItems = 11;
+            this.typeWorkSheetCB.Name = "typeWorkSheetCB";
+            this.typeWorkSheetCB.Size = new System.Drawing.Size(330, 21);
+            this.typeWorkSheetCB.TabIndex = 9;
+            this.typeWorkSheetCB.SelectedIndexChanged += new System.EventHandler(this.typeWorkSheetCB_SelectedIndexChanged);
+            this.typeWorkSheetCB.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // morgageLB3
+            // workSheetCalculateBT
             // 
-            this.morgageLB3.AutoSize = true;
-            this.morgageLB3.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageLB3.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.morgageLB3.Location = new System.Drawing.Point(12, 110);
-            this.morgageLB3.Name = "morgageLB3";
-            this.morgageLB3.Size = new System.Drawing.Size(66, 13);
-            this.morgageLB3.TabIndex = 6;
-            this.morgageLB3.Text = "Term (years)";
-            this.morgageLB3.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            this.workSheetCalculateBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.workSheetCalculateBT.Location = new System.Drawing.Point(12, 210);
+            this.workSheetCalculateBT.Name = "workSheetCalculateBT";
+            this.workSheetCalculateBT.Size = new System.Drawing.Size(82, 22);
+            this.workSheetCalculateBT.TabIndex = 14;
+            this.workSheetCalculateBT.Text = "Calculate";
+            this.workSheetCalculateBT.UseVisualStyleBackColor = true;
+            this.workSheetCalculateBT.Click += new System.EventHandler(this.workSheetCalculateBT_Click);
+            this.workSheetCalculateBT.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
-            // morgageLB1
+            // workSheetResultTB
             // 
-            this.morgageLB1.AutoSize = true;
-            this.morgageLB1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageLB1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.morgageLB1.Location = new System.Drawing.Point(12, 62);
-            this.morgageLB1.Name = "morgageLB1";
-            this.morgageLB1.Size = new System.Drawing.Size(80, 13);
-            this.morgageLB1.TabIndex = 6;
-            this.morgageLB1.Text = "Perchase price";
-            this.morgageLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // morgageLB4
-            // 
-            this.morgageLB4.AutoSize = true;
-            this.morgageLB4.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageLB4.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.morgageLB4.Location = new System.Drawing.Point(12, 134);
-            this.morgageLB4.Name = "morgageLB4";
-            this.morgageLB4.Size = new System.Drawing.Size(93, 13);
-            this.morgageLB4.TabIndex = 7;
-            this.morgageLB4.Text = "Interest reate (%)";
-            this.morgageLB4.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // morgageBT
-            // 
-            this.morgageBT.Enabled = false;
-            this.morgageBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageBT.Location = new System.Drawing.Point(12, 210);
-            this.morgageBT.Name = "morgageBT";
-            this.morgageBT.Size = new System.Drawing.Size(82, 22);
-            this.morgageBT.TabIndex = 12;
-            this.morgageBT.Text = "Calculate";
-            this.morgageBT.UseVisualStyleBackColor = true;
-            this.morgageBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
-            this.morgageBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // morgageLB2
-            // 
-            this.morgageLB2.AutoSize = true;
-            this.morgageLB2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageLB2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.morgageLB2.Location = new System.Drawing.Point(12, 86);
-            this.morgageLB2.Name = "morgageLB2";
-            this.morgageLB2.Size = new System.Drawing.Size(85, 13);
-            this.morgageLB2.TabIndex = 7;
-            this.morgageLB2.Text = "Down payment";
-            this.morgageLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // morgageResultTB
-            // 
-            this.morgageResultTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.morgageResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.morgageResultTB.Location = new System.Drawing.Point(177, 212);
-            this.morgageResultTB.MaxLength = 20;
-            this.morgageResultTB.Name = "morgageResultTB";
-            this.morgageResultTB.ReadOnly = true;
-            this.morgageResultTB.Size = new System.Drawing.Size(165, 22);
-            this.morgageResultTB.TabIndex = 15;
-            this.morgageResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.morgageResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
-            // feMPG_PN
-            // 
-            this.feMPG_PN.BackColor = System.Drawing.Color.White;
-            this.feMPG_PN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.feMPG_PN.Controls.Add(this.typeFEmpgLB);
-            this.feMPG_PN.Controls.Add(this.typeFEl100);
-            this.feMPG_PN.Controls.Add(this.typeFEmpg);
-            this.feMPG_PN.Controls.Add(this.fempgLB2);
-            this.feMPG_PN.Controls.Add(this.fempgLB1);
-            this.feMPG_PN.Controls.Add(this.fuelEconomyBT);
-            this.feMPG_PN.Controls.Add(this.fempgResultTB);
-            this.feMPG_PN.Location = new System.Drawing.Point(234, 12);
-            this.feMPG_PN.Name = "feMPG_PN";
-            this.feMPG_PN.Size = new System.Drawing.Size(356, 241);
-            this.feMPG_PN.TabIndex = 33;
-            this.feMPG_PN.Visible = false;
-            this.feMPG_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // typeFEmpgLB
-            // 
-            this.typeFEmpgLB.AutoSize = true;
-            this.typeFEmpgLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFEmpgLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.typeFEmpgLB.Location = new System.Drawing.Point(12, 9);
-            this.typeFEmpgLB.Name = "typeFEmpgLB";
-            this.typeFEmpgLB.Size = new System.Drawing.Size(205, 13);
-            this.typeFEmpgLB.TabIndex = 8;
-            this.typeFEmpgLB.Text = "Select the Speed you want to calculate";
-            this.typeFEmpgLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // typeFEl100
-            // 
-            this.typeFEl100.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFEl100.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFEl100.FormattingEnabled = true;
-            this.typeFEl100.Items.AddRange(new object[] {
-            "Distance (kilometers)",
-            "Fuel economy (L/100 km)",
-            "Fuel used (liters)"});
-            this.typeFEl100.Location = new System.Drawing.Point(12, 32);
-            this.typeFEl100.MaxDropDownItems = 11;
-            this.typeFEl100.Name = "typeFEl100";
-            this.typeFEl100.Size = new System.Drawing.Size(330, 21);
-            this.typeFEl100.TabIndex = 9;
-            this.typeFEl100.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFEl100.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // typeFEmpg
-            // 
-            this.typeFEmpg.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFEmpg.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFEmpg.FormattingEnabled = true;
-            this.typeFEmpg.Items.AddRange(new object[] {
-            "Distance (miles)",
-            "Fuel economy (mpg)",
-            "Fuel used (gallons)"});
-            this.typeFEmpg.Location = new System.Drawing.Point(12, 32);
-            this.typeFEmpg.MaxDropDownItems = 11;
-            this.typeFEmpg.Name = "typeFEmpg";
-            this.typeFEmpg.Size = new System.Drawing.Size(330, 21);
-            this.typeFEmpg.TabIndex = 9;
-            this.typeFEmpg.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFEmpg.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // fempgLB2
-            // 
-            this.fempgLB2.AutoSize = true;
-            this.fempgLB2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgLB2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.fempgLB2.Location = new System.Drawing.Point(12, 86);
-            this.fempgLB2.Name = "fempgLB2";
-            this.fempgLB2.Size = new System.Drawing.Size(99, 13);
-            this.fempgLB2.TabIndex = 7;
-            this.fempgLB2.Text = "Fuel used (gallon)";
-            this.fempgLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // fempgLB1
-            // 
-            this.fempgLB1.AutoSize = true;
-            this.fempgLB1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgLB1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.fempgLB1.Location = new System.Drawing.Point(12, 62);
-            this.fempgLB1.Name = "fempgLB1";
-            this.fempgLB1.Size = new System.Drawing.Size(86, 13);
-            this.fempgLB1.TabIndex = 6;
-            this.fempgLB1.Text = "Distance (miles)";
-            this.fempgLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // fuelEconomyBT
-            // 
-            this.fuelEconomyBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fuelEconomyBT.Location = new System.Drawing.Point(12, 210);
-            this.fuelEconomyBT.Name = "fuelEconomyBT";
-            this.fuelEconomyBT.Size = new System.Drawing.Size(82, 22);
-            this.fuelEconomyBT.TabIndex = 12;
-            this.fuelEconomyBT.Text = "Calculate";
-            this.fuelEconomyBT.UseVisualStyleBackColor = true;
-            this.fuelEconomyBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
-            this.fuelEconomyBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // fempgResultTB
-            // 
-            this.fempgResultTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.fempgResultTB.Location = new System.Drawing.Point(177, 212);
-            this.fempgResultTB.MaxLength = 20;
-            this.fempgResultTB.Name = "fempgResultTB";
-            this.fempgResultTB.ReadOnly = true;
-            this.fempgResultTB.Size = new System.Drawing.Size(165, 22);
-            this.fempgResultTB.TabIndex = 13;
-            this.fempgResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.fempgResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
+            this.workSheetResultTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.workSheetResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.workSheetResultTB.Location = new System.Drawing.Point(177, 212);
+            this.workSheetResultTB.MaxLength = 20;
+            this.workSheetResultTB.Name = "workSheetResultTB";
+            this.workSheetResultTB.ReadOnly = true;
+            this.workSheetResultTB.Size = new System.Drawing.Size(165, 22);
+            this.workSheetResultTB.TabIndex = 15;
+            this.workSheetResultTB.GotFocus += new System.EventHandler(this.resultTextBox_GotFocus);
+            this.workSheetResultTB.LostFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
             // 
             // unitconvPN
             // 
@@ -5411,6 +5139,7 @@ namespace Calculator
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
             this.ClientSize = new System.Drawing.Size(214, 241);
+            this.Controls.Add(this.workSheetPN);
             this.Controls.Add(this.num9BT_PN);
             this.Controls.Add(this.num7BT_PN);
             this.Controls.Add(this.num8BT_PN);
@@ -5496,9 +5225,6 @@ namespace Calculator
             this.Controls.Add(this.unknownPN);
             this.Controls.Add(this.fe_ChkBox);
             this.Controls.Add(this.datecalcPN);
-            this.Controls.Add(this.VhPN);
-            this.Controls.Add(this.morgagePN);
-            this.Controls.Add(this.feMPG_PN);
             this.Controls.Add(this.unitconvPN);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
@@ -5541,12 +5267,8 @@ namespace Calculator
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).EndInit();
-            this.VhPN.ResumeLayout(false);
-            this.VhPN.PerformLayout();
-            this.morgagePN.ResumeLayout(false);
-            this.morgagePN.PerformLayout();
-            this.feMPG_PN.ResumeLayout(false);
-            this.feMPG_PN.PerformLayout();
+            this.workSheetPN.ResumeLayout(false);
+            this.workSheetPN.PerformLayout();
             this.unitconvPN.ResumeLayout(false);
             this.unitconvPN.PerformLayout();
             this.num2BT_PN.ResumeLayout(false);
@@ -6098,6 +5820,12 @@ namespace Calculator
             parser.Transfer += new Parser.SendValue(parser_Transfer);
             hisDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
             staDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
+            workSheetPN.FocusEvent += new EventHandler(workSheetPN_FocusEvent);
+        }
+
+        private void workSheetPN_FocusEvent(object sender, EventArgs e)
+        {
+            typeWorkSheetCB.Focus();
         }
 
         private void parser_Transfer(int sentValue, int count, int total)
@@ -6109,24 +5837,20 @@ namespace Calculator
         /// <summary>
         /// khởi tạo mảng các textbox trong hàm chức năng fuel economy, ...
         /// </summary>
-        private void InitCustomControls(ref ITextBox[] itb, IPanel ipn, int capacity)
+        private void InitCustomControls(ref TextField[] itf, int capacity, int lbIndex)
         {
-            itb = new ITextBox[capacity];
+            itf = new TextField[capacity];
             for (int i = 0; i < capacity; i++)
             {
-                itb[i] = new ITextBox();
-                itb[i].Text = "Enter value";
-                itb[i].Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-                itb[i].ForeColor = SystemColors.GrayText;
-                itb[i].Location = new Point(177, 59 + 24 * i);
-                itb[i].Size = new Size(165, 21);
-                itb[i].MaxLength = 20;
-                itb[i].NumberModeOnly = true;
-                itb[i].TabIndex = 10 + i;
-                itb[i].Enter += new EventHandler(DisableKeyboard);
+                itf[i] = new TextField();
+                itf[i].LabelText = worksheetsLabel[lbIndex][i];
+                itf[i].Location = new Point(9, 58 + 24 * i);
+                itf[i].Visible = i != capacity - 1;
+                itf[i].TextBoxGotFocus += new EventHandler(DisableKeyboard);
+                itf[i].MouseDownEvent += new MouseEventHandler(MoveFormWithoutMouseAtTitleBar);
             }
 
-            ipn.Controls.AddRange(itb);
+            workSheetPN.Controls.AddRange(itf);
         }
 
         private void InitCancelOperation()
@@ -6263,11 +5987,28 @@ namespace Calculator
             else
                 screenPN.BackColor = staDGV.BackgroundColor = hisDGV.BackgroundColor = Color.White;
 
-            if (fempgTB != null)
-                if (fempgTB[0].Focused || fempgTB[1].Focused)
+            if (mortgageTF != null)
+                if (mortgageTF[0].TBFocused || mortgageTF[1].TBFocused || mortgageTF[2].TBFocused || mortgageTF[3].TBFocused || mortgageTF[4].TBFocused)
                 {
                     screenPN.Focus();
                 }
+            if (VhTF != null)
+                if (VhTF[0].TBFocused || VhTF[1].TBFocused || VhTF[2].TBFocused || VhTF[3].TBFocused || VhTF[4].TBFocused || VhTF[5].TBFocused)
+                {
+                    screenPN.Focus();
+                }
+            if (fe_MPGTF != null)
+                if (fe_MPGTF[0].TBFocused || fe_MPGTF[1].TBFocused || fe_MPGTF[2].TBFocused)
+                {
+                    screenPN.Focus();
+                }
+            if (feL100TF != null)
+                if (feL100TF[0].TBFocused || feL100TF[1].TBFocused || feL100TF[2].TBFocused)
+                {
+                    screenPN.Focus();
+                }
+
+            if (workSheetResultTB.Focused) screenPN.Focus();
 
             for (int i = 0; i < hisDGV.RowCount; i++)
             {
@@ -6514,41 +6255,18 @@ namespace Calculator
         private Button x2cross;
         private Label countLB;
         //------------------------------------------------------------------
-        private IPanel feMPG_PN;
-        private Label typeFEmpgLB;
-        private ComboBox typeFEmpg;
-        private ComboBox typeFEl100;
-        private Label fempgLB2;
-        private Label fempgLB1;
-        private TextBox fempgResultTB;
-        private Button fuelEconomyBT;
-        private ITextBox[] fempgTB;
-        //------------------------------------------------------------------
         private RadioButton radioButton1;
         private BackgroundWorker mWorker;
         //------------------------------------------------------------------
-        private IPanel morgagePN;
+        private IPanel workSheetPN;
         private Label typeMorgageLB;
-        private ComboBox typeMorgageCB;
-        private Label morgageLB1;
-        private Label morgageLB2;
-        private Label morgageLB3;
-        private Label morgageLB4;
-        private Button morgageBT;
-        private TextBox morgageResultTB;
-        private ITextBox[] morgageTB;
-        //------------------------------------------------------------------
-        private IPanel VhPN;
-        private Label typeVhLB;
-        private ComboBox typeVhCB;
-        private Label VhLB3;
-        private Label VhLB1;
-        private Label VhLB4;
-        private Button VhBT;
-        private Label VhLB2;
-        private TextBox VhResultTB;
-        private Label VhLB5;
-        private ITextBox[] VhTB;
+        private ComboBox typeWorkSheetCB;
+        private Button workSheetCalculateBT;
+        private TextBox workSheetResultTB;
+        private TextField[] mortgageTF;
+        private TextField[] VhTF;
+        private TextField[] feL100TF;
+        private TextField[] fe_MPGTF;
         #endregion
     }
 }

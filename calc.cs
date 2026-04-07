@@ -14,7 +14,7 @@ namespace Calculator
 
         #region bien toan cuc
 
-        string str = "0", sci_exp = "";
+        string str = "0", sci_exp = "", pro_exp = "";
         bool confirm_num = true, prcmdkey = true, propertiesChange, sciexpAdd;
         int pre_bt = -1, pre_oprt;
         object[] initConfigValue, currentConfig;
@@ -192,7 +192,6 @@ namespace Calculator
 
                     sci_exp = "";
                     isFuncClicked = sciexpAdd = false;
-                    DisplayToScreen();
                     #endregion
                 }
                 if (scientificMI.Checked)     // scientific.checked
@@ -205,7 +204,7 @@ namespace Calculator
                     {
                         if (!sciexpAdd) sci_exp += prevFunc;
                         // tu dong ngoac neu thieu
-                        sci_exp = sci_exp.PadRight(openBRK - closeBRK + sci_exp.Length, ')');
+                        sci_exp = sci_exp.PadRight(openBRKLevel + sci_exp.Length, ')');
                     }
 
                     if (slow)
@@ -247,13 +246,11 @@ namespace Calculator
                     countLB.Text = string.Format("Index = {0}/{0}", hisDGV.RowCount);
                     #endregion
 
-                    sci_exp = power_Func = mulDivFunc = "";
+                    sci_exp = power_Exp = mul_div_Exp = "";
                     prevFunc = str;
-                    openBRK = closeBRK = 0;
                     bracketTime_lb.Text = "";
                     sciexpAdd = isFuncClicked = false;
                     slow = false;
-                    DisplayToScreen();
 
                     #endregion
                 }
@@ -261,63 +258,21 @@ namespace Calculator
                 {
                     #region programmer operation
                     ScreenToPanel();
-                    if (pre_oprt != 0)
+                    pro_exp += decRB.Value;
+                    if (pre_oprt == 0) goto jump;
+                    pex = parser.EvaluatePro(pro_exp, (int)currentConfig[11] == 1);
+                    if (pex == null)
                     {
-                        num1pro = resultpro;
-                        num2pro = decRB.Value;
+                        str = parser.StringResult;
+                        ScreenToPanel();
                     }
-                    else goto jump;
-                    //if (pre_oprt >= 12 && pre_oprt <= 15)
-                    //    num2pro = decRB.Value;
-                    //else
-                    //    resultpro = decRB.Value;
-                    if (pre_oprt == 00) resultpro = str;
-                    if (pre_oprt == 12) resultpro = num1pro + num2pro;
-                    if (pre_oprt == 13) resultpro = num1pro - num2pro;
-                    if (pre_oprt == 14) resultpro = num1pro * num2pro;
-                    if (pre_oprt == 15)
-                    {
-                        if (num2pro != 0)
-                        {
-                            resultpro = num1pro / num2pro;
-                            resultpro = resultpro.Floor();    // kết quả phép chia này lấy phân nguyên
-                        }
-                        else
-                        {
-                            scr_lb.TextChanged -= scr_lb_TextChanged;
-                            scr_lb.Text = "Cannot devide by zero";
-                            scr_lb.Font = new Font("Consolas", scr_lb.Text.Length > 40 ? 5.25F : 9.75F);
-                            scr_lb.TextChanged += scr_lb_TextChanged;
-                            goto jump;
-                        }
-                    }
-                    if (pre_oprt == 211) resultpro = num1pro - num2pro * (num1pro / num2pro).Floor();             // mod
-                    if (pre_oprt == 199) resultpro = long.Parse(num1pro.StrValue) | long.Parse(num2pro.StrValue); // or
-                    if (pre_oprt == 204) resultpro = long.Parse(num1pro.StrValue) & long.Parse(num2pro.StrValue); // and
-                    if (pre_oprt == 205) resultpro = long.Parse(num1pro.StrValue) ^ long.Parse(num2pro.StrValue); // xor
-                    if (pre_oprt == 200 || pre_oprt == 210)
-                    {
-                        // se co exception khi num1pro hoac num2pro vuot qua 2^32
-                        try
-                        {
-                            if (pre_oprt == 200) resultpro = long.Parse(num1pro.StrValue) << int.Parse(num2pro.StrValue); // Lsh
-                            if (pre_oprt == 210) resultpro = long.Parse(num1pro.StrValue) >> int.Parse(num2pro.StrValue); // Rsh
-                            if (dwordRB.Checked) resultpro = int.Parse(resultpro.StrValue);
-                            if (_wordRB.Checked) resultpro = short.Parse(resultpro.StrValue);
-                            if (_byteRB.Checked) resultpro = sbyte.Parse(resultpro.StrValue);
-                        }
-                        catch (Exception)
-                        {
-                            pex = new Exception("Result not defined");
-                            scr_lb.Text = str = pex.Message;
-                            return;
-                        }
-                    }
-                    programmerOperation();
+                    pro_exp = "";
+                    bracketTime_lb.Text = "";
                     #endregion
                 }
+
                 DisplayToScreen();
-                openBRK = closeBRK = 0;
+                openBRKLevel = 0;
                 jump: pre_oprt = 0;
                 priority = 0;
                 pre_priority = 0;
@@ -534,7 +489,7 @@ namespace Calculator
             pre_bt = 22;
         }
 
-        int openBRK, closeBRK;
+        int openBRKLevel;
         string[] bracketExp = new string[20];
         //
         // nut mo ngoac
@@ -544,30 +499,32 @@ namespace Calculator
             if (!scientificMI.Checked) return;
             if (pre_oprt == 0)
             {
-                switch (pre_bt)
-                {
-                    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
-                    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
-                        equal_Click(null, null);
-                        return;
-                }
+                //switch (pre_bt)
+                //{
+                //    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
+                //    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
+                //        equal_Click(null, null);
+                //        return;
+                //}
+                if (sciexpAdd) equal_Click(null, null);
             }
-            if (pex == null && openBRK < 20)
+            if (pex == null && openBRKLevel < 20)
             {
                 str = "0";
                 DisplayToScreen();
-                mulDivFunc = "";
-                power_Func = "";
-                if (openBRK == closeBRK)
+                mul_div_Exp = "";
+                power_Exp = "";
+                if (openBRKLevel == 0)
                 {
                     bracketExp = new string[20];
                 }
-                if (openBRK - closeBRK < 20)
+                if (openBRKLevel < 20)
                 {
-                    openBRK++;
-                    /*if (openBRK == closeBRK) bracketTime_lb.Text = string.Format("(=1");
+                    openBRKLevel++;
+                    /*if (openBRKLevel == closeBRK) bracketTime_lb.Text = string.Format("(=1");
                     else*/
-                    bracketTime_lb.Text = string.Format("(={0}", openBRK - closeBRK);
+                    bracketTime_lb.Text = string.Format("(={0}", openBRKLevel);
+                    bracketExp[openBRKLevel - 1] = "";
                 }
 
                 if (sciexpAdd && isFuncClicked)
@@ -585,19 +542,19 @@ namespace Calculator
         private void close_bracket_Click(object sender, EventArgs e)
         {
             if (!scientificMI.Checked) return;
-            if (pex == null && openBRK - closeBRK > 0)
+            if (pex == null && openBRKLevel > 0)
             {
-                mulDivFunc = "";
-                power_Func = "";
-                closeBRK++;
-                if (openBRK > closeBRK)
+                mul_div_Exp = "";
+                power_Exp = "";
+                openBRKLevel--;
+                if (openBRKLevel > 0)
                 {
-                    bracketTime_lb.Text = string.Format("(={0}", openBRK - closeBRK);
+                    bracketTime_lb.Text = string.Format("(={0}", openBRKLevel);
                 }
                 else
                 {
                     bracketTime_lb.Text = "";
-                    if (openBRK < closeBRK) { pre_bt = 152; return; }
+                    if (openBRKLevel < 0) { pre_bt = 152; return; }
                 }
                 //--------------------------------------------------------------
                 if (pre_bt != 152)
@@ -611,20 +568,20 @@ namespace Calculator
                         sci_exp += ")";
                     }
                     sciexpAdd = true;
-                    bracketExp[openBRK - closeBRK] += prevFunc;
-                    //prevFunc = "(" + bracketExp[openBRK - closeBRK] + ")";
+                    bracketExp[openBRKLevel] += prevFunc;
+                    //prevFunc = "(" + bracketExp[openBRKLevel] + ")";
                 }
                 else
                 {
                     sci_exp += ")";
-                    //prevFunc = "(" + bracketExp[openBRK - closeBRK] + ")";
+                    //prevFunc = "(" + bracketExp[openBRKLevel] + ")";
                 }
-                prevFunc = "(" + bracketExp[openBRK - closeBRK] + ")"; // string.Format("({0})", bracketExp[openBRK - closeBRK]); cung duoc
-                if (openBRK > closeBRK)
-                    bracketExp[openBRK - closeBRK - 1] += prevFunc;
-                pex = parser.EvaluateSci(bracketExp[openBRK - closeBRK]);
+                prevFunc = "(" + bracketExp[openBRKLevel] + ")"; // string.Format("({0})", bracketExp[openBRKLevel]); cung duoc
+                if (openBRKLevel > 0)
+                    bracketExp[openBRKLevel - 1] += prevFunc;
+                pex = parser.EvaluateSci(bracketExp[openBRKLevel]);
                 str = parser.StringResult;
-                //prevFunc = bracketExp[openBRK - closeBRK];
+                //prevFunc = bracketExp[openBRKLevel];
 
                 expressionTB.Text = Misc.StandardExpression(sci_exp);
                 confirm_num = true;
@@ -680,22 +637,9 @@ namespace Calculator
             currentConfig[1] = digitGroupingMI.Checked ? 1 : 0;
 
             if (!isLoaded) propertiesChange = true;
-            if (Misc.IsNumber(toTB.Text) && unitConversionMI.Checked)
-            {
-                if (digitGroupingMI.Checked)
-                {
-                    if (!toTB.Text.Contains("E")) toTB.Text = Misc.Group(toTB.Text);
-                }
-                else toTB.Text = toTB.Text.Replace(Misc.GroupSeparator, "");
-            }
-            if (Misc.IsNumber(fempgResultTB.Text) && feMPG_PN.Visible)
-            {
-                if (digitGroupingMI.Checked)
-                {
-                    if (!fempgResultTB.Text.Contains("E")) fempgResultTB.Text = Misc.Group(fempgResultTB.Text);
-                }
-                else fempgResultTB.Text = fempgResultTB.Text.Replace(Misc.GroupSeparator, "");
-            }
+
+            GroupWorksheetsFunctionResult(toTB, unitconvPN);
+            GroupWorksheetsFunctionResult(workSheetResultTB, workSheetPN);
 
             if (!programmerMI.Checked)
             {
@@ -717,6 +661,22 @@ namespace Calculator
                 }
             }
         }
+        /// <summary>
+        /// nhóm kết quả tính được ở các textbox extra function
+        /// </summary>
+        /// <param name="tb">textbox kết quả</param>
+        /// <param name="pn">panel chứa kết quả đó</param>
+        private void GroupWorksheetsFunctionResult(TextBox tb, IPanel pn)
+        {
+            if (Misc.IsNumber(tb.Text) && pn.Visible)
+            {
+                if (digitGroupingMI.Checked)
+                {
+                    if (!tb.Text.Contains("E")) tb.Text = Misc.Group(tb.Text);
+                }
+                else tb.Text = tb.Text.Replace(Misc.GroupSeparator, "");
+            }
+        }
 
         private void basicMI_Click(object sender, EventArgs e)
         {
@@ -734,9 +694,7 @@ namespace Calculator
 
                 datecalcPN.Visible = false;
                 unitconvPN.Visible = false;
-                morgagePN.Visible = false;
-                VhPN.Visible = false;
-                feMPG_PN.Visible = false;
+                workSheetPN.Visible = false;
                 if (standardMI.Checked)
                 {
                     if (historyMI.Checked) stdWithHistory();
@@ -825,7 +783,7 @@ namespace Calculator
         private void pasteCTMN_Click(object sender, EventArgs e)
         {
             string data = Clipboard.GetText().ToUpper();
-            data = data.Trim().Replace(" ", "").Replace("\r", "");
+            data = data.Trim().Replace(" ", "").Replace("\r", "").Replace("\n", "");
             if (data.Length > 200) data = data.Substring(0, 200);
             int len = data.Length;
             Keys[] keyData = new Keys[len];
@@ -843,6 +801,8 @@ namespace Calculator
                     case 35: keyData[i] = Keys.Shift | Keys.D3;
                         break;
                     case 37: keyData[i] = Keys.Shift | Keys.D5;
+                        break;
+                    case 38: keyData[i] = (Keys)65591;
                         break;
                     case 40: /*case 91: */keyData[i] = Keys.OemOpenBrackets;
                         break;
@@ -876,7 +836,11 @@ namespace Calculator
                         break;
                     case 71: keyData[i] = Keys.Control | Keys.G;
                         break;
-                    case 94: keyData[i] = Keys.Y;
+                    case 94: 
+                        if (scientificMI.Checked) keyData[i] = Keys.Y;
+                        if (programmerMI.Checked) keyData[i] = (Keys)65590;
+                        break;
+                    case 124: keyData[i] = (Keys)65756;
                         break;
                 }
                 ProcessCmdKey(ref msg, keyData[i]);
@@ -1027,16 +991,17 @@ namespace Calculator
         //
         private void calculate_bt_Click(object sender, EventArgs e)
         {
+            //if (prcmdkey) return;
             if (datemethodCB.SelectedIndex == 0)
             {
                 int[] differ = Misc.differencesTimes(dtP2.Value, dtP1.Value);
                 int diff = Misc.differenceBW2Dates(dtP1.Value, dtP2.Value);
 
-                if (diff == 1)
+                if (diff == 0)
+                    tbResult1.Text = tbResult2.Text = "Same date";
+                else if (diff == 1)
                     tbResult2.Text = "1 day";
-                else if (diff > 1)
-                    tbResult2.Text = Misc.Group(diff) + " days";
-                else tbResult1.Text = tbResult2.Text = "Same date";
+                else tbResult2.Text = Misc.Group(diff) + " days";
 
                 #region hiển thị kết quả lên textbox
                 string text = "";
@@ -1774,83 +1739,6 @@ namespace Calculator
             if (_wordRB.Checked) architectureRB_CheckedChanged(_wordRB, null);
             if (_byteRB.Checked) architectureRB_CheckedChanged(_byteRB, null);
         }
-        /// <summary>
-        /// hàm thực hiện các phép tính khoa học
-        /// </summary>
-        private void bitWiseOperators(int tabIndex)
-        {
-            long bitwiseResult = 0;
-
-            switch (pre_oprt)
-            {
-                case 0:
-                    num1pro = resultpro = str;
-                    break;
-                case 12:
-                    str = (num1pro + str).StrValue;
-                    num1pro = str;
-                    break;
-                case 13:
-                    str = (num1pro - str).StrValue;
-                    num1pro = str;
-                    break;
-                case 14:
-                    str = (num1pro * str).StrValue;
-                    num1pro = str;
-                    break;
-                case 15:
-                    str = (num1pro / str).StrValue;
-                    num1pro = str;
-                    break;
-                case 204:   // and
-                    //binRB.Value = Binary.dec_to_other(num1pro.StrValue, 2, SizeBin);
-                    if (qwordRB.Checked) bitwiseResult = long.Parse(num1pro.StrValue) & long.Parse(str);
-                    if (dwordRB.Checked) bitwiseResult = int.Parse(num1pro.StrValue) & int.Parse(str);
-                    if (_wordRB.Checked) bitwiseResult = short.Parse(num1pro.StrValue) & short.Parse(str);
-                    if (_byteRB.Checked) bitwiseResult = sbyte.Parse(num1pro.StrValue) & sbyte.Parse(str);
-                    str = bitwiseResult.ToString();
-                    break;
-                case 199:   // or
-                    if (qwordRB.Checked) bitwiseResult = long.Parse(num1pro.StrValue) | long.Parse(str);
-                    if (dwordRB.Checked) bitwiseResult = int.Parse(num1pro.StrValue) | int.Parse(str);
-                    if (_wordRB.Checked) bitwiseResult = short.Parse(num1pro.StrValue) | short.Parse(str);
-                    if (_byteRB.Checked) bitwiseResult = sbyte.Parse(num1pro.StrValue) | sbyte.Parse(str);
-                    str = bitwiseResult.ToString();
-                    break;
-                case 205:   // xor
-                    if (qwordRB.Checked) bitwiseResult = long.Parse(num1pro.StrValue) ^ long.Parse(str);
-                    if (dwordRB.Checked) bitwiseResult = int.Parse(num1pro.StrValue) ^ int.Parse(str);
-                    if (_wordRB.Checked) bitwiseResult = short.Parse(num1pro.StrValue) ^ short.Parse(str);
-                    if (_byteRB.Checked) bitwiseResult = sbyte.Parse(num1pro.StrValue) ^ sbyte.Parse(str);
-                    str = bitwiseResult.ToString();
-                    break;
-                case 200:   // Lsh
-                    if (qwordRB.Checked) bitwiseResult = long.Parse(num1pro.StrValue) << int.Parse(str);
-                    if (dwordRB.Checked) bitwiseResult = int.Parse(num1pro.StrValue) << int.Parse(str);
-                    if (_wordRB.Checked) bitwiseResult = short.Parse(num1pro.StrValue) << int.Parse(str);
-                    if (_byteRB.Checked) bitwiseResult = sbyte.Parse(num1pro.StrValue) << int.Parse(str);
-                    str = bitwiseResult.ToString();
-                    break;
-                case 210:   // Rsh
-                    if (qwordRB.Checked) bitwiseResult = long.Parse(num1pro.StrValue) >> int.Parse(str);
-                    if (dwordRB.Checked) bitwiseResult = int.Parse(num1pro.StrValue) >> int.Parse(str);
-                    if (_wordRB.Checked) bitwiseResult = short.Parse(num1pro.StrValue) >> int.Parse(str);
-                    if (_byteRB.Checked) bitwiseResult = sbyte.Parse(num1pro.StrValue) >> int.Parse(str);
-                    str = bitwiseResult.ToString();
-                    break;
-            }
-            confirm_num = true;
-            ScreenToPanel();
-            pre_oprt = tabIndex;
-        }
-        //
-        // nut and, or, xor, Lsh & Rsh
-        //
-        private void bitOperatorsBT_Click(object sender, EventArgs e)
-        {
-            var btn = sender as Button;
-            bitWiseOperators(btn.TabIndex);
-        }
         #endregion
 
         #region statistics mode
@@ -2011,158 +1899,254 @@ namespace Calculator
         #endregion
 
         #region sub extra functions
-        private void typeFECB_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            switch (typeFEmpg.SelectedIndex)
-            {
-                case 0:
-                    if (fe_MPG_MI.Checked) fempgLB1.Text = "Fuel used (gallons)";
-                    if (fe_MPG_MI.Checked) fempgLB2.Text = "Fuel economy (mpg)";
-                    if (feL100_MI.Checked) fempgLB1.Text = "Fuel used (liters)";
-                    if (feL100_MI.Checked) fempgLB2.Text = "Fuel economy (L/100 km)";
-                    break;
-                case 1:
-                    if (fe_MPG_MI.Checked) fempgLB1.Text = "Distance (miles)";
-                    if (fe_MPG_MI.Checked) fempgLB2.Text = "Fuel used (gallons)";
-                    if (feL100_MI.Checked) fempgLB1.Text = "Distance (kilometers)";
-                    if (feL100_MI.Checked) fempgLB2.Text = "Fuel used (liters)";
-                    break;
-                case 2:
-                    if (fe_MPG_MI.Checked) fempgLB1.Text = "Distance (miles)";
-                    if (fe_MPG_MI.Checked) fempgLB2.Text = "Fuel economy (mpg)";
-                    if (feL100_MI.Checked) fempgLB1.Text = "Distance (kilometers)";
-                    if (feL100_MI.Checked) fempgLB2.Text = "Fuel economy (L/100 km)";
-                    break;
-            }
-            fempgResultTB.Text = "";
-        }
 
-        private void fempgCalculateBT_Click(object sender, EventArgs e)
+        private void wsCalculateMethod(TextField[] tf, int wsType)
         {
-            double[] db = new double[2];
-            for (int i = 0; i < 2; i++)
+            //if (prcmdkey) return;
+            double[] db = new double[tf.Length - 1];
+            for (int i = 0; i < tf.Length - 1; i++)
             {
                 try
                 {
-                    if (fempgTB[i].Text == "" || fempgTB[i].ForeColor == SystemColors.GrayText)
+                    if (tf[order[i]].TextBoxText == "" || tf[order[i]].ForeColor == SystemColors.GrayText)
                         throw new Exception();
-                    toolTip1.Hide(fempgTB[i]);
-                    db[i] = double.Parse(fempgTB[i].Text);
-                    fempgTB[i].Text = db[i].ToString();
+                    toolTip1.Hide(tf[order[i]]);
+                    db[i] = double.Parse(tf[order[i]].TextBoxText);
+                    //tf[order[i]].TextBoxText = db[i].ToString();
                 }
                 catch (FormatException)
                 {
-                    toolTip1.Hide(fempgTB[i]);
-                    toolTip1.Show("  This value is not valid  ", fempgTB[i], -10, -40, 3000);
-                    fempgTB[i].Focus();
+                    toolTip1.Hide(tf[order[i]]);
+                    toolTip1.Show("  This value is not valid  ", tf[order[i]], 155, -40, 3000);
+                    tf[order[i]].TBFocus();
                     return;
                 }
                 catch (Exception)
                 {
-                    toolTip1.Hide(fempgTB[i]);
-                    toolTip1.Show("This value can not be blank", fempgTB[i], -10, -40, 3000);
-                    fempgTB[i].Focus();
+                    toolTip1.Hide(tf[order[i]]);
+                    toolTip1.Show("This value can not be blank", tf[order[i]], 155, -40, 3000);
+                    tf[order[i]].TBFocus();
                     return;
                 }
             }
-            double resultfe = 0;
-            if (fe_MPG_MI.Checked) switch (typeFEmpg.SelectedIndex)
+
+            foreach (var lbl in tf)
+            {
+                if (lbl.LabelText.EndsWith("*")) lbl.LabelText = lbl.LabelText.Substring(0, lbl.LabelText.Length - 2);
+            }
+
+            double result_WS = 0, smth = 0;
+            if (wsType == 0)
+            {
+                #region mortgage calculation
+                /* 
+                 * with pp is the purchase price
+                 *      dp is the down payment
+                 *      t is term (in years) -> tm is the number of month in this term = t * 12
+                 *      r is interest rate (in percent %) -> rm is interest rate of a month = r / 100 / 12
+                 *      mp is monthly payment
+                 * we have the formula:
+                 *      mp = (pp - dp) * (1 + rm) ^ tm * rm / ((1 + rm) ^ tm - 1)
+                 * so we can calculate the other varius from the formula above
+                 * 
+                 * */
+                switch (typeWorkSheetCB.SelectedIndex)
                 {
                     case 0:
-                        resultfe = db[0] * db[1];
-                        break;
-                    case 1: case 2:
-                        resultfe = db[0] / db[1];
-                        break;
-                }
-            if (feL100_MI.Checked) switch (typeFEl100.SelectedIndex)
-                {
-                    case 0:
-                        resultfe = db[0] / db[1] * 100;
+                        smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
+                        result_WS = db[3] * (smth - 1);
+                        result_WS /= (smth * db[2] / 1200);
+                        result_WS = db[0] - result_WS;
                         break;
                     case 1:
-                        resultfe = db[1] / db[0] * 100;
+                        smth = Math.Pow(1 + db[3] / 1200, db[2] * 12);
+                        result_WS = (db[0] - db[1]) * smth * (db[3] / 1200);
+                        result_WS /= (smth - 1);
                         break;
                     case 2:
-                        resultfe = db[0] * db[1] / 100;
+                        smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
+                        result_WS = db[3] * (smth - 1);
+                        result_WS /= (smth * db[2] / 1200);
+                        result_WS += db[0];
+                        break;
+                    case 3:
+                        smth = db[3] / (db[3] - (db[0] - db[1]) * db[2] / 1200);
+                        result_WS = Math.Log(smth) / Math.Log(1 + db[2] / 1200) / 12;
                         break;
                 }
-            if (double.IsInfinity(resultfe))
+                mortgageTF[order[4]].AllowTextChanged = false;
+                mortgageTF[order[4]].TBFont = new Font(mortgageTF[order[4]].Font, FontStyle.Regular);
+                mortgageTF[order[4]].TBForeColor = SystemColors.WindowText;
+                if (digitGroupingMI.Checked)
+                    workSheetResultTB.Text = mortgageTF[order[4]].TextBoxText = Misc.Group(result_WS.ToString());
+                else
+                    workSheetResultTB.Text = mortgageTF[order[4]].TextBoxText = result_WS.ToString();
+                mortgageTF[order[4]].AllowTextChanged = true;
+                #endregion
+            }
+            if (wsType == 1)
             {
-                toolTip1.Hide(fempgResultTB);
-                toolTip1.Show("Unable to calculate", fempgResultTB, -10, -40, 3000);
-                fempgResultTB.Text = "";
-                fempgResultTB.Focus();
+                #region vehicle lease calculation
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    default: // chua co cong thuc tinh
+                        break;
+                }
+                #endregion
+            }
+            if (wsType == 2)
+            {
+                #region fuel economy mpg calculation
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    case 0:
+                        result_WS = db[0] * db[1];
+                        break;
+                    case 1: case 2:
+                        result_WS = db[0] / db[1];
+                        break;
+                }
+                fe_MPGTF[order[3]].AllowTextChanged = false;
+                fe_MPGTF[order[3]].TBFont = new Font(fe_MPGTF[order[4]].Font, FontStyle.Regular);
+                fe_MPGTF[order[3]].TBForeColor = SystemColors.WindowText;
+                if (digitGroupingMI.Checked)
+                    workSheetResultTB.Text = fe_MPGTF[order[3]].TextBoxText = Misc.Group(result_WS.ToString());
+                else
+                    workSheetResultTB.Text = fe_MPGTF[order[3]].TextBoxText = result_WS.ToString();
+                fe_MPGTF[order[3]].AllowTextChanged = true;
+                #endregion
+            }
+            if (wsType == 3)
+            {
+                #region fuel economy l/100 calculation
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    case 0:
+                        result_WS = db[0] / db[1] * 100;
+                        break;
+                    case 1:
+                        result_WS = db[1] / db[0] * 100;
+                        break;
+                    case 2:
+                        result_WS = db[0] * db[1] / 100;
+                        break;
+                }
+                feL100TF[order[3]].AllowTextChanged = false;
+                feL100TF[order[3]].TBFont = new Font(feL100TF[order[4]].Font, FontStyle.Regular);
+                feL100TF[order[3]].TBForeColor = SystemColors.WindowText;
+                if (digitGroupingMI.Checked)
+                    workSheetResultTB.Text = feL100TF[order[3]].TextBoxText = Misc.Group(result_WS.ToString());
+                else
+                    workSheetResultTB.Text = feL100TF[order[3]].TextBoxText = result_WS.ToString();
+                feL100TF[order[3]].AllowTextChanged = true;
+                #endregion
+            }
+
+            if (double.IsInfinity(result_WS))
+            {
+                toolTip1.Hide(workSheetResultTB);
+                toolTip1.Show("Unable to calculate", workSheetResultTB, 155, -40, 3000);
+                workSheetResultTB.Text = "";
                 return;
             }
-            if (digitGroupingMI.Checked) fempgResultTB.Text = Misc.Group(resultfe.ToString());
-            else fempgResultTB.Text = resultfe.ToString();
+            workSheetResultTB.Focus();
         }
 
-        private void typeMorgageCB_SelectedIndexChanged(object sender, EventArgs e)
+        int[] order = new int[] { };
+        private void typeWorkSheetCB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch (typeMorgageCB.SelectedIndex)
+            workSheetCalculateBT.Enabled = !vehicleLeaseMI.Checked;
+            if (mortgageMI.Checked)
             {
-                case 0:
-                    morgageLB1.Text = "Purchase price";     //1
-                    morgageLB2.Text = "Term (years)";       //2
-                    morgageLB3.Text = "Interest rate (%)";  //3
-                    morgageLB4.Text = "Monthly payment";    //4
-                    break;
-                case 1:
-                    morgageLB1.Text = "Purchase price";     //1
-                    morgageLB2.Text = "Down payment";       //5
-                    morgageLB3.Text = "Term (years)";       //2
-                    morgageLB4.Text = "Interest rate (%)";  //3
-                    break;
-                case 2:
-                    morgageLB1.Text = "Down payment";       //5
-                    morgageLB2.Text = "Term (years)";       //2
-                    morgageLB3.Text = "Interest rate (%)";  //3
-                    morgageLB4.Text = "Monthly payment";    //4
-                    break;
-                case 3:
-                    morgageLB1.Text = "Purchase price";     //1
-                    morgageLB2.Text = "Down payment";       //5
-                    morgageLB3.Text = "Interest rate (%)";  //3
-                    morgageLB4.Text = "Monthly payment";    //4
-                    break;
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    #region switch case
+                    case 0:
+                        order = new int[] { 0, 1, 2, 3, 4 };
+                        break;
+                    case 1:
+                        order = new int[] { 0, 4, 1, 2, 3 };
+                        break;
+                    case 2:
+                        order = new int[] { 4, 1, 2, 3, 0 };
+                        break;
+                    case 3:
+                        order = new int[] { 0, 4, 2, 3, 1 };
+                        break;
+                    #endregion
+                }
+                orderControlLocation(mortgageTF);
+            }
+            if (vehicleLeaseMI.Checked)
+            {
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    #region switch case
+                    case 0:
+                        order = new int[] { 0, 1, 2, 3, 4, 5 };
+                        break;
+                    case 1:
+                        order = new int[] { 5, 1, 2, 3, 4, 0 };
+                        break;
+                    case 2:
+                        order = new int[] { 0, 5, 1, 2, 3, 4 };
+                        break;
+                    case 3:
+                        order = new int[] { 0, 5, 1, 3, 4, 2 };
+                        break;
+                    #endregion
+                }
+                orderControlLocation(VhTF);
+            }
+            if (fe_MPG_MI.Checked || feL100_MI.Checked)
+            {
+                switch (typeWorkSheetCB.SelectedIndex)
+                {
+                    #region switch case
+                    case 0:
+                        order = new int[] { 0, 2, 1 };
+                        break;
+                    case 1:
+                        order = new int[] { 1, 0, 2 };
+                        break;
+                    case 2:
+                        order = new int[] { 1, 2, 0 };
+                        break;
+                    #endregion
+                }
+                if (fe_MPG_MI.Checked) orderControlLocation(fe_MPGTF);
+                if (feL100_MI.Checked) orderControlLocation(feL100TF);
             }
         }
 
-        private void typeVhCB_SelectedIndexChanged(object sender, EventArgs e)
+        private void orderControlLocation(TextField[] itf)
         {
-            switch (typeVhCB.SelectedIndex)
+            for (int i = 0; i < itf.Length; i++)
             {
-                case 0:
-                    VhLB1.Text = "Lease Speed";         //1
-                    VhLB2.Text = "Payments per year";   //2
-                    VhLB3.Text = "Residual Speed";      //3
-                    VhLB4.Text = "Interest rate (%)";   //4
-                    VhLB5.Text = "Periodic payment";    //5
-                    break;
-                case 1:
-                    VhLB1.Text = "Lease period";        //6
-                    VhLB2.Text = "Payments per year";   //2
-                    VhLB3.Text = "Residual Speed";      //3
-                    VhLB4.Text = "Interest rate (%)";   //4
-                    VhLB5.Text = "Periodic payment";    //5
-                    break;
-                case 2:
-                    VhLB1.Text = "Lease Speed";         //1
-                    VhLB2.Text = "Lease period";        //6
-                    VhLB3.Text = "Payments per year";   //2
-                    VhLB4.Text = "Residual Speed";      //3
-                    VhLB5.Text = "Interest rate (%)";   //4
-                    break;
-                case 3:
-                    VhLB1.Text = "Lease Speed";         //1
-                    VhLB2.Text = "Lease period";        //6
-                    VhLB3.Text = "Payments per year";   //2
-                    VhLB4.Text = "Interest rate (%)";   //4
-                    VhLB5.Text = "Periodic payment";    //5
-                    break;
+                itf[order[i]].Location = new Point(9, 58 + 24 * i);
+                itf[order[i]].TabIndex = 10 + i;
+                itf[order[i]].Visible = i != itf.Length - 1;
             }
+            if (Misc.IsNumber(itf[order[itf.Length - 1]].TextBoxText))
+            {
+                workSheetResultTB.Text = itf[order[itf.Length - 1]].TextBoxText;
+            }
+        }
+
+        private void workSheetCalculateBT_Click(object sender, EventArgs e)
+        {
+            if (mortgageMI.Checked) wsCalculateMethod(mortgageTF, 0);
+            //if (vehicleLeaseMI.Checked) mortgageBT_Click(VhTF, 1);    // uncomment khi nao co cong thuc
+            if (fe_MPG_MI.Checked) wsCalculateMethod(fe_MPGTF, 2);
+            if (feL100_MI.Checked) wsCalculateMethod(feL100TF, 3);
+        }
+
+        private void resultTextBox_GotFocus(object sender, EventArgs e)
+        {
+            DisableKeyboard(sender, e);
+            var tb = sender as TextBox;
+            tb.SelectionStart = 0;
+            tb.SelectionLength = 0;
         }
         #endregion
 
@@ -2175,12 +2159,12 @@ namespace Calculator
 
         private void unitconvGB_SizeChanged(object sender, EventArgs e)
         {
-            VhPN.Size = morgagePN.Size = feMPG_PN.Size = datecalcPN.Size = unitconvPN.Size;
+            workSheetPN.Size = datecalcPN.Size = unitconvPN.Size;
         }
 
         private void unitconvGB_LocationChanged(object sender, EventArgs e)
         {
-            VhPN.Location = morgagePN.Location = feMPG_PN.Location = datecalcPN.Location = unitconvPN.Location;
+            workSheetPN.Location = datecalcPN.Location = unitconvPN.Location;
         }
 
         private void screenPN_BackColorChanged(object sender, EventArgs e)

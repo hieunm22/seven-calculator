@@ -479,6 +479,37 @@ namespace Calculator
             matches -= regEx.Matches(expression).Count;
             return matches;
         }
+
+        public static double Round(double resultMort)
+        {
+            double result = Math.Round(resultMort, 6);
+            if (Math.Abs(result - resultMort) < Math.Pow(10, -6 - 3)) return result;
+            return resultMort;
+        }
+
+        public static int CloseBracket(string input, string openBracket, string closeBracket, int openIndex)
+        {
+            int openLevel = 1;
+            int open = openIndex;
+            int close = 0;
+            int start = open;
+            while (openLevel > 0)
+            {
+                close = input.IndexOf(closeBracket, start + closeBracket.Length);
+                open = input.IndexOf(openBracket, start + openBracket.Length);
+                if (open < close && open > 0)
+                {
+                    openLevel++;
+                    start = open;
+                }
+                else
+                {
+                    openLevel--;
+                    start = close;
+                }
+            }
+            return start;
+        }
     }
     /// <summary>
     /// lớp các phương thức liên quan đến hệ cơ số

@@ -17,10 +17,11 @@ namespace Calculator
             if (d.signum != 0) d.signum = (sbyte)(-d.signum);
         }
 
-        static private void IntPow(int places, BigNumber src, int mexp, BigNumber dst)
+        static private void IntPow(int places, BigNumber src, long mexp, BigNumber dst)
         {
             BigNumber A, B, C;
-            int nexp, ii, signflag, local_precision;
+            int signflag, local_precision;
+            long nexp, ii;
 
             if (mexp == 0)
             {
@@ -130,7 +131,7 @@ namespace Calculator
                 if (iflag > 0)
                 {
                     string sbuf = ToIntString(yy);
-                    int exp = Convert.ToInt32(sbuf);
+                    long exp = Convert.ToInt64(sbuf);
                     IntPow(places, xx, exp, rr);
                     return;
                 }
@@ -242,7 +243,8 @@ namespace Calculator
         static private void Exp(BigNumber src, BigNumber dst, int places)
         {
             BigNumber A = 0, B = 0, C = 0;
-            int dplaces, nn = 0, ii = 0;
+            int dplaces, ii = 0;
+            long nn = 0;
 
             if (src.signum == 0)
             {
@@ -300,7 +302,7 @@ namespace Calculator
         /// <summary>
         /// kiểm tra số nhập vào của hàm exp có quá lớn hay không
         /// </summary>
-        static long M_exp_compute_nn(ref int n, BigNumber b, BigNumber a)
+        static long M_exp_compute_nn(ref long n, BigNumber b, BigNumber a)
         {
             BigNumber tmp0, tmp1;
 
@@ -321,7 +323,7 @@ namespace Calculator
             }
 
             string cp = ToIntString(tmp1);
-            n = Convert.ToInt32(cp);
+            n = Convert.ToInt64(cp);
 
             SetFromLong(b, (long)(n));
             Normalize(b);

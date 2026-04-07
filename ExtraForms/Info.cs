@@ -447,7 +447,7 @@ The maximum number of levels is 25.";
                     break;
                 #endregion
             }
-            rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>", description, Environment.NewLine, KeyText, hotkey);
+            rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>{1}{1}TabIndex={4}", description, Environment.NewLine, KeyText, hotkey, control.TabIndex);
             //displayText.Text = description + Environment.NewLine + Environment.NewLine + KeyText + hotkey;
             FormatTheText();
             AutoFit();

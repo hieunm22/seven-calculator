@@ -117,6 +117,13 @@ namespace Calculator
             set { allowDrawBorder = value; }
         }
 
+        public event EventHandler FocusEvent = null;
+        protected override void OnGotFocus(EventArgs e)
+        {
+            if (FocusEvent != null) FocusEvent(this, e);
+            base.OnGotFocus(e);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             if (BorderStyle == BorderStyle.None && allowDrawBorder)
@@ -208,6 +215,12 @@ namespace Calculator
                     e.Handled = true;
                     break;
             }
+        }
+
+        protected override void OnTextChanged(EventArgs e)
+        {
+            if (!allowTextChanged) return;
+            base.OnTextChanged(e);
         }
     }
 
