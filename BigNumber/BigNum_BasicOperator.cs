@@ -705,7 +705,7 @@ namespace Calculator
                 dtemp = b[--j]*nnr + carry + 0.5;
                 ul = (ulong) (dtemp*1.0E-4);
                 carry = ul;
-                b[j] = dtemp - carry*10000.0;
+                b[j] = dtemp - carry * 10000.0;
             } while (j != 0);
 
             /* copy result to our destination after converting back to base 100 */
@@ -752,7 +752,7 @@ namespace Calculator
             ii = (ii + 1) >> 1;
             ii = NextPowerOfTwo(ii);
 
-            k = 2 * ii;                   /* required size of expression, in bytes  */
+            k = 2 * ii;             /* required size of expression, in bytes  */
 
             Pad(M_ain, k);          /* fill out the data so the number of */
             Pad(M_bin, k);          /* bytes is an exact power of 2       */
@@ -818,15 +818,17 @@ namespace Calculator
 
                 do
                 {
-                    itmp = ai*bb.mantissa[--jj];
+                    itmp = ai * bb.mantissa[--jj];
 
-                    rr.mantissa[crp - 1] += s_MsbLookupMult[itmp];
-                    rr.mantissa[crp] += s_LsbLookupMult[itmp];
+                    //rr.mantissa[crp - 1] += s_MsbLookupMult[itmp];
+                    rr.mantissa[crp - 1] += (byte)(itmp / 100);
+                    //rr.mantissa[crp] += s_LsbLookupMult[itmp];
+                    rr.mantissa[crp] += (byte)(itmp % 100);
 
                     if (rr.mantissa[crp] >= 100)
                     {
                         rr.mantissa[crp] -= 100;
-                        rr.mantissa[crp - 1] += 1;
+                        rr.mantissa[crp - 1]++;
                     }
 
                     crp--;
@@ -834,7 +836,7 @@ namespace Calculator
                     if (rr.mantissa[crp] >= 100)
                     {
                         rr.mantissa[crp] -= 100;
-                        rr.mantissa[crp - 1] += 1;
+                        rr.mantissa[crp - 1]++;
                     }
                     //if (jj == 0) break;
                 } while (jj != 0);
@@ -967,11 +969,8 @@ namespace Calculator
 
                     if ((k = 2 - M_div_worka.exponent) > 0)
                     {
-                        while (true)
-                        {
-                            j /= 10;
-                            if (--k == 0) break;
-                        }
+                        k++;
+                        while (--k != 0) j /= 10;
                     }
 
                     if (j == 100) j = 99;   /* if qhat == base then decrease by 1      */
@@ -980,8 +979,8 @@ namespace Calculator
                     Mul(M_div_tmp8, M_div_workb, M_div_tmp7);
 
                     /*
-                     *    Compare our q-hat (i) against the desired number.
-                     *    i is either correct, 1 too large, or 2 too large
+                     *    Compare our q-hat (index) against the desired number.
+                     *    Index is is either correct, 1 too large, or 2 too large
                      *    per Theorem B on pg 272 of Art of Compter Programming,
                      *    Volume 2, 3rd Edition.
                      *
@@ -1007,7 +1006,7 @@ namespace Calculator
                      *  do D5 before D4 and decide if we are done.
                      */
 
-                    rr.mantissa[indexr++] = (byte)j;    /* i == 'qhat' */
+                    rr.mantissa[indexr++] = (byte)j;    /* index == 'qhat' */
                     m += 2;
 
                     if (m >= iterations) break;
@@ -1226,7 +1225,8 @@ namespace Calculator
                 Pad(A, bdigits);
             }
 
-            BigNumber big = new BigNumber(), small = new BigNumber();
+            var big = new BigNumber();
+            var small = new BigNumber();
 
 
             if (ChangeOrderFlag == 1)		 // |a| > |b|  (do A-B)
@@ -1331,7 +1331,7 @@ namespace Calculator
             {
                 value = value.Replace("e+", "e"); // remove optional '+' character
             }
-            else if (value.StartsWith("+"))
+            if (value.StartsWith("+"))
             {
                 sign = 1;
                 value = value.Substring(1);
@@ -1363,7 +1363,7 @@ namespace Calculator
             if (j == -1)
             {
                 value = value + Misc.DecimalSeparator;
-                j = value.Length - 1;   //j = value.IndexOf(Misc.DecimalSeparator);
+                j = value.Length - 1;   //j = Speed.IndexOf(Misc.DecimalSeparator);
             }
 
             exponent += j;          // atm.stringvalue.length
@@ -1371,12 +1371,12 @@ namespace Calculator
 
             int i = value.Length;
             atm.dataLength = i;
-            // i is even
-            if (i % 2 != 0) value = value + "0";
+            // Index is is even
+            if (i % 2 != 0) value += "0";
 
-            j = value.Length >> 1;  //=value.Length/2
+            j = value.Length >> 1;  //=Speed.Length/2
 
-            //if (value.Length > atm.mantissa.Length)
+            //if (Speed.Length > atm.mantissa.Length)
             {
                 Expand(atm, atm.dataLength/* + 28*/+ 1);
             }

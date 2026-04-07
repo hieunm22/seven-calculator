@@ -131,6 +131,11 @@ namespace Calculator
             }
             base.OnPaint(e);
         }
+
+        public override string ToString()
+        {
+            return string.Format("Calculator.IPanel, Name = {0}", Name);
+        }
     }
     /// <summary>
     /// Lớp ILabel
@@ -159,25 +164,7 @@ namespace Calculator
 
         protected override void OnTextChanged(System.EventArgs e)
         {
-            if (AllowTextChanged) base.OnTextChanged(e);
-        }
-        /// <summary>
-        /// nút chuột được click vào khi đối tượng
-        /// </summary>
-        public MouseButtons MouseButtonClicked { get; set; }
-        protected override void OnMouseDown(MouseEventArgs e)
-        {
-            MouseButtonClicked = e.Button;
-            base.OnMouseDown(e);
-        }
-        /// <summary>
-        /// hoành độ của con trỏ khi di qua đối tượng
-        /// </summary>
-        public int MouseX { get; set; }
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            MouseX = e.X;
-            base.OnMouseMove(e);
+            if (allowTextChanged) base.OnTextChanged(e);
         }
     }
     /// <summary>
@@ -258,8 +245,39 @@ namespace Calculator
         }
     }
 
-    class IPictureBox : PictureBox
+    class IRadioButton : RadioButton
     {
+        /// <summary>
+        /// giá trị ở hệ xx-phân mà radio này mang tên
+        /// </summary>
+        public string Value { get; set; }
 
+        [Browsable(true)]
+        public override ContextMenu ContextMenu
+        {
+            get { return base.ContextMenu; }
+            set { base.ContextMenu = value; }
+        }
+        [Browsable(false)]
+        public override ContextMenuStrip ContextMenuStrip
+        {
+            get { return base.ContextMenuStrip; }
+            set { base.ContextMenuStrip = value; }
+        }
+    }
+
+    class INumericUpDown : NumericUpDown
+    {
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            if (e.Delta > 0)
+            {
+                if (Value < Maximum) Value++;
+            }
+            else if (e.Delta < 0)
+            {
+                if (Value > Minimum) Value--;
+            }
+        }
     }
 }

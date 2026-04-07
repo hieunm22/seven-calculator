@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
-using System.IO;
 using System.Windows.Forms;
 
 namespace Calculator
@@ -155,7 +154,7 @@ namespace Calculator
             base.Dispose(disposing);
         }
         /// <summary>
-        /// process a command key
+        /// _Progress a command key
         /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
@@ -310,7 +309,7 @@ namespace Calculator
                         if (programmerMI.Checked) binRB.Checked = true;
                         break;
                     case 120:       // F9
-                        if (programmerMI.Checked) numinput_pro(11);
+                        if (programmerMI.Checked) numinput_pro(changesignBT);
                         else
                         {
                             if (!statisticsMI.Checked)
@@ -355,17 +354,14 @@ namespace Calculator
                     case 70:        // F
                         if (btnF.Enabled && programmerMI.Checked) buttonAF(btnF.Text);
                         break;
-                    case 71:        // G
-                        digitLoad(false);
-                        break;
                     case 73:       // I Inv
                         if (scientificMI.Checked) inv_ChkBox.Checked = !inv_ChkBox.Checked;
                         break;
                     case 74:       // J RoL
-                        if (statisticsMI.Checked) rotateBT_Click(RoLBT, null);
+                        if (programmerMI.Checked) rotateBT_Click(RoLBT, null);
                         break;
                     case 75:       // K RoR
-                        if (statisticsMI.Checked) rotateBT_Click(RoRBT, null);
+                        if (programmerMI.Checked) rotateBT_Click(RoRBT, null);
                         break;
                     case 76:       // L log
                         if (scientificMI.Checked) math_func(log_bt); // 10^x
@@ -450,6 +446,9 @@ namespace Calculator
                     case 131139:    // control C
                         copyCTMN_Click(null, null); // Copy
                         break;
+                    case 131140:    // control D
+                        digitLoad(false);
+                        break;
                     case 131143:    // control G
                         if (scientificMI.Enabled) math_func(_10x_bt); // 10^x
                         break;
@@ -480,7 +479,7 @@ namespace Calculator
                         if (statisticsMI.Checked) sigman_1BT_Click(null, null);
                         break;
                     case 131158:    // control V
-                        if (pasteMI.Enabled) { getPaste(); pasteCTMN_Click(null, null); }
+                        if (pasteMI.Enabled) { getPaste(null, null); pasteCTMN_Click(null, null); }
                         break;
                     case 131161:    // control Y
                         sci_operation(34);  // yx
@@ -510,35 +509,40 @@ namespace Calculator
                 if (vehicleLeaseMI.Checked) configValue[2] = 4;
                 if (fe_MPG_MI.Checked) configValue[2] = 5;
                 if (feL100_MI.Checked) configValue[2] = 6;
-                string contentFile = string.Format(
-@"[calc]
+                string configNew = string.Format(@"[calc]
 CalculatorType={0};
 DigitGrouping={1};
 ExtraFunction={2};
 History={3};
 MemoryNumber={4};
-------------------------------------------------
+--------------------------------------------------
 [UnitConversion]
 TypeUnitCB={5};
-------------------------------------------------
+--------------------------------------------------
 [DateCalculation]
 AutoCalculate={6};
 Method={7};
-------------------------------------------------
+--------------------------------------------------
 [OtherOptions]
-CollapseSpeed={8};",
+CollapseSpeed={8};
+Animate={11};
+FastFactorial={10};
+SignInteger={9};",
                 configValue[0], digitGroupingMI.Checked.GetHashCode(),
                 configValue[2], historyMI.Checked.GetHashCode(), mem_num.StrValue,
                 typeUnitCB.SelectedIndex * (typeUnitCB.SelectedIndex >= 0).GetHashCode(),
                 autocal_date.Checked.GetHashCode(),
                 datemethodCB.SelectedIndex * (datemethodCB.SelectedIndex >= 0).GetHashCode(),
-                configValue[8]);
+                configValue[8],
+                (configValue[9] == 1).GetHashCode(),
+                (configValue[10] == 1).GetHashCode(),
+                (configValue[11] == 1).GetHashCode());
 
-                if (this.content != contentFile)
+                if (this.configContent != configNew)
                 {
-                    File.WriteAllText(configPath, contentFile);
+                    Misc.WriteAllText(configPath, configNew);
                 }
-                else return;
+                //else return;
             }
             base.OnClosing(e);
         }
@@ -605,8 +609,7 @@ CollapseSpeed={8};",
                 unitconvGB.Visible = unitConversionMI.Checked;
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
 
-                gridPanel.Visible = historyMI.Checked && historyMI.Enabled;
-                hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
+                gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
                 staDGV.Visible = false;
 
                 if (!isLoaded) propertiesChange = true;
@@ -646,8 +649,7 @@ CollapseSpeed={8};",
                 unitconvGB.Size = new Size(360, 241 + 103 * his);
                 if (exf) basicMI.Checked = false;
 
-                gridPanel.Visible = historyMI.Checked && historyMI.Enabled;
-                hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
+                gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
                 staDGV.Visible = false;
 
                 if (!isLoaded)
@@ -669,6 +671,7 @@ CollapseSpeed={8};",
             FormSizeChanged(new Size(413 + 376 * exf.GetHashCode(), 374), isLoaded);
             if (!programmerMI.Checked)
             {
+                if (bin_digit == null) InitBitNumberArray();
                 modeMethod(programmerMI);
                 EnableKeyboardAndChangeFocus();
                 hideStdComponent(true);
@@ -680,6 +683,7 @@ CollapseSpeed={8};",
                 feMPG_PN.Visible = (fe_MPG_MI.Checked || feL100_MI.Checked);
                 programmerMode();
 
+                historyMI.Enabled = false;
                 unitconvGB.Location = new Point(410, 12);
                 unitconvGB.Size = new Size(360, 304);
 
@@ -716,6 +720,7 @@ CollapseSpeed={8};",
                 hisDGV.Visible = false;
                 staDGV.Visible = true;
 
+                countLB.Text = "Count = 0";
                 statisticsMode();
                 //ctmnEnableAndVisible();
 
@@ -740,15 +745,11 @@ CollapseSpeed={8};",
             statisticsMI.Checked = false;
             mi.Checked = true;
 
-            screenPN.ContextMenu = hisDGV.ContextMenu = scr_lb.ContextMenu = mainContextMenu;
-
-            historyMI.Enabled = !programmerMI.Checked && !statisticsMI.Checked;
+            historyOptionMI.Visible = historyMI.Enabled = !programmerMI.Checked && !statisticsMI.Checked;
             datasetMI.Visible = statisticsMI.Checked;
-            historyOptionMI.Visible = historyMI.Enabled;
-            datasetMI.Visible = statisticsMI.Checked;
-            sepMI3.Visible = (mi != programmerMI);
+            sepCTMN.Visible = sepMI3.Visible = (mi != programmerMI);
+            percent_bt.Enabled = mi == standardMI;
 
-            sepCTMN.Visible = sepMI3.Visible;
             while (hisDGV.RowCount > 0) hisDGV.Rows.RemoveAt(0);
         }
         /// <summary>
@@ -806,14 +807,14 @@ CollapseSpeed={8};",
             datemethodCB.SelectedIndexChanged += cal_method_SelectedIndexChanged;
 
             btdot.Text = Misc.DecimalSeparator;
-            resultCollection = new string[20];
+            resultCollection = new string[100];
         }
         /// <summary>
         /// thay đổi kích thước form giống win 7
         /// </summary>
         private void FormSizeChanged(Size newS, bool isLoaded)
         {
-            if (isLoaded) { this.Size = newS; return; }
+            if (isLoaded || configValue[9] == 0) { this.Size = newS; return; }
             int oldw = Size.Width, oldh = Size.Height;
             int neww = newS.Width, newh = newS.Height;
             //------chi thay doi chieu rong
@@ -849,112 +850,129 @@ CollapseSpeed={8};",
                 for (int i = 0; i < (int)(Math.Abs(neww - oldw) / configValue[8]); i++)
                     this.Size = new Size(oldw += verticalSpd, Size.Height + inc_or_dec * configValue[8]);
             }
-            end:if (Size.Height != newh || Size.Width != neww) this.Size = new Size(neww, newh);
+            end: if (Size.Height != newh || Size.Width != neww) this.Size = new Size(neww, newh);
         }
 
-        private string content;
+        string configContent;
         /// <summary>
         /// đọc thuộc tính đã được ghi vào file, nếu không đúng thì sửa luôn
         /// </summary>
         private int[] readFromFile()
         {
-            string number;
-            int count = 0;
-            string[] lines = null;
-            int[] result = new int[9];
+            bool changed = false;
+            int[] result = new int[12];
+            string[] lines = new string[20];
             try
             {
-                lines = File.ReadAllLines(configPath);
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    if (string.IsNullOrEmpty(lines[i])) continue;
-                    if (lines[i].Contains("="))
-                    {
-                        number = lines[i].Substring(lines[i].IndexOf("=") + 1);
-                        number = number.Substring(0, number.IndexOf(";"));
-                        if (count != 4) result[count] = int.Parse(number);
-                        count++;
-                    }
-                }
-                content = File.ReadAllText(configPath);
+                configContent = System.IO.File.ReadAllText(configPath);
+                configContent = configContent.Replace(" ", "");
+
+                //edit = configContent;
+                //int index = 0;
+                //while (edit.Contains("="))
+                //{
+                //    edit = edit.Substring(edit.IndexOf("=") + 1);
+                //    if (index != 4) result[index] = int.Parse(edit.Substring(0, edit.IndexOf(";")));    // bỏ qua dòng thứ 5
+                //    index++;
+                //}
+
+                lines = System.IO.File.ReadAllLines(configPath);
+                // bắt buộc config phải theo thứ tự này
+                result[00] = assignConfigValue(lines[01], "CalculatorType");
+                result[01] = assignConfigValue(lines[02], "DigitGrouping");
+                result[02] = assignConfigValue(lines[03], "ExtraFunction");
+                result[03] = assignConfigValue(lines[04], "History");
+                result[05] = assignConfigValue(lines[08], "TypeUnitCB");
+                result[06] = assignConfigValue(lines[11], "AutoCalculate");
+                result[07] = assignConfigValue(lines[12], "Method");
+                result[08] = assignConfigValue(lines[15], "CollapseSpeed");
+                result[09] = assignConfigValue(lines[16], "Animate");
+                result[10] = assignConfigValue(lines[17], "FastFactorial");
+                result[11] = assignConfigValue(lines[18], "SignInteger");
+
+                changed |= checkIfValid("CalculatorType", ref result[0], 3);
+                changed |= checkIfValid("DigitGrouping", ref result[1], 1);
+                changed |= checkIfValid("ExtraFunction", ref result[2], 6);
+                changed |= checkIfValid("History", ref result[3], 1);
+                changed |= checkIfValid("TypeUnitCB", ref result[5], 10);
+                changed |= checkIfValid("AutoCalculate", ref result[6], 1);
+                changed |= checkIfValid("Method", ref result[7], 1);
+                changed |= checkIfValid("CollapseSpeed", ref result[8], 12);
+                changed |= checkIfValid("Animate", ref result[9], 1);
+                changed |= checkIfValid("FastFactorial", ref result[10], 1);
+                changed |= checkIfValid("SignInteger", ref result[11], 1);
+                if (changed) Misc.WriteAllText(configPath, configContent);
             }
             catch (Exception)
             {
-                content = @"[calc]
+                configContent = @"[calc]
 CalculatorType=0;
 DigitGrouping=0;
 ExtraFunction=0;
 History=0;
 MemoryNumber=0;
-------------------------------------------------
+--------------------------------------------------
 [UnitConversion]
 TypeUnitCB=0;
-------------------------------------------------
+--------------------------------------------------
 [DateCalculation]
 AutoCalculate=0;
 Method=0;
-------------------------------------------------
+--------------------------------------------------
 [OtherOptions]
-CollapseSpeed=10;";
-                File.WriteAllText(configPath, content);
-                standardMI.Checked = true;
+CollapseSpeed=10;
+Animate=1;
+FastFactorial=0;
+SignInteger=1;";
+                Misc.WriteAllText(configPath, configContent);
+                //standardMI.Checked = true;
                 historyMI.Checked = false;
                 digitGroupingMI.Checked = false;
-                basicMI.Checked = true;
+                //basicMI.Checked = true;
+                result = new int[12];
                 result[8] = 10;
+                result[9] = 1;
+                result[11] = 1;
                 return result;
             }
-            bool changed = false;
-            if (result[5] > 10 || result[5] < 0)
-            {
-                lines[8] = "TypeUnitCB=0;";
-                changed = true;
-                result[5] = 0;
-            }
-            if (result[0] > 3 || result[0] < 0)
-            {
-                lines[1] = "CalculatorType=0;";
-                changed = true;
-                result[0] = 0;
-            }
-            if (result[2] > 6 || result[2] < 0)
-            {
-                lines[3] = "ExtraFunction=0;";
-                changed = true;
-                result[2] = 0;
-            }
-            if (result[1] > 1 || result[1] < 0)
-            {
-                lines[2] = "DigitGrouping=0;";
-                changed = true;
-                result[1] = 0;
-            }
-            if (result[3] > 1 || result[3] < 0)
-            {
-                lines[4] = "History=0;";
-                changed = true;
-                result[3] = 0;
-            }
-            if (result[6] > 1 || result[6] < 0)
-            {
-                lines[11] = "AutoCalculate=0;";
-                changed = true;
-                result[6] = 0;
-            }
-            if (result[7] > 1 || result[7] < 0)
-            {
-                lines[12] = "Method=0;";
-                changed = true;
-                result[7] = 0;
-            }
-            if (result[8] > 12 || result[8] < 3)
-            {
-                lines[15] = "CollapseSpeed=10;";
-                changed = true;
-                result[8] = 0;
-            }
-            if (changed) File.WriteAllLines(configPath, lines);
+
             return result;
+        }
+
+        private int assignConfigValue(string line, string compare)
+        {
+            if (line.Contains(compare))
+            {
+                string value = line;
+                value = value.Substring(0, value.IndexOf(";"));
+                value = value.Substring(value.IndexOf("=") + 1);
+                return int.Parse(value);
+            }
+            else
+            {
+                throw new Exception("Invalid compare value");
+            }
+        }
+        /// <summary>
+        /// kiểm tra giá trị được gán có nằm trong phạm vi cho phép không?
+        /// </summary>
+        private bool checkIfValid(string compare, ref int RTValue, int max)
+        {
+            int defaultvalue = 0;
+            switch (compare)
+            {
+                case "CollapseSpeed": defaultvalue = 10;
+                    break;
+                case "SignInteger": case "Animate": defaultvalue = 1;
+                    break;
+            }
+            if (RTValue > max || RTValue < (compare == "CollapseSpeed" ? 4 : 0))
+            {
+                configContent = configContent.Replace(compare + "=" + RTValue, compare + "=" + defaultvalue.ToString());
+                RTValue = defaultvalue;
+                return true;
+            }
+            return false;
         }
         /// <summary>
         /// lấy giá trị của số M từ file
@@ -964,35 +982,42 @@ CollapseSpeed=10;";
             string number = null;
             try
             {
-                number = content.Substring(content.IndexOf("MemoryNumber=") + "MemoryNumber=".Length);
+                if (!configContent.Contains("MemoryNumber")) throw new ArgumentOutOfRangeException("No fucking reason");
+                number = configContent.Substring(configContent.IndexOf("MemoryNumber") + "MemoryNumber".Length);
                 number = number.Substring(0, number.IndexOf(";"));
+                number = number.Substring(number.IndexOf("=") + 1);
                 mem_num = number;
                 mem_lb.Visible = (mem_num != 0);
                 toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", mem_num.StrValue));
             }
             catch (ArgumentOutOfRangeException)	// thieu dong luu memorynumber
             {
-                content = string.Format(@"[calc]
+                configContent = string.Format(@"[calc]
 CalculatorType={0};
 DigitGrouping={1};
 ExtraFunction={2};
 History={3};
 MemoryNumber={4};
-------------------------------------------------
+--------------------------------------------------
 [UnitConversion];
 TypeUnitCB={5};
-------------------------------------------------
+--------------------------------------------------
 [DateCalculation]
 AutoCalculate={6};
 Method={7};
-------------------------------------------------",
-                configValue[0], configValue[1], configValue[2], configValue[3], mem_num.StrValue, configValue[5], configValue[6], configValue[7]);
-                File.WriteAllText(configPath, content);
+--------------------------------------------------
+[OtherOptions]
+CollapseSpeed={8};
+Animate={11};
+FastFactorial={10};
+SignInteger={9};",
+                configValue[0], configValue[1], configValue[2], configValue[3], mem_num.StrValue, configValue[5], configValue[6], configValue[7], configValue[8], configValue[9], configValue[10], configValue[11]);
+                Misc.WriteAllText(configPath, configContent);
             }
             catch (Exception)
             {
-                content = content.Replace("MemoryNumber=" + number, "MemoryNumber=0");
-                File.WriteAllText(configPath, content);
+                configContent = configContent.Replace("MemoryNumber=" + number, "MemoryNumber=0");
+                Misc.WriteAllText(configPath, configContent);
             }
         }
         /// <summary>
@@ -1034,7 +1059,9 @@ Method={7};
 
             gridPanel.Visible = historyMI.Checked && historyMI.Enabled;
             hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
-            staDGV.Visible = countLB.Visible = !historyMI.Checked || !historyMI.Enabled;
+            staDGV.Visible = /*countLB.Visible = */!historyMI.Checked || !historyMI.Enabled;
+
+            countLB.Text = "";
 
             FormSizeChanged(new Size(216 + 197 * (sci + pro) + 376 * exf, 310 + 105 * his + 80 * pro), isLoaded);
             if (!isLoaded) propertiesChange = true;
@@ -1055,6 +1082,16 @@ Method={7};
             feMPG_PN.Visible = (menuitem == fe_MPG_MI || menuitem == feL100_MI);
             morgagePN.Visible = (menuitem == mortgageMI);
             VhPN.Visible = (menuitem == vehicleLeaseMI);
+
+            switch (menuitem.Index)
+            {
+                case 0: InitCustomControls(ref morgageTB, morgagePN, 4);
+                    break;
+                case 1: InitCustomControls(ref VhTB, VhPN, 5);
+                    break;
+                case 2: case 3: InitCustomControls(ref fempgTB, feMPG_PN, 2);
+                    break;
+            }
 
             mortgageMI.Checked = (menuitem == mortgageMI);
             vehicleLeaseMI.Checked = (menuitem == vehicleLeaseMI);
@@ -1079,7 +1116,9 @@ Method={7};
                 typeUnitCB.SelectedIndexChanged += typeUnitCB_SelectedIndexChanged;
                 EnableKeyboardAndChangeFocus();
             }
+            toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
             assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
+            toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
 
             typeFECB1.Visible = (menuitem == fe_MPG_MI);
             typeFECB2.Visible = (menuitem == feL100_MI);
@@ -1202,7 +1241,7 @@ Method={7};
             sigmax2BT.Visible = bl;
             xcross.Visible = bl;
             x2cross.Visible = bl;
-            staDGV.Visible = countLB.Visible = bl;
+            staDGV.Visible = /*countLB.Visible = */bl;
             CAD.Visible = bl;
             fe_ChkBox.Visible = bl;
             exp_bt.Visible = bl;
@@ -1234,7 +1273,6 @@ Method={7};
 
             btFactorial.Enabled = true;
             sqrt_bt.Enabled = true;
-            percent_bt.Enabled = true;
             invert_bt.Enabled = true;
             btdot.Enabled = true;
         }
@@ -1324,6 +1362,7 @@ Method={7};
             {
                 parameter = prevFunc;
             }
+            if (pre_bt == 152) parameter = bracketExp[openBRK - closeBRK];
             int len = prevFunc.Length;
             switch (tabIndex)
             {
@@ -1332,11 +1371,15 @@ Method={7};
                 case 28: case 29: case 30:
                     prevFunc = string.Format("{0}({1})", bt.Text + parser.Angle, parameter);
                     break;
-                case 35: case 36: case 37: case 42: case 44: case 45:
+                case 35: case 36: case 37: case 42: case 44:
                     prevFunc = string.Format("{0}({1})", bt.Text, parameter);
                     break;
+                case 45:
+                    if (!inv_ChkBox.Checked) prevFunc = string.Format("dms({0})", parameter);
+                    else prevFunc = string.Format("degrees({0})", parameter);
+                    break;
                 case 11:
-                    prevFunc = string.Format("neg({0})", parameter);
+                    prevFunc = string.Format("negate({0})", parameter);
                     break;
                 case 17:
                     prevFunc = string.Format("reciproc({0})", parameter);
@@ -1351,7 +1394,7 @@ Method={7};
                 case 32:
                     if (BigNumber.IsInteger(inp_num.StrValue))
                     {
-                        if (fastFactMI.Checked)
+                        if (configValue[10] == 1)
                             prevFunc = string.Format("fast({0})", parameter);
                         else
                             prevFunc = string.Format("fact({0})", parameter);
@@ -1375,9 +1418,11 @@ Method={7};
 
             // bo nhung dau ngoac thua cua prevFunc
             while (prevFunc.Contains("((")) { prevFunc = prevFunc.Replace("((", "(").Replace("))", ")"); }
+            //if (pre_bt != 152) sciexpAdd = false;   // tai sao nhi
             if (pre_oprt == 0)
             {
-                sci_exp = prevFunc;
+                if (sci_exp.StartsWith("(")) sci_exp += prevFunc;
+                else sci_exp = prevFunc;
                 sciexpAdd = true;
             }
             else
@@ -1386,8 +1431,7 @@ Method={7};
                 if (!isFuncClicked && pre_bt == 152 && prevFunc.StartsWith("(") && prevFunc.EndsWith(")"))
                     len += 2;
                 if (sciexpAdd) sci_exp = sci_exp.Substring(0, sci_exp.Length - len) + prevFunc;
-                else sci_exp += prevFunc;
-                sciexpAdd = true;
+                else { sci_exp += prevFunc; sciexpAdd = true; }
             }
 
             if (inv_ChkBox.Checked) inv_ChkBox.Checked = false;
@@ -1395,11 +1439,10 @@ Method={7};
             if (tabIndex != 32)
             {
                 if (scientificMI.Checked) pex = parser.EvaluateSci(prevFunc);
-                //------------------------------------------------------------
+                //--------------------------------------------------------------
                 if (pex == null)
                 {
                     str = parser.StringResult;
-                    DisplayToScreen();
                     isFuncClicked = true;
                     confirm_num = true;
                 }
@@ -1415,18 +1458,18 @@ Method={7};
                 //pex = null;
                 if (sciexpAdd) expressionTB.Text = Misc.StandardExpression(sci_exp);
                 else expressionTB.Text = Misc.StandardExpression(sci_exp + prevFunc);
-                pre_bt = tabIndex;
             }
             else
             {
                 #region Calculate the factorial
-                if (inp_num >= 1e6 && prevFunc.Contains("fact")) slow = true;
+                if (inp_num >= 1e5 && prevFunc.Contains("fact")) slow = true;
                 if (slow)
                 {
                     NewBGW(true);
                 }
                 else
                 {
+                    InitCancelOperation();
                     pex = parser.EvaluateSci(prevFunc);
                 }
                 if (pex == null) str = parser.StringResult;
@@ -1436,12 +1479,12 @@ Method={7};
                     pex = new Exception("Operation cancelled");
                     str = pex.Message;
                 }
-                DisplayToScreen();
                 isFuncClicked = confirm_num = true;   // funcID != 32;
-                pre_bt = tabIndex;
                 expressionTB.Text = Misc.StandardExpression(sci_exp);
                 #endregion
             }
+            pre_bt = tabIndex;
+            DisplayToScreen();
         }
 
         private void NewBGW(bool isPref)
@@ -1454,8 +1497,7 @@ Method={7};
                 mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkExpr);
             mWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(mWorker_RunWorkerCompleted);
             mWorker.RunWorkerAsync();
-            co = new CancelOperation();
-            co.DoCancel += new CancelOperation.CancelProcess(co_DoCancel);
+            InitCancelOperation();
             co.ShowDialog();
         }
 
@@ -1475,18 +1517,6 @@ Method={7};
             //if (pex == null) DisplayToScreen();
         }
         /// <summary>
-        /// biến cờ xác định xem người dùng có cần tính nhanh biểu thức giai thừa hay không
-        /// </summary>
-        static bool fastFlag = false;
-        /// <summary>
-        /// [F]ast [F]actorial [F]lag
-        /// biến cờ xác định xem người dùng có cần tính nhanh biểu thức giai thừa hay không
-        /// </summary>
-        public static bool F3
-        {
-            get { return fastFlag; }
-        }
-        /// <summary>
         /// đưa kết quả các phép tính +-*/ và nhị phân của form programmer lên màn hình
         /// </summary>
         private void programmerOperation()
@@ -1498,11 +1528,11 @@ Method={7};
              * */
             try
             {
-                binnum = Binary.dec_to_other(resultpro.StrValue, 2, SizeBin);
-                decnum = Binary.other_to_dec(binnum, 2, SizeBin);
+                binRB.Value = Binary.dec_to_other(resultpro.StrValue, 2, SizeBin, configValue[11] == 1);
+                decRB.Value = Binary.other_to_dec(binRB.Value, 2, SizeBin, configValue[11] == 1);
 
-                octnum = Binary.dec_to_other(decnum, 08, SizeBin);
-                hexnum = Binary.dec_to_other(decnum, 16, SizeBin);
+                octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, configValue[11] == 1);
+                hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, configValue[11] == 1);
             }
             catch (Exception ex)
             {
@@ -1513,16 +1543,16 @@ Method={7};
                 scr_lb.TextChanged += scr_lb_TextChanged;
                 return;
             }
-            binnum64 = binnum.PadLeft(64, '0');
+            binnum64 = binRB.Value.PadLeft(64, '0');
             for (int i = 0; i < 16; i++)
             {
                 bin_digit[i].Text = binnum64.Substring(64 - (i + 1) * 4, 4);
             }
 
-            if (binRB.Checked) str = binnum;
-            if (octRB.Checked) str = octnum;
-            if (decRB.Checked) str = decnum;
-            if (hexRB.Checked) str = hexnum;
+            if (binRB.Checked) str = binRB.Value;
+            if (octRB.Checked) str = octRB.Value;
+            if (decRB.Checked) str = decRB.Value;
+            if (hexRB.Checked) str = hexRB.Value;
             scr_lb.Text = str;
         }
         /// <summary>
@@ -1536,7 +1566,7 @@ Method={7};
             prcmdkey = confirm_num = true;
 
             scr_lb.Font = new Font("Consolas", 15.75F);
-            expressionTB.Text = sci_exp = "";
+            if (pex != null) expressionTB.Text = sci_exp = "";
 
             if (c_bt)
             {
@@ -1548,9 +1578,13 @@ Method={7};
                 pre_bt = -1;
                 inv_ChkBox.Checked = fe_ChkBox.Checked = sciexpAdd = false;
                 slow = false;
+                mulDivFunc = power_Func = "";
             }
-            for (int i = 0; i < 16; i++) bin_digit[i].Text = "0000";
-            ScreenToPanel();
+            if (bin_digit != null)
+            {
+                for (int i = 0; i < 16; i++) bin_digit[i].Text = "0000";
+                ScreenToPanel();
+            }
         }
         /// <summary>
         /// hiển thị số lên màn hình
@@ -1560,7 +1594,7 @@ Method={7};
             if (pex != null)
             {
                 scr_lb.TextChanged -= scr_lb_TextChanged;
-                scr_lb.Text = str;
+                scr_lb.Text = pex.Message;
                 scr_lb.Font = new Font("Consolas", 9.75F);
                 scr_lb.TextChanged += scr_lb_TextChanged;
                 return;
@@ -1569,9 +1603,9 @@ Method={7};
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = Misc.Group(str, 3, Misc.GroupSeparator);
-                    if (octRB.Checked) scr_lb.Text = Misc.Group(str, 3, " ");
-                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = Misc.Group(str, 4, " ");
+                    if (decRB.Checked) scr_lb.Text = Misc.Group(str);
+                    else if (octRB.Checked) scr_lb.Text = Misc.Group(str, 3, " ");
+                    else if (binRB.Checked || hexRB.Checked) scr_lb.Text = Misc.Group(str, 4, " ");
                 }
                 else
                 {
@@ -1608,6 +1642,7 @@ Method={7};
             if (sciexpAdd && pre_bt != 153)
             {
                 sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length);
+                sciexpAdd = false;
             }
             if (pre_bt == 152 && openBRK - closeBRK > 0)
             {
@@ -1630,13 +1665,15 @@ Method={7};
             if (!bt.Enabled) return;
             int index = bt.TabIndex;
             string strTemp = "";
-            if (index < 10 && pex == null) // 0 đến 9
+            if (index < 10 && pex == null)  // 0 đến 9
             {
                 if (!confirm_num)
                 {
+                    sciexpAdd = false;
                     if (str.Contains("e"))
                     {
                         if (str.EndsWith("e+0")) str = str.Replace("e+0", "e+" + index.ToString());
+                        else if (str.EndsWith("e-0")) str = str.Replace("e-0", "e-" + index.ToString());
                         else str += index.ToString();
                         if (str.Length >= 45) str = str.Substring(0, str.Length - 1);
                     }
@@ -1651,12 +1688,12 @@ Method={7};
                 }
                 else
                 {
+                    //sciexpAdd = true;
                     str = index.ToString();
                     FixNumberWhenChange();
                 }
                 expressionTB.Text = Misc.StandardExpression(sci_exp);
                 isFuncClicked = false;
-                sciexpAdd = false;
                 prevFunc = str;
                 goto breakpoint;
             }
@@ -1667,7 +1704,7 @@ Method={7};
                 {
                     str = "0" + Misc.DecimalSeparator;
                     if (sciexpAdd)
-                        expressionTB.Text = Misc.StandardExpression(sci_exp.Substring(0, sci_exp.Length - prevFunc.Length));
+                        expressionTB.Text = Misc.StandardExpression(sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length));
                     else expressionTB.Text = Misc.StandardExpression(sci_exp);
                 }
                 if (!str.Contains(Misc.DecimalSeparator) && !str.Contains("e"))
@@ -1676,6 +1713,7 @@ Method={7};
                     //if (!Misc.IsNumber(prevFunc))
                     //  prevFunc = prevFunc.Insert(prevFunc.IndexOf(")"), Misc.DecimalSeparator);
                 }
+                sciexpAdd = false;
 
                 FixNumberWhenChange();
                 prevFunc = str;
@@ -1697,7 +1735,7 @@ Method={7};
                 }
                 else
                 {
-                    if ((BigNumber)str != "0") str = "-" + str;
+                    if (str != "0") str = "-" + str;
                     prevFunc = string.Format("({0})", str);
                 }
 
@@ -1727,7 +1765,7 @@ Method={7};
                         if (!confirm_num)
                         {
                             strTemp = str + index.ToString();
-                            if (new BigNumber(strTemp) < BigNumber.Two__.Pow(SizeBin))
+                            if (BigNumber.Two__.Pow(SizeBin - 1) >= strTemp) // strTemp chua vuot qua gia tri lon nhat
                                 str += index.ToString();
                             else return;
                         }
@@ -1742,7 +1780,7 @@ Method={7};
                         else strTemp = index.ToString();
                         if (binRB.Checked)
                         {
-                            if (strTemp.Length < 65) str = strTemp;
+                            if (strTemp.Length <= 64) str = strTemp;
                             else return;
                         }
                         if (octRB.Checked)
@@ -1765,7 +1803,7 @@ Method={7};
                         }
                         if (hexRB.Checked)
                         {
-                            if (strTemp.Length < 17) str = strTemp;
+                            if (strTemp.Length <= 16) str = strTemp;
                             else return;
                         }
                         // decrb.checked da xu ly o tren
@@ -1775,20 +1813,66 @@ Method={7};
             }
             if (index == 11)    // dấu âm
             {
-                if (str.StartsWith("-")) str = str.Substring(1);
+                if (configValue[10] == 1)
+                {
+                    if (str.StartsWith("-")) { str = str.Substring(1); ScreenToPanel(); }
+                    else
+                    {
+                        if (str == "0") return;
+                        //quy doi ra he 10, lay phan bu voi 256, 65536,... roi tinh nguoc lai ve he cu
+                        if (binRB.Checked)
+                        {
+                            decRB.Value = Binary.other_to_dec(str, 02, SizeBin, configValue[11] == 1);
+                            if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
+                            else decRB.Value = "-" + decRB.Value;
+                            str = binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, configValue[11] == 1);
+                        }
+                        if (octRB.Checked)
+                        {
+                            decRB.Value = Binary.other_to_dec(str, 08, SizeBin, configValue[11] == 1);
+                            if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
+                            else decRB.Value = "-" + decRB.Value;
+                            str = octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, configValue[11] == 1);
+                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, configValue[11] == 1);
+                        }
+                        if (decRB.Checked)
+                        {
+                            decRB.Value = str = "-" + str;
+                            binRB.Value = Binary.dec_to_other(decRB.Value, 2, SizeBin, configValue[11] == 1);
+                        }
+                        if (hexRB.Checked)
+                        {
+                            decRB.Value = Binary.other_to_dec(str, 16, SizeBin, configValue[11] == 1);
+                            if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
+                            else decRB.Value = "-" + decRB.Value;
+                            str = hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, configValue[11] == 1);
+                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, configValue[11] == 1);
+                        }
+                    }
+                    binnum64 = binRB.Value.PadLeft(64, '0');
+                    for (int i = 0; i < 16; i++)
+                    {
+                        bin_digit[i].Text = binnum64.Substring(60 - i * 4, 4);
+                    }
+                    confirm_num = true;
+                }
                 else
                 {
-                    if (str == "0") return;
-                    str = ("-" + decnum + BigNumber.Two__.Pow(SizeBin)).StrValue;
-                    if (!decRB.Checked)
+                    if (str.StartsWith("-")) str = str.Substring(1);
+                    else
                     {
-                        if (binRB.Checked) str = Binary.dec_to_other(str, 02, SizeBin);
-                        if (octRB.Checked) str = Binary.dec_to_other(str, 08, SizeBin);
-                        if (hexRB.Checked) str = Binary.dec_to_other(str, 16, SizeBin);
+                        if (str == "0") return;
+                        str = (BigNumber.Two__.Pow(SizeBin) - decRB.Value).StrValue;
+                        if (!decRB.Checked)
+                        {
+                            if (binRB.Checked) str = Binary.dec_to_other(str, 02, SizeBin, configValue[11] == 1);
+                            if (octRB.Checked) str = Binary.dec_to_other(str, 08, SizeBin, configValue[11] == 1);
+                            if (hexRB.Checked) str = Binary.dec_to_other(str, 16, SizeBin, configValue[11] == 1);
+                        }
+                        ScreenToPanel();
+                        confirm_num = true;
+                        return;
                     }
-                    ScreenToPanel();
-                    confirm_num = true;
-                    return;
                 }
                 pre_bt = index;
                 DisplayToScreen();
@@ -1845,13 +1929,15 @@ Method={7};
                         sci_exp = sci_exp.Substring(0, sci_exp.Length - 1) + oper;
                         goto breakpoint;
                 }
-                sci_exp += string.Format(" {0} {1}", prevFunc, oper); // chỉ việc ăn sẵn thôi
+                if (!sciexpAdd) sci_exp += prevFunc + oper; // chỉ việc ăn sẵn thôi
+                else sci_exp += oper;
             }
             else    // pre_oprt != 0
             {
                 if (isFuncClicked)
                 {
-                    sci_exp += string.Format(" {0} {1}", prevFunc, oper);
+                    if (!sciexpAdd) sci_exp += prevFunc + oper;
+                    else sci_exp = prevFunc + oper;
                 }
                 else
                 {
@@ -1859,21 +1945,20 @@ Method={7};
                 }
             }       // pre_oprt != 0
 
-            pex = parser.EvaluateStd(sci_exp.Substring(0, sci_exp.Length - 2));
+            pex = parser.EvaluateStd(sci_exp.Substring(0, sci_exp.Length - 1));
             str = parser.StringResult;
 
             breakpoint: confirm_num = true;
-            expressionTB.Text = sci_exp;
+            expressionTB.Text = Misc.StandardExpression(sci_exp);
             DisplayToScreen();
-            pre_oprt = index;
-            pre_bt = index;
+            pre_oprt = pre_bt = index;
             prevFunc = str;
             isFuncClicked = false;
         }
 
-        string powerFunc = "", mulDivFunc = "";
+        string power_Func = "", mulDivFunc = "";
         int priority, pre_priority, preoperLength = 0;
-        #warning 31/10/2013 xử lý từ đây trước và hàm equal của nó
+        #warning 08/04/2014 xử lý từ đây trước và hàm equal của nó
         /// <summary>
         /// các toán tử +-*/ của form scientific
         /// </summary>
@@ -1896,40 +1981,42 @@ Method={7};
                         if (pre_bt == 12 || pre_bt == 13)
                         {
                             mulDivFunc = prevFunc + oper;
-                            powerFunc = prevFunc + oper;
+                            power_Func = prevFunc + oper;
                         }
                         string format = "({0}){1}";
-                        if (priority < pre_priority || (sci_exp.StartsWith("(") && sci_exp[sci_exp.Length - 2] == ')')) format = "{0}{1}";
+                        if (priority <= pre_priority || (sci_exp.StartsWith("(") && sci_exp[sci_exp.Length - 2] == ')')) format = "{0}{1}";
                         sci_exp = string.Format(format, sci_exp.Substring(0, sci_exp.Length - preoperLength), oper);
                         if (pre_bt == 14 || pre_bt == 15 || pre_bt == 142)
                             mulDivFunc = string.Format(format, mulDivFunc.Substring(0, mulDivFunc.Length - preoperLength), oper);
                         if (pre_bt == 33 || pre_bt == 34)
-                            powerFunc = string.Format(format, powerFunc.Substring(0, powerFunc.Length - preoperLength), oper);
+                            power_Func = string.Format(format, power_Func.Substring(0, power_Func.Length - preoperLength), oper);
                         goto breakpoint;    // thoat tai day
                 }
-                //case 28: case 29: case 30: case 35: case 36: case 37: case 42: case 44:
-                //case 45: case 17: case 19: case 31: case 38: case 39: case 40: case 41:
+                //case 17: case 19: case 28: case 29: case 30: case 31: case 35: case 36:
+                //case 37: case 38: case 39: case 40: case 41: case 42: case 44: case 45:
 
                 // nut truoc do la dong ngoac hay khong
+                if (pre_bt == 46) { numinput(changesignBT); return; }
                 if (sciexpAdd) sci_exp += oper;
                 else sci_exp += prevFunc + oper;
 
                 if (openBRK > closeBRK)
                 {
-                    bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
+                    if (!sciexpAdd) bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
+                    else bracketExp[openBRK - closeBRK - 1] += oper;
                 }
                 if (index == 33 || index == 34)
                 {
-                    powerFunc += (prevFunc + oper);
-                    pex = parser.EvaluateSci(powerFunc.Substring(0, powerFunc.Length - 1));
+                    power_Func += (prevFunc + oper);
+                    pex = parser.EvaluateSci(power_Func.Substring(0, power_Func.Length - 1));
                     str = parser.StringResult;
                 }
                 if (index == 14 || index == 15 || index == 142)
                 {
                     if (pre_oprt == 33 || pre_oprt == 34)
                     {
-                        powerFunc += prevFunc;
-                        pex = parser.EvaluateSci(powerFunc);
+                        power_Func += prevFunc;
+                        pex = parser.EvaluateSci(power_Func);
                         mulDivFunc += parser.StringResult;
                         pex = parser.EvaluateSci(mulDivFunc);
                         str = parser.StringResult;
@@ -1942,39 +2029,41 @@ Method={7};
                         str = parser.StringResult;
                         mulDivFunc += oper;
                     }
-                    powerFunc = "";
+                    power_Func = "";
                 }
                 if (index == 12 || index == 13)
                 {
                     if (openBRK - closeBRK == 0) pex = parser.EvaluateSci(sci_exp.Substring(0, sci_exp.Length - 1));
                     else pex = parser.EvaluateSci(bracketExp[openBRK - closeBRK - 1].Substring(0, bracketExp[openBRK - closeBRK - 1].Length - 1));
                     str = parser.StringResult;
-                    powerFunc = "";
+                    power_Func = "";
                     mulDivFunc = "";
                 }
             }
             else    // pre_oprt == 0
             {
+                if (pre_bt == 46) { numinput(changesignBT); return; }
                 if (openBRK > 0)
                 {
                     if (!sciexpAdd)
                     {
                         sci_exp += prevFunc + oper;
-                        bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
+                        //bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
                     }
                     else
                     {
                         sci_exp += oper;
                     }
+                    bracketExp[openBRK - closeBRK - 1] += prevFunc + oper;
                 }
                 else
                 {
                     sci_exp = prevFunc + oper;
                 }
-                //---------------------------------------------
-                if (index == 30 || index == 34)
+                //-----------------------------------------------------------------
+                if (index == 33 || index == 34)
                 {
-                    powerFunc = prevFunc + oper;
+                    power_Func = prevFunc + oper;
                 }
                 if (index == 14 || index == 15 || index == 142)
                 {
@@ -2003,7 +2092,7 @@ Method={7};
             ScreenToPanel();
             if (pre_oprt == 0)
             {
-                num1pro = decnum;
+                num1pro = decRB.Value;
                 resultpro = num1pro;
             }
             else
@@ -2012,7 +2101,7 @@ Method={7};
                 {
                     case 12: case 13: case 14: case 15: case 211:
                         num1pro = resultpro;
-                        num2pro = decnum;
+                        num2pro = decRB.Value;
                         if (pre_oprt == 12) resultpro = num1pro + num2pro;
                         if (pre_oprt == 13) resultpro = num1pro - num2pro;
                         if (pre_oprt == 14) resultpro = num1pro * num2pro;
@@ -2031,13 +2120,13 @@ Method={7};
                         if (pre_oprt == 211) resultpro = num1pro - num2pro * (num1pro / num2pro).Floor();
                         break;
                     default:
-                        Button sender = modproBT;
-                        if (index == 199) sender = or_BT;
-                        if (index == 200) sender = LshBT;
-                        if (index == 204) sender = AndBT;
-                        if (index == 205) sender = XorBT;
-                        if (index == 210) sender = RshBT;
-                        bitWiseOperators(sender);
+                        //Button tabIndex = modproBT;
+                        //if (index == 199) tabIndex = or_BT;
+                        //if (index == 200) tabIndex = LshBT;
+                        //if (index == 204) tabIndex = AndBT;
+                        //if (index == 205) tabIndex = XorBT;
+                        //if (index == 210) tabIndex = RshBT;
+                        bitWiseOperators(index);
                         resultpro = str;
                         break;
                 }
@@ -2047,6 +2136,9 @@ Method={7};
         }
 
         CancelOperation co;
+        //
+        // tính giai thừa số lớn của hàm (bấm phím n!)
+        //
         private void mWorker_DoWorkPrevFunc(object sender, DoWorkEventArgs e)
         {
             if (mWorker.CancellationPending)
@@ -2056,7 +2148,9 @@ Method={7};
             }
             if (scientificMI.Checked) pex = parser.EvaluateSci(prevFunc);
         }
-
+        //
+        // tính giai thừa số lớn của biểu thức (sau khi ấn dấu bằng, tính lại biểu thức,...)
+        //
         private void mWorker_DoWorkExpr(object sender, DoWorkEventArgs e)
         {
             lock (this)
@@ -2065,7 +2159,6 @@ Method={7};
                 if (mWorker.CancellationPending)
                 {
                     e.Cancel = true;
-                    return;
                 }
             }
         }
@@ -2100,8 +2193,9 @@ Method={7};
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(calc));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
             this.num1BT = new System.Windows.Forms.Button();
             this.num2BT = new System.Windows.Forms.Button();
             this.num3BT = new System.Windows.Forms.Button();
@@ -2212,14 +2306,14 @@ Method={7};
             this.reCalculateMI = new System.Windows.Forms.MenuItem();
             this.cancelEditHisMI = new System.Windows.Forms.MenuItem();
             this.clearHistoryMI = new System.Windows.Forms.MenuItem();
-            this.sepMI4 = new System.Windows.Forms.MenuItem();
-            this.fastFactMI = new System.Windows.Forms.MenuItem();
             this.datasetMI = new System.Windows.Forms.MenuItem();
             this.copyDatasetMI = new System.Windows.Forms.MenuItem();
             this.editDatasetMI = new System.Windows.Forms.MenuItem();
             this.commitDSMI = new System.Windows.Forms.MenuItem();
             this.cancelEditDSMI = new System.Windows.Forms.MenuItem();
             this.clearDatasetMI = new System.Windows.Forms.MenuItem();
+            this.sepMI6 = new System.Windows.Forms.MenuItem();
+            this.preferrencesMI = new System.Windows.Forms.MenuItem();
             this.helpMI = new System.Windows.Forms.MenuItem();
             this.helpTopicsTSMI = new System.Windows.Forms.MenuItem();
             this.sepMI5 = new System.Windows.Forms.MenuItem();
@@ -2236,6 +2330,16 @@ Method={7};
             this.hotkeyMI = new System.Windows.Forms.MenuItem();
             this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.mWorker = new System.ComponentModel.BackgroundWorker();
+            this.VhPN = new Calculator.IPanel();
+            this.typeVhLB = new System.Windows.Forms.Label();
+            this.typeVhCB = new System.Windows.Forms.ComboBox();
+            this.VhLB3 = new System.Windows.Forms.Label();
+            this.VhLB1 = new System.Windows.Forms.Label();
+            this.VhLB5 = new System.Windows.Forms.Label();
+            this.VhLB4 = new System.Windows.Forms.Label();
+            this.VhBT = new System.Windows.Forms.Button();
+            this.VhLB2 = new System.Windows.Forms.Label();
+            this.VhResultTB = new System.Windows.Forms.TextBox();
             this.morgagePN = new Calculator.IPanel();
             this.typeMorgageLB = new System.Windows.Forms.Label();
             this.typeMorgageCB = new System.Windows.Forms.ComboBox();
@@ -2245,31 +2349,6 @@ Method={7};
             this.morgageBT = new System.Windows.Forms.Button();
             this.morgageLB2 = new System.Windows.Forms.Label();
             this.morgageResultTB = new System.Windows.Forms.TextBox();
-            this.PNbinary = new Calculator.IPanel();
-            this.unknownPN = new Calculator.IPanel();
-            this._byteRB = new System.Windows.Forms.RadioButton();
-            this.qwordRB = new System.Windows.Forms.RadioButton();
-            this.dwordRB = new System.Windows.Forms.RadioButton();
-            this._wordRB = new System.Windows.Forms.RadioButton();
-            this.basePN = new Calculator.IPanel();
-            this.binRB = new System.Windows.Forms.RadioButton();
-            this.hexRB = new System.Windows.Forms.RadioButton();
-            this.octRB = new System.Windows.Forms.RadioButton();
-            this.decRB = new System.Windows.Forms.RadioButton();
-            this.angleGB = new Calculator.IPanel();
-            this.graRB = new System.Windows.Forms.RadioButton();
-            this.degRB = new System.Windows.Forms.RadioButton();
-            this.radRB = new System.Windows.Forms.RadioButton();
-            this.gridPanel = new Calculator.IPanel();
-            this.countLB = new System.Windows.Forms.Label();
-            this.staDGV = new Calculator.IDataGridView();
-            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.hisDGV = new Calculator.IDataGridView();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.screenPN = new Calculator.IPanel();
-            this.expressionTB = new Calculator.ILabel();
-            this.mem_lb = new System.Windows.Forms.Label();
-            this.scr_lb = new System.Windows.Forms.Label();
             this.feMPG_PN = new Calculator.IPanel();
             this.typeFEmpgLB = new System.Windows.Forms.Label();
             this.typeFECB2 = new System.Windows.Forms.ComboBox();
@@ -2278,6 +2357,26 @@ Method={7};
             this.fempgLB1 = new System.Windows.Forms.Label();
             this.fuelEconomyBT = new System.Windows.Forms.Button();
             this.fempgResultTB = new System.Windows.Forms.TextBox();
+            this.PNbinary = new Calculator.IPanel();
+            this.basePN = new Calculator.IPanel();
+            this.hexRB = new Calculator.IRadioButton();
+            this.decRB = new Calculator.IRadioButton();
+            this.octRB = new Calculator.IRadioButton();
+            this.binRB = new Calculator.IRadioButton();
+            this.angleGB = new Calculator.IPanel();
+            this.graRB = new System.Windows.Forms.RadioButton();
+            this.degRB = new System.Windows.Forms.RadioButton();
+            this.radRB = new System.Windows.Forms.RadioButton();
+            this.gridPanel = new Calculator.IPanel();
+            this.countLB = new System.Windows.Forms.Label();
+            this.hisDGV = new Calculator.IDataGridView();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.staDGV = new Calculator.IDataGridView();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.screenPN = new Calculator.IPanel();
+            this.expressionTB = new Calculator.ILabel();
+            this.mem_lb = new System.Windows.Forms.Label();
+            this.scr_lb = new System.Windows.Forms.Label();
             this.unitconvGB = new Calculator.IPanel();
             this.toCombobox = new System.Windows.Forms.ComboBox();
             this.typeUnitLB = new System.Windows.Forms.Label();
@@ -2289,14 +2388,11 @@ Method={7};
             this.fromLB = new System.Windows.Forms.Label();
             this.fromTB = new System.Windows.Forms.TextBox();
             this.datecalcGB = new Calculator.IPanel();
+            this.result1 = new System.Windows.Forms.TextBox();
             this.result2 = new System.Windows.Forms.TextBox();
             this.calmethodLB = new System.Windows.Forms.Label();
-            this.result1 = new System.Windows.Forms.TextBox();
-            this.periodsDateUD = new System.Windows.Forms.NumericUpDown();
             this.secondDate = new System.Windows.Forms.Label();
-            this.periodsMonthUD = new System.Windows.Forms.NumericUpDown();
             this.dtP2 = new System.Windows.Forms.DateTimePicker();
-            this.periodsYearUD = new System.Windows.Forms.NumericUpDown();
             this.subrb = new System.Windows.Forms.RadioButton();
             this.dtP1 = new System.Windows.Forms.DateTimePicker();
             this.addrb = new System.Windows.Forms.RadioButton();
@@ -2309,31 +2405,29 @@ Method={7};
             this.datemethodCB = new System.Windows.Forms.ComboBox();
             this.monthAddSubLB = new System.Windows.Forms.Label();
             this.dayAddSubLB = new System.Windows.Forms.Label();
-            this.VhPN = new Calculator.IPanel();
-            this.typeVhLB = new System.Windows.Forms.Label();
-            this.typeVhCB = new System.Windows.Forms.ComboBox();
-            this.VhLB3 = new System.Windows.Forms.Label();
-            this.VhLB1 = new System.Windows.Forms.Label();
-            this.VhLB5 = new System.Windows.Forms.Label();
-            this.VhLB4 = new System.Windows.Forms.Label();
-            this.VhBT = new System.Windows.Forms.Button();
-            this.VhLB2 = new System.Windows.Forms.Label();
-            this.VhResultTB = new System.Windows.Forms.TextBox();
+            this.periodsDateUD = new Calculator.INumericUpDown();
+            this.periodsMonthUD = new Calculator.INumericUpDown();
+            this.periodsYearUD = new Calculator.INumericUpDown();
+            this.unknownPN = new Calculator.IPanel();
+            this._byteRB = new System.Windows.Forms.RadioButton();
+            this.qwordRB = new System.Windows.Forms.RadioButton();
+            this.dwordRB = new System.Windows.Forms.RadioButton();
+            this._wordRB = new System.Windows.Forms.RadioButton();
+            this.VhPN.SuspendLayout();
             this.morgagePN.SuspendLayout();
-            this.unknownPN.SuspendLayout();
+            this.feMPG_PN.SuspendLayout();
             this.basePN.SuspendLayout();
             this.angleGB.SuspendLayout();
             this.gridPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.staDGV)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.hisDGV)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.staDGV)).BeginInit();
             this.screenPN.SuspendLayout();
-            this.feMPG_PN.SuspendLayout();
             this.unitconvGB.SuspendLayout();
             this.datecalcGB.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).BeginInit();
-            this.VhPN.SuspendLayout();
+            this.unknownPN.SuspendLayout();
             this.SuspendLayout();
             // 
             // num1BT
@@ -2962,7 +3056,7 @@ Method={7};
             this.exp_bt.Location = new System.Drawing.Point(56, 332);
             this.exp_bt.Name = "exp_bt";
             this.exp_bt.Size = new System.Drawing.Size(34, 27);
-            this.exp_bt.TabIndex = 33;
+            this.exp_bt.TabIndex = 46;
             this.exp_bt.TabStop = false;
             this.exp_bt.Text = "Exp";
             this.exp_bt.UseVisualStyleBackColor = true;
@@ -3773,9 +3867,12 @@ Method={7};
             this.pasteMI,
             this.sepMI3,
             this.historyOptionMI,
-            this.datasetMI});
+            this.datasetMI,
+            this.sepMI6,
+            this.preferrencesMI});
             this.editMI.Shortcut = System.Windows.Forms.Shortcut.CtrlC;
             this.editMI.Text = "&Edit";
+            this.editMI.Popup += new System.EventHandler(this.getPaste);
             // 
             // copyMI
             // 
@@ -3803,11 +3900,9 @@ Method={7};
             this.editHistoryMI,
             this.reCalculateMI,
             this.cancelEditHisMI,
-            this.clearHistoryMI,
-            this.sepMI4,
-            this.fastFactMI});
+            this.clearHistoryMI});
             this.historyOptionMI.Text = "&History";
-            this.historyOptionMI.Popup += new System.EventHandler(this.historyOptionMI_Popup);
+            this.historyOptionMI.Popup += new System.EventHandler(this.historyAndDatasetOptionMI_Popup);
             // 
             // copyHistoryMI
             // 
@@ -3846,18 +3941,6 @@ Method={7};
             this.clearHistoryMI.Text = "C&lear";
             this.clearHistoryMI.Click += new System.EventHandler(this.clearHistoryMI_Click);
             // 
-            // sepMI4
-            // 
-            this.sepMI4.Index = 5;
-            this.sepMI4.Text = "-";
-            // 
-            // fastFactMI
-            // 
-            this.fastFactMI.Index = 6;
-            this.fastFactMI.Shortcut = System.Windows.Forms.Shortcut.CtrlF;
-            this.fastFactMI.Text = "Fast &factorial";
-            this.fastFactMI.Click += new System.EventHandler(this.fastFactMI_Click);
-            // 
             // datasetMI
             // 
             this.datasetMI.Index = 4;
@@ -3868,7 +3951,7 @@ Method={7};
             this.cancelEditDSMI,
             this.clearDatasetMI});
             this.datasetMI.Text = "&Dataset";
-            this.datasetMI.Popup += new System.EventHandler(this.datasetMI_Popup);
+            this.datasetMI.Popup += new System.EventHandler(this.historyAndDatasetOptionMI_Popup);
             // 
             // copyDatasetMI
             // 
@@ -3879,6 +3962,7 @@ Method={7};
             // editDatasetMI
             // 
             this.editDatasetMI.Index = 1;
+            this.editDatasetMI.Shortcut = System.Windows.Forms.Shortcut.F2;
             this.editDatasetMI.Text = "&Edit";
             this.editDatasetMI.Click += new System.EventHandler(this.editDatasetMI_Click);
             // 
@@ -3901,6 +3985,18 @@ Method={7};
             this.clearDatasetMI.Index = 4;
             this.clearDatasetMI.Text = "C&lear";
             this.clearDatasetMI.Click += new System.EventHandler(this.CAD_Click);
+            // 
+            // sepMI6
+            // 
+            this.sepMI6.Index = 5;
+            this.sepMI6.Text = "-";
+            // 
+            // preferrencesMI
+            // 
+            this.preferrencesMI.Index = 6;
+            this.preferrencesMI.Shortcut = System.Windows.Forms.Shortcut.CtrlK;
+            this.preferrencesMI.Text = "&Preferences";
+            this.preferrencesMI.Click += new System.EventHandler(this.preferrencesMI_Click);
             // 
             // helpMI
             // 
@@ -4000,7 +4096,7 @@ Method={7};
             // radioButton1
             // 
             this.radioButton1.AutoSize = true;
-            this.radioButton1.Location = new System.Drawing.Point(93, 434);
+            this.radioButton1.Location = new System.Drawing.Point(99, 437);
             this.radioButton1.Name = "radioButton1";
             this.radioButton1.Size = new System.Drawing.Size(87, 17);
             this.radioButton1.TabIndex = 251;
@@ -4014,6 +4110,142 @@ Method={7};
             this.mWorker.WorkerSupportsCancellation = true;
             this.mWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.mWorker_DoWorkPrevFunc);
             this.mWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.mWorker_RunWorkerCompleted);
+            // 
+            // VhPN
+            // 
+            this.VhPN.BackColor = System.Drawing.Color.White;
+            this.VhPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.VhPN.Controls.Add(this.typeVhLB);
+            this.VhPN.Controls.Add(this.typeVhCB);
+            this.VhPN.Controls.Add(this.VhLB3);
+            this.VhPN.Controls.Add(this.VhLB1);
+            this.VhPN.Controls.Add(this.VhLB5);
+            this.VhPN.Controls.Add(this.VhLB4);
+            this.VhPN.Controls.Add(this.VhBT);
+            this.VhPN.Controls.Add(this.VhLB2);
+            this.VhPN.Controls.Add(this.VhResultTB);
+            this.VhPN.Location = new System.Drawing.Point(236, 12);
+            this.VhPN.Name = "VhPN";
+            this.VhPN.Size = new System.Drawing.Size(356, 241);
+            this.VhPN.TabIndex = 35;
+            this.VhPN.Visible = false;
+            this.VhPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // typeVhLB
+            // 
+            this.typeVhLB.AutoSize = true;
+            this.typeVhLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeVhLB.Location = new System.Drawing.Point(12, 9);
+            this.typeVhLB.Name = "typeVhLB";
+            this.typeVhLB.Size = new System.Drawing.Size(194, 13);
+            this.typeVhLB.TabIndex = 8;
+            this.typeVhLB.Text = "Select the Speed you want to calculate";
+            this.typeVhLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // typeVhCB
+            // 
+            this.typeVhCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeVhCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeVhCB.FormattingEnabled = true;
+            this.typeVhCB.Items.AddRange(new object[] {
+            "Lease period",
+            "Lease Speed",
+            "Periodic payment",
+            "Residual Speed"});
+            this.typeVhCB.Location = new System.Drawing.Point(12, 32);
+            this.typeVhCB.MaxDropDownItems = 11;
+            this.typeVhCB.Name = "typeVhCB";
+            this.typeVhCB.Size = new System.Drawing.Size(330, 21);
+            this.typeVhCB.TabIndex = 9;
+            this.typeVhCB.SelectedIndexChanged += new System.EventHandler(this.typeVhCB_SelectedIndexChanged);
+            this.typeVhCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // VhLB3
+            // 
+            this.VhLB3.AutoSize = true;
+            this.VhLB3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhLB3.Location = new System.Drawing.Point(12, 110);
+            this.VhLB3.Name = "VhLB3";
+            this.VhLB3.Size = new System.Drawing.Size(98, 13);
+            this.VhLB3.TabIndex = 6;
+            this.VhLB3.Text = "Payments per year";
+            this.VhLB3.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // VhLB1
+            // 
+            this.VhLB1.AutoSize = true;
+            this.VhLB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhLB1.Location = new System.Drawing.Point(12, 62);
+            this.VhLB1.Name = "VhLB1";
+            this.VhLB1.Size = new System.Drawing.Size(68, 13);
+            this.VhLB1.TabIndex = 6;
+            this.VhLB1.Text = "Lease Speed";
+            this.VhLB1.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // VhLB5
+            // 
+            this.VhLB5.AutoSize = true;
+            this.VhLB5.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhLB5.Location = new System.Drawing.Point(12, 158);
+            this.VhLB5.Name = "VhLB5";
+            this.VhLB5.Size = new System.Drawing.Size(91, 13);
+            this.VhLB5.TabIndex = 8;
+            this.VhLB5.Text = "Interest rate (%)";
+            this.VhLB5.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhLB5.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // VhLB4
+            // 
+            this.VhLB4.AutoSize = true;
+            this.VhLB4.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhLB4.Location = new System.Drawing.Point(12, 134);
+            this.VhLB4.Name = "VhLB4";
+            this.VhLB4.Size = new System.Drawing.Size(80, 13);
+            this.VhLB4.TabIndex = 7;
+            this.VhLB4.Text = "Residual Speed";
+            this.VhLB4.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // VhBT
+            // 
+            this.VhBT.Enabled = false;
+            this.VhBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhBT.Location = new System.Drawing.Point(12, 210);
+            this.VhBT.Name = "VhBT";
+            this.VhBT.Size = new System.Drawing.Size(82, 22);
+            this.VhBT.TabIndex = 12;
+            this.VhBT.Text = "Calculate";
+            this.VhBT.UseVisualStyleBackColor = true;
+            this.VhBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
+            this.VhBT.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // VhLB2
+            // 
+            this.VhLB2.AutoSize = true;
+            this.VhLB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhLB2.Location = new System.Drawing.Point(12, 86);
+            this.VhLB2.Name = "VhLB2";
+            this.VhLB2.Size = new System.Drawing.Size(68, 13);
+            this.VhLB2.TabIndex = 7;
+            this.VhLB2.Text = "Lease period";
+            this.VhLB2.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // VhResultTB
+            // 
+            this.VhResultTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.VhResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.VhResultTB.Location = new System.Drawing.Point(177, 212);
+            this.VhResultTB.MaxLength = 20;
+            this.VhResultTB.Name = "VhResultTB";
+            this.VhResultTB.ReadOnly = true;
+            this.VhResultTB.Size = new System.Drawing.Size(165, 21);
+            this.VhResultTB.TabIndex = 15;
+            this.VhResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.VhResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
+            this.VhResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
             // 
             // morgagePN
             // 
@@ -4032,7 +4264,7 @@ Method={7};
             this.morgagePN.Size = new System.Drawing.Size(356, 241);
             this.morgagePN.TabIndex = 34;
             this.morgagePN.Visible = false;
-            this.morgagePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.morgagePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // typeMorgageLB
             // 
@@ -4040,10 +4272,10 @@ Method={7};
             this.typeMorgageLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeMorgageLB.Location = new System.Drawing.Point(12, 9);
             this.typeMorgageLB.Name = "typeMorgageLB";
-            this.typeMorgageLB.Size = new System.Drawing.Size(190, 13);
+            this.typeMorgageLB.Size = new System.Drawing.Size(194, 13);
             this.typeMorgageLB.TabIndex = 8;
-            this.typeMorgageLB.Text = "Select the value you want to calculate";
-            this.typeMorgageLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.typeMorgageLB.Text = "Select the Speed you want to calculate";
+            this.typeMorgageLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // typeMorgageCB
             // 
@@ -4073,7 +4305,7 @@ Method={7};
             this.morgageLB3.TabIndex = 6;
             this.morgageLB3.Text = "Term (years)";
             this.morgageLB3.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.morgageLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // morgageLB1
             // 
@@ -4085,7 +4317,7 @@ Method={7};
             this.morgageLB1.TabIndex = 6;
             this.morgageLB1.Text = "Perchase price";
             this.morgageLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.morgageLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // morgageLB4
             // 
@@ -4097,7 +4329,7 @@ Method={7};
             this.morgageLB4.TabIndex = 7;
             this.morgageLB4.Text = "Interest reate (%)";
             this.morgageLB4.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.morgageLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // morgageBT
             // 
@@ -4122,7 +4354,7 @@ Method={7};
             this.morgageLB2.TabIndex = 7;
             this.morgageLB2.Text = "Down payment";
             this.morgageLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.morgageLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.morgageLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // morgageResultTB
             // 
@@ -4138,6 +4370,119 @@ Method={7};
             this.morgageResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
             this.morgageResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
             // 
+            // feMPG_PN
+            // 
+            this.feMPG_PN.BackColor = System.Drawing.Color.White;
+            this.feMPG_PN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.feMPG_PN.Controls.Add(this.typeFEmpgLB);
+            this.feMPG_PN.Controls.Add(this.typeFECB2);
+            this.feMPG_PN.Controls.Add(this.typeFECB1);
+            this.feMPG_PN.Controls.Add(this.fempgLB2);
+            this.feMPG_PN.Controls.Add(this.fempgLB1);
+            this.feMPG_PN.Controls.Add(this.fuelEconomyBT);
+            this.feMPG_PN.Controls.Add(this.fempgResultTB);
+            this.feMPG_PN.Location = new System.Drawing.Point(236, 12);
+            this.feMPG_PN.Name = "feMPG_PN";
+            this.feMPG_PN.Size = new System.Drawing.Size(356, 241);
+            this.feMPG_PN.TabIndex = 33;
+            this.feMPG_PN.Visible = false;
+            this.feMPG_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // typeFEmpgLB
+            // 
+            this.typeFEmpgLB.AutoSize = true;
+            this.typeFEmpgLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeFEmpgLB.Location = new System.Drawing.Point(12, 9);
+            this.typeFEmpgLB.Name = "typeFEmpgLB";
+            this.typeFEmpgLB.Size = new System.Drawing.Size(194, 13);
+            this.typeFEmpgLB.TabIndex = 8;
+            this.typeFEmpgLB.Text = "Select the Speed you want to calculate";
+            this.typeFEmpgLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // typeFECB2
+            // 
+            this.typeFECB2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeFECB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeFECB2.FormattingEnabled = true;
+            this.typeFECB2.Items.AddRange(new object[] {
+            "Distance (kilometers)",
+            "Fuel economy (L/100 km)",
+            "Fuel used (liters)"});
+            this.typeFECB2.Location = new System.Drawing.Point(12, 32);
+            this.typeFECB2.MaxDropDownItems = 11;
+            this.typeFECB2.Name = "typeFECB2";
+            this.typeFECB2.Size = new System.Drawing.Size(330, 21);
+            this.typeFECB2.TabIndex = 9;
+            this.typeFECB2.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
+            this.typeFECB2.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // typeFECB1
+            // 
+            this.typeFECB1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeFECB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeFECB1.FormattingEnabled = true;
+            this.typeFECB1.Items.AddRange(new object[] {
+            "Distance (miles)",
+            "Fuel economy (mpg)",
+            "Fuel used (gallons)"});
+            this.typeFECB1.Location = new System.Drawing.Point(12, 32);
+            this.typeFECB1.MaxDropDownItems = 11;
+            this.typeFECB1.Name = "typeFECB1";
+            this.typeFECB1.Size = new System.Drawing.Size(330, 21);
+            this.typeFECB1.TabIndex = 9;
+            this.typeFECB1.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
+            this.typeFECB1.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // fempgLB2
+            // 
+            this.fempgLB2.AutoSize = true;
+            this.fempgLB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fempgLB2.Location = new System.Drawing.Point(12, 86);
+            this.fempgLB2.Name = "fempgLB2";
+            this.fempgLB2.Size = new System.Drawing.Size(92, 13);
+            this.fempgLB2.TabIndex = 7;
+            this.fempgLB2.Text = "Fuel used (gallon)";
+            this.fempgLB2.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.fempgLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // fempgLB1
+            // 
+            this.fempgLB1.AutoSize = true;
+            this.fempgLB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fempgLB1.Location = new System.Drawing.Point(12, 62);
+            this.fempgLB1.Name = "fempgLB1";
+            this.fempgLB1.Size = new System.Drawing.Size(82, 13);
+            this.fempgLB1.TabIndex = 6;
+            this.fempgLB1.Text = "Distance (miles)";
+            this.fempgLB1.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.fempgLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // fuelEconomyBT
+            // 
+            this.fuelEconomyBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fuelEconomyBT.Location = new System.Drawing.Point(12, 210);
+            this.fuelEconomyBT.Name = "fuelEconomyBT";
+            this.fuelEconomyBT.Size = new System.Drawing.Size(82, 22);
+            this.fuelEconomyBT.TabIndex = 12;
+            this.fuelEconomyBT.Text = "Calculate";
+            this.fuelEconomyBT.UseVisualStyleBackColor = true;
+            this.fuelEconomyBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
+            this.fuelEconomyBT.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // fempgResultTB
+            // 
+            this.fempgResultTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fempgResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.fempgResultTB.Location = new System.Drawing.Point(177, 212);
+            this.fempgResultTB.MaxLength = 20;
+            this.fempgResultTB.Name = "fempgResultTB";
+            this.fempgResultTB.ReadOnly = true;
+            this.fempgResultTB.Size = new System.Drawing.Size(165, 21);
+            this.fempgResultTB.TabIndex = 13;
+            this.fempgResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.fempgResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
+            this.fempgResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
+            // 
             // PNbinary
             // 
             this.PNbinary.BackColor = System.Drawing.Color.Transparent;
@@ -4145,7 +4490,735 @@ Method={7};
             this.PNbinary.Name = "PNbinary";
             this.PNbinary.Size = new System.Drawing.Size(385, 60);
             this.PNbinary.TabIndex = 214;
-            this.PNbinary.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.PNbinary.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // basePN
+            // 
+            this.basePN.Controls.Add(this.hexRB);
+            this.basePN.Controls.Add(this.decRB);
+            this.basePN.Controls.Add(this.octRB);
+            this.basePN.Controls.Add(this.binRB);
+            this.basePN.Location = new System.Drawing.Point(12, 366);
+            this.basePN.Name = "basePN";
+            this.basePN.Size = new System.Drawing.Size(73, 91);
+            this.basePN.TabIndex = 212;
+            this.basePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // hexRB
+            // 
+            this.hexRB.AutoSize = true;
+            this.hexRB.ContextMenu = this.helpCTMN;
+            this.hexRB.Location = new System.Drawing.Point(7, 4);
+            this.hexRB.Name = "hexRB";
+            this.hexRB.Size = new System.Drawing.Size(44, 17);
+            this.hexRB.TabIndex = 116;
+            this.hexRB.Text = "Hex";
+            this.hexRB.UseVisualStyleBackColor = true;
+            this.hexRB.Value = "0";
+            this.hexRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
+            this.hexRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.hexRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // decRB
+            // 
+            this.decRB.AutoSize = true;
+            this.decRB.Checked = true;
+            this.decRB.ContextMenu = this.helpCTMN;
+            this.decRB.Location = new System.Drawing.Point(7, 25);
+            this.decRB.Name = "decRB";
+            this.decRB.Size = new System.Drawing.Size(43, 17);
+            this.decRB.TabIndex = 117;
+            this.decRB.TabStop = true;
+            this.decRB.Text = "Dec";
+            this.decRB.UseVisualStyleBackColor = true;
+            this.decRB.Value = "0";
+            this.decRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
+            this.decRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.decRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // octRB
+            // 
+            this.octRB.AutoSize = true;
+            this.octRB.ContextMenu = this.helpCTMN;
+            this.octRB.Location = new System.Drawing.Point(7, 46);
+            this.octRB.Name = "octRB";
+            this.octRB.Size = new System.Drawing.Size(42, 17);
+            this.octRB.TabIndex = 118;
+            this.octRB.Text = "Oct";
+            this.octRB.UseVisualStyleBackColor = true;
+            this.octRB.Value = "0";
+            this.octRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
+            this.octRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.octRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // binRB
+            // 
+            this.binRB.AutoSize = true;
+            this.binRB.ContextMenu = this.helpCTMN;
+            this.binRB.Location = new System.Drawing.Point(7, 67);
+            this.binRB.Name = "binRB";
+            this.binRB.Size = new System.Drawing.Size(39, 17);
+            this.binRB.TabIndex = 119;
+            this.binRB.Text = "Bin";
+            this.binRB.UseVisualStyleBackColor = true;
+            this.binRB.Value = "0";
+            this.binRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
+            this.binRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.binRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // angleGB
+            // 
+            this.angleGB.Controls.Add(this.graRB);
+            this.angleGB.Controls.Add(this.degRB);
+            this.angleGB.Controls.Add(this.radRB);
+            this.angleGB.Location = new System.Drawing.Point(12, 279);
+            this.angleGB.Name = "angleGB";
+            this.angleGB.Size = new System.Drawing.Size(190, 28);
+            this.angleGB.TabIndex = 128;
+            this.angleGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // graRB
+            // 
+            this.graRB.AutoSize = true;
+            this.graRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.graRB.Location = new System.Drawing.Point(134, 6);
+            this.graRB.Name = "graRB";
+            this.graRB.Size = new System.Drawing.Size(53, 17);
+            this.graRB.TabIndex = 116;
+            this.graRB.Text = "Grads";
+            this.graRB.UseVisualStyleBackColor = true;
+            this.graRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
+            this.graRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.graRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // degRB
+            // 
+            this.degRB.AutoSize = true;
+            this.degRB.Checked = true;
+            this.degRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.degRB.Location = new System.Drawing.Point(7, 6);
+            this.degRB.Name = "degRB";
+            this.degRB.Size = new System.Drawing.Size(65, 17);
+            this.degRB.TabIndex = 114;
+            this.degRB.TabStop = true;
+            this.degRB.Text = "Degrees";
+            this.degRB.UseVisualStyleBackColor = true;
+            this.degRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
+            this.degRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.degRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // radRB
+            // 
+            this.radRB.AutoSize = true;
+            this.radRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radRB.Location = new System.Drawing.Point(72, 6);
+            this.radRB.Name = "radRB";
+            this.radRB.Size = new System.Drawing.Size(63, 17);
+            this.radRB.TabIndex = 115;
+            this.radRB.Text = "Radians";
+            this.radRB.UseVisualStyleBackColor = true;
+            this.radRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
+            this.radRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.radRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
+            // 
+            // gridPanel
+            // 
+            this.gridPanel.BackColor = System.Drawing.Color.White;
+            this.gridPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.gridPanel.Controls.Add(this.dnBT);
+            this.gridPanel.Controls.Add(this.upBT);
+            this.gridPanel.Controls.Add(this.countLB);
+            this.gridPanel.Controls.Add(this.hisDGV);
+            this.gridPanel.Controls.Add(this.staDGV);
+            this.gridPanel.Location = new System.Drawing.Point(236, 291);
+            this.gridPanel.Name = "gridPanel";
+            this.gridPanel.Size = new System.Drawing.Size(190, 105);
+            this.gridPanel.TabIndex = 186;
+            this.gridPanel.TabStop = true;
+            this.gridPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // countLB
+            // 
+            this.countLB.AutoSize = true;
+            this.countLB.Font = new System.Drawing.Font("Tahoma", 8.25F);
+            this.countLB.Location = new System.Drawing.Point(4, 4);
+            this.countLB.Name = "countLB";
+            this.countLB.Size = new System.Drawing.Size(56, 13);
+            this.countLB.TabIndex = 2;
+            this.countLB.Text = "Count = 0";
+            this.countLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // hisDGV
+            // 
+            this.hisDGV.AllowCellClick = true;
+            this.hisDGV.AllowCellDoubleClick = true;
+            this.hisDGV.AllowCellStateChanged = true;
+            this.hisDGV.AllowUserToAddRows = false;
+            this.hisDGV.AllowUserToDeleteRows = false;
+            this.hisDGV.AllowUserToResizeColumns = false;
+            this.hisDGV.AllowUserToResizeRows = false;
+            this.hisDGV.BackgroundColor = System.Drawing.Color.White;
+            this.hisDGV.ColumnHeadersVisible = false;
+            this.hisDGV.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Column1});
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.hisDGV.DefaultCellStyle = dataGridViewCellStyle2;
+            this.hisDGV.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
+            this.hisDGV.Location = new System.Drawing.Point(-1, 21);
+            this.hisDGV.MultiSelect = false;
+            this.hisDGV.Name = "hisDGV";
+            this.hisDGV.ReadOnly = true;
+            this.hisDGV.RowHeadersVisible = false;
+            this.hisDGV.RowHeadersWidth = 35;
+            this.hisDGV.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.hisDGV.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.hisDGV.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.hisDGV.RowTemplate.Height = 20;
+            this.hisDGV.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.hisDGV.ScrollBars = System.Windows.Forms.ScrollBars.None;
+            this.hisDGV.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+            this.hisDGV.Size = new System.Drawing.Size(190, 85);
+            this.hisDGV.TabIndex = 0;
+            this.hisDGV.TabStop = false;
+            this.hisDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
+            this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
+            this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
+            this.hisDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.historyDGV_CellStateChanged);
+            this.hisDGV.DoubleClick += new System.EventHandler(this.hisDGV_DoubleClick);
+            this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // Column1
+            // 
+            this.Column1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.Column1.DefaultCellStyle = dataGridViewCellStyle1;
+            this.Column1.HeaderText = "Column1";
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            // 
+            // staDGV
+            // 
+            this.staDGV.AllowCellClick = false;
+            this.staDGV.AllowCellDoubleClick = false;
+            this.staDGV.AllowCellStateChanged = false;
+            this.staDGV.AllowUserToAddRows = false;
+            this.staDGV.AllowUserToDeleteRows = false;
+            this.staDGV.AllowUserToResizeColumns = false;
+            this.staDGV.AllowUserToResizeRows = false;
+            this.staDGV.BackgroundColor = System.Drawing.Color.White;
+            this.staDGV.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.staDGV.ColumnHeadersVisible = false;
+            this.staDGV.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Column2});
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+            dataGridViewCellStyle3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+            dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+            this.staDGV.DefaultCellStyle = dataGridViewCellStyle3;
+            this.staDGV.Location = new System.Drawing.Point(-1, 21);
+            this.staDGV.MultiSelect = false;
+            this.staDGV.Name = "staDGV";
+            this.staDGV.ReadOnly = true;
+            this.staDGV.RowHeadersVisible = false;
+            this.staDGV.RowHeadersWidth = 20;
+            this.staDGV.RowTemplate.Height = 20;
+            this.staDGV.ScrollBars = System.Windows.Forms.ScrollBars.None;
+            this.staDGV.Size = new System.Drawing.Size(190, 85);
+            this.staDGV.TabIndex = 0;
+            this.staDGV.TabStop = false;
+            this.staDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.staDGV_CellBeginEdit);
+            this.staDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.statisticsDGV_CellEndEdit);
+            this.staDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.staDGV_CellStateChanged);
+            this.staDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "Column2";
+            this.Column2.Name = "Column2";
+            this.Column2.ReadOnly = true;
+            this.Column2.Width = 190;
+            // 
+            // screenPN
+            // 
+            this.screenPN.BackColor = System.Drawing.Color.White;
+            this.screenPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.screenPN.ContextMenu = this.mainContextMenu;
+            this.screenPN.Controls.Add(this.expressionTB);
+            this.screenPN.Controls.Add(this.mem_lb);
+            this.screenPN.Controls.Add(this.scr_lb);
+            this.screenPN.Location = new System.Drawing.Point(12, 12);
+            this.screenPN.Name = "screenPN";
+            this.screenPN.Size = new System.Drawing.Size(190, 47);
+            this.screenPN.TabIndex = 154;
+            this.screenPN.TabStop = true;
+            this.screenPN.BackColorChanged += new System.EventHandler(this.screenPN_BackColorChanged);
+            this.screenPN.SizeChanged += new System.EventHandler(this.screenPN_SizeChanged);
+            this.screenPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // expressionTB
+            // 
+            this.expressionTB.AllowTextChanged = true;
+            this.expressionTB.BackColor = System.Drawing.Color.Transparent;
+            this.expressionTB.ContextMenu = this.mainContextMenu;
+            this.expressionTB.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.expressionTB.Location = new System.Drawing.Point(13, 0);
+            this.expressionTB.Name = "expressionTB";
+            this.expressionTB.Size = new System.Drawing.Size(175, 13);
+            this.expressionTB.TabIndex = 251;
+            this.expressionTB.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.expressionTB.TextChanged += new System.EventHandler(this.expressionTB_TextChanged);
+            this.expressionTB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // mem_lb
+            // 
+            this.mem_lb.AutoSize = true;
+            this.mem_lb.BackColor = System.Drawing.Color.Transparent;
+            this.mem_lb.Location = new System.Drawing.Point(1, 26);
+            this.mem_lb.Name = "mem_lb";
+            this.mem_lb.Size = new System.Drawing.Size(15, 13);
+            this.mem_lb.TabIndex = 21;
+            this.mem_lb.Text = "M";
+            this.mem_lb.Visible = false;
+            this.mem_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.mem_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // scr_lb
+            // 
+            this.scr_lb.BackColor = System.Drawing.Color.Transparent;
+            this.scr_lb.Font = new System.Drawing.Font("Consolas", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.scr_lb.Location = new System.Drawing.Point(13, 0);
+            this.scr_lb.Name = "scr_lb";
+            this.scr_lb.Size = new System.Drawing.Size(175, 45);
+            this.scr_lb.TabIndex = 22;
+            this.scr_lb.Text = "0";
+            this.scr_lb.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            this.scr_lb.TextChanged += new System.EventHandler(this.scr_lb_TextChanged);
+            this.scr_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.scr_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // unitconvGB
+            // 
+            this.unitconvGB.BackColor = System.Drawing.Color.White;
+            this.unitconvGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.unitconvGB.Controls.Add(this.toCombobox);
+            this.unitconvGB.Controls.Add(this.typeUnitLB);
+            this.unitconvGB.Controls.Add(this.fromCB);
+            this.unitconvGB.Controls.Add(this.typeUnitCB);
+            this.unitconvGB.Controls.Add(this.invert_unit);
+            this.unitconvGB.Controls.Add(this.toLB);
+            this.unitconvGB.Controls.Add(this.toTB);
+            this.unitconvGB.Controls.Add(this.fromLB);
+            this.unitconvGB.Controls.Add(this.fromTB);
+            this.unitconvGB.Location = new System.Drawing.Point(236, 12);
+            this.unitconvGB.Name = "unitconvGB";
+            this.unitconvGB.Size = new System.Drawing.Size(356, 241);
+            this.unitconvGB.TabIndex = 31;
+            this.unitconvGB.Visible = false;
+            this.unitconvGB.LocationChanged += new System.EventHandler(this.unitconvGB_LocationChanged);
+            this.unitconvGB.SizeChanged += new System.EventHandler(this.unitconvGB_SizeChanged);
+            this.unitconvGB.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.unitconvGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // toCombobox
+            // 
+            this.toCombobox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toCombobox.FormattingEnabled = true;
+            this.toCombobox.Location = new System.Drawing.Point(12, 181);
+            this.toCombobox.Name = "toCombobox";
+            this.toCombobox.Size = new System.Drawing.Size(330, 21);
+            this.toCombobox.TabIndex = 14;
+            this.toCombobox.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
+            this.toCombobox.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // typeUnitLB
+            // 
+            this.typeUnitLB.AutoSize = true;
+            this.typeUnitLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeUnitLB.Location = new System.Drawing.Point(12, 8);
+            this.typeUnitLB.Name = "typeUnitLB";
+            this.typeUnitLB.Size = new System.Drawing.Size(215, 13);
+            this.typeUnitLB.TabIndex = 8;
+            this.typeUnitLB.Text = "Select the type of unit you want to convert";
+            this.typeUnitLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // fromCB
+            // 
+            this.fromCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.fromCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fromCB.FormattingEnabled = true;
+            this.fromCB.Location = new System.Drawing.Point(12, 104);
+            this.fromCB.MaxDropDownItems = 14;
+            this.fromCB.Name = "fromCB";
+            this.fromCB.Size = new System.Drawing.Size(330, 21);
+            this.fromCB.TabIndex = 11;
+            this.fromCB.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
+            this.fromCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // typeUnitCB
+            // 
+            this.typeUnitCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.typeUnitCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.typeUnitCB.FormattingEnabled = true;
+            this.typeUnitCB.Items.AddRange(new object[] {
+            "Angle",
+            "Area",
+            "Energy",
+            "Length",
+            "Power",
+            "Pressure",
+            "Temperature",
+            "Time",
+            "Velocity",
+            "Volume",
+            "Weight / Mass"});
+            this.typeUnitCB.Location = new System.Drawing.Point(12, 31);
+            this.typeUnitCB.MaxDropDownItems = 11;
+            this.typeUnitCB.Name = "typeUnitCB";
+            this.typeUnitCB.Size = new System.Drawing.Size(330, 21);
+            this.typeUnitCB.TabIndex = 9;
+            this.typeUnitCB.SelectedIndexChanged += new System.EventHandler(this.typeUnitCB_SelectedIndexChanged);
+            this.typeUnitCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.typeUnitCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
+            // 
+            // invert_unit
+            // 
+            this.invert_unit.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.invert_unit.Location = new System.Drawing.Point(11, 208);
+            this.invert_unit.Name = "invert_unit";
+            this.invert_unit.Size = new System.Drawing.Size(61, 27);
+            this.invert_unit.TabIndex = 15;
+            this.invert_unit.Text = "&Invert";
+            this.invert_unit.UseVisualStyleBackColor = true;
+            this.invert_unit.Click += new System.EventHandler(this.invert_unit_Click);
+            this.invert_unit.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // toLB
+            // 
+            this.toLB.AutoSize = true;
+            this.toLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.toLB.Location = new System.Drawing.Point(12, 138);
+            this.toLB.Name = "toLB";
+            this.toLB.Size = new System.Drawing.Size(19, 13);
+            this.toLB.TabIndex = 7;
+            this.toLB.Text = "To";
+            this.toLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // toTB
+            // 
+            this.toTB.BackColor = System.Drawing.SystemColors.Control;
+            this.toTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.toTB.Location = new System.Drawing.Point(12, 154);
+            this.toTB.Name = "toTB";
+            this.toTB.ReadOnly = true;
+            this.toTB.Size = new System.Drawing.Size(330, 21);
+            this.toTB.TabIndex = 12;
+            this.toTB.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // fromLB
+            // 
+            this.fromLB.AutoSize = true;
+            this.fromLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fromLB.Location = new System.Drawing.Point(12, 61);
+            this.fromLB.Name = "fromLB";
+            this.fromLB.Size = new System.Drawing.Size(31, 13);
+            this.fromLB.TabIndex = 6;
+            this.fromLB.Text = "From";
+            this.fromLB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.fromLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // fromTB
+            // 
+            this.fromTB.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fromTB.ForeColor = System.Drawing.SystemColors.GrayText;
+            this.fromTB.Location = new System.Drawing.Point(12, 77);
+            this.fromTB.MaxLength = 20;
+            this.fromTB.Name = "fromTB";
+            this.fromTB.Size = new System.Drawing.Size(330, 23);
+            this.fromTB.TabIndex = 10;
+            this.fromTB.Text = "Enter value";
+            this.fromTB.TextChanged += new System.EventHandler(this.fromTB_TextChanged);
+            this.fromTB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.fromTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
+            this.fromTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
+            // 
+            // datecalcGB
+            // 
+            this.datecalcGB.BackColor = System.Drawing.Color.White;
+            this.datecalcGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.datecalcGB.Controls.Add(this.result1);
+            this.datecalcGB.Controls.Add(this.result2);
+            this.datecalcGB.Controls.Add(this.calmethodLB);
+            this.datecalcGB.Controls.Add(this.secondDate);
+            this.datecalcGB.Controls.Add(this.dtP2);
+            this.datecalcGB.Controls.Add(this.subrb);
+            this.datecalcGB.Controls.Add(this.dtP1);
+            this.datecalcGB.Controls.Add(this.addrb);
+            this.datecalcGB.Controls.Add(this.addSubResultLB);
+            this.datecalcGB.Controls.Add(this.firstDate);
+            this.datecalcGB.Controls.Add(this.autocal_date);
+            this.datecalcGB.Controls.Add(this.dateDifferenceLB);
+            this.datecalcGB.Controls.Add(this.calculate_date);
+            this.datecalcGB.Controls.Add(this.yearAddSubLB);
+            this.datecalcGB.Controls.Add(this.datemethodCB);
+            this.datecalcGB.Controls.Add(this.monthAddSubLB);
+            this.datecalcGB.Controls.Add(this.dayAddSubLB);
+            this.datecalcGB.Controls.Add(this.periodsDateUD);
+            this.datecalcGB.Controls.Add(this.periodsMonthUD);
+            this.datecalcGB.Controls.Add(this.periodsYearUD);
+            this.datecalcGB.Location = new System.Drawing.Point(236, 12);
+            this.datecalcGB.Name = "datecalcGB";
+            this.datecalcGB.Size = new System.Drawing.Size(356, 241);
+            this.datecalcGB.TabIndex = 32;
+            this.datecalcGB.Visible = false;
+            this.datecalcGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // result1
+            // 
+            this.result1.Location = new System.Drawing.Point(12, 108);
+            this.result1.Name = "result1";
+            this.result1.ReadOnly = true;
+            this.result1.Size = new System.Drawing.Size(330, 21);
+            this.result1.TabIndex = 208;
+            this.result1.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // result2
+            // 
+            this.result2.Location = new System.Drawing.Point(12, 159);
+            this.result2.Name = "result2";
+            this.result2.ReadOnly = true;
+            this.result2.Size = new System.Drawing.Size(330, 21);
+            this.result2.TabIndex = 209;
+            this.result2.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // calmethodLB
+            // 
+            this.calmethodLB.AutoSize = true;
+            this.calmethodLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.calmethodLB.Location = new System.Drawing.Point(12, 8);
+            this.calmethodLB.Name = "calmethodLB";
+            this.calmethodLB.Size = new System.Drawing.Size(155, 13);
+            this.calmethodLB.TabIndex = 74;
+            this.calmethodLB.Text = "Select the date input you want";
+            this.calmethodLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // secondDate
+            // 
+            this.secondDate.AutoSize = true;
+            this.secondDate.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.secondDate.Location = new System.Drawing.Point(214, 67);
+            this.secondDate.Name = "secondDate";
+            this.secondDate.Size = new System.Drawing.Size(23, 13);
+            this.secondDate.TabIndex = 60;
+            this.secondDate.Text = "To:";
+            this.secondDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // dtP2
+            // 
+            this.dtP2.Checked = false;
+            this.dtP2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.dtP2.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtP2.Location = new System.Drawing.Point(243, 63);
+            this.dtP2.Name = "dtP2";
+            this.dtP2.Size = new System.Drawing.Size(99, 21);
+            this.dtP2.TabIndex = 202;
+            this.dtP2.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
+            this.dtP2.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // subrb
+            // 
+            this.subrb.AutoSize = true;
+            this.subrb.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.subrb.Location = new System.Drawing.Point(254, 64);
+            this.subrb.Name = "subrb";
+            this.subrb.Size = new System.Drawing.Size(66, 17);
+            this.subrb.TabIndex = 202;
+            this.subrb.Text = "Subtract";
+            this.subrb.UseVisualStyleBackColor = true;
+            this.subrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
+            // 
+            // dtP1
+            // 
+            this.dtP1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.dtP1.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtP1.Location = new System.Drawing.Point(60, 63);
+            this.dtP1.Name = "dtP1";
+            this.dtP1.Size = new System.Drawing.Size(99, 21);
+            this.dtP1.TabIndex = 201;
+            this.dtP1.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
+            this.dtP1.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // addrb
+            // 
+            this.addrb.AutoSize = true;
+            this.addrb.Checked = true;
+            this.addrb.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.addrb.Location = new System.Drawing.Point(176, 64);
+            this.addrb.Name = "addrb";
+            this.addrb.Size = new System.Drawing.Size(44, 17);
+            this.addrb.TabIndex = 202;
+            this.addrb.TabStop = true;
+            this.addrb.Text = "Add";
+            this.addrb.UseVisualStyleBackColor = true;
+            this.addrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
+            // 
+            // addSubResultLB
+            // 
+            this.addSubResultLB.AutoSize = true;
+            this.addSubResultLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.addSubResultLB.Location = new System.Drawing.Point(12, 140);
+            this.addSubResultLB.Name = "addSubResultLB";
+            this.addSubResultLB.Size = new System.Drawing.Size(91, 13);
+            this.addSubResultLB.TabIndex = 67;
+            this.addSubResultLB.Text = "Difference (days)";
+            this.addSubResultLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // firstDate
+            // 
+            this.firstDate.AutoSize = true;
+            this.firstDate.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.firstDate.Location = new System.Drawing.Point(12, 67);
+            this.firstDate.Name = "firstDate";
+            this.firstDate.Size = new System.Drawing.Size(35, 13);
+            this.firstDate.TabIndex = 59;
+            this.firstDate.Text = "From:";
+            this.firstDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // autocal_date
+            // 
+            this.autocal_date.AutoSize = true;
+            this.autocal_date.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.autocal_date.Location = new System.Drawing.Point(12, 205);
+            this.autocal_date.Name = "autocal_date";
+            this.autocal_date.Size = new System.Drawing.Size(96, 17);
+            this.autocal_date.TabIndex = 210;
+            this.autocal_date.Text = "A&uto Calculate";
+            this.autocal_date.UseVisualStyleBackColor = true;
+            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_cb_CheckedChanged);
+            this.autocal_date.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // dateDifferenceLB
+            // 
+            this.dateDifferenceLB.AutoSize = true;
+            this.dateDifferenceLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.dateDifferenceLB.Location = new System.Drawing.Point(12, 90);
+            this.dateDifferenceLB.Name = "dateDifferenceLB";
+            this.dateDifferenceLB.Size = new System.Drawing.Size(204, 13);
+            this.dateDifferenceLB.TabIndex = 64;
+            this.dateDifferenceLB.Text = "Difference (years, months, weeks, days)";
+            this.dateDifferenceLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // calculate_date
+            // 
+            this.calculate_date.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.calculate_date.Location = new System.Drawing.Point(253, 199);
+            this.calculate_date.Name = "calculate_date";
+            this.calculate_date.Size = new System.Drawing.Size(75, 27);
+            this.calculate_date.TabIndex = 211;
+            this.calculate_date.TabStop = false;
+            this.calculate_date.Text = "&Calculate";
+            this.calculate_date.UseVisualStyleBackColor = true;
+            this.calculate_date.Click += new System.EventHandler(this.calculate_bt_Click);
+            this.calculate_date.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // yearAddSubLB
+            // 
+            this.yearAddSubLB.AutoSize = true;
+            this.yearAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.yearAddSubLB.Location = new System.Drawing.Point(12, 102);
+            this.yearAddSubLB.Name = "yearAddSubLB";
+            this.yearAddSubLB.Size = new System.Drawing.Size(33, 13);
+            this.yearAddSubLB.TabIndex = 64;
+            this.yearAddSubLB.Text = "Year:";
+            // 
+            // datemethodCB
+            // 
+            this.datemethodCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.datemethodCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.datemethodCB.FormattingEnabled = true;
+            this.datemethodCB.Items.AddRange(new object[] {
+            "Calculate the difference between two dates",
+            "Add or subtract days to a specified date"});
+            this.datemethodCB.Location = new System.Drawing.Point(12, 31);
+            this.datemethodCB.Name = "datemethodCB";
+            this.datemethodCB.Size = new System.Drawing.Size(330, 21);
+            this.datemethodCB.TabIndex = 200;
+            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.cal_method_SelectedIndexChanged);
+            this.datemethodCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.datemethodCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
+            // 
+            // monthAddSubLB
+            // 
+            this.monthAddSubLB.AutoSize = true;
+            this.monthAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.monthAddSubLB.Location = new System.Drawing.Point(118, 102);
+            this.monthAddSubLB.Name = "monthAddSubLB";
+            this.monthAddSubLB.Size = new System.Drawing.Size(41, 13);
+            this.monthAddSubLB.TabIndex = 64;
+            this.monthAddSubLB.Text = "Month:";
+            // 
+            // dayAddSubLB
+            // 
+            this.dayAddSubLB.AutoSize = true;
+            this.dayAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.dayAddSubLB.Location = new System.Drawing.Point(240, 102);
+            this.dayAddSubLB.Name = "dayAddSubLB";
+            this.dayAddSubLB.Size = new System.Drawing.Size(30, 13);
+            this.dayAddSubLB.TabIndex = 64;
+            this.dayAddSubLB.Text = "Day:";
+            // 
+            // periodsDateUD
+            // 
+            this.periodsDateUD.Location = new System.Drawing.Point(282, 100);
+            this.periodsDateUD.Maximum = new decimal(new int[] {
+            730000,
+            0,
+            0,
+            0});
+            this.periodsDateUD.Name = "periodsDateUD";
+            this.periodsDateUD.Size = new System.Drawing.Size(60, 21);
+            this.periodsDateUD.TabIndex = 205;
+            this.periodsDateUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // periodsMonthUD
+            // 
+            this.periodsMonthUD.Location = new System.Drawing.Point(169, 100);
+            this.periodsMonthUD.Maximum = new decimal(new int[] {
+            24000,
+            0,
+            0,
+            0});
+            this.periodsMonthUD.Name = "periodsMonthUD";
+            this.periodsMonthUD.Size = new System.Drawing.Size(44, 21);
+            this.periodsMonthUD.TabIndex = 204;
+            this.periodsMonthUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
+            // 
+            // periodsYearUD
+            // 
+            this.periodsYearUD.Location = new System.Drawing.Point(60, 100);
+            this.periodsYearUD.Maximum = new decimal(new int[] {
+            2000,
+            0,
+            0,
+            0});
+            this.periodsYearUD.Name = "periodsYearUD";
+            this.periodsYearUD.Size = new System.Drawing.Size(44, 21);
+            this.periodsYearUD.TabIndex = 203;
+            this.periodsYearUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+            this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // unknownPN
             // 
@@ -4216,989 +5289,16 @@ Method={7};
             this._wordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._wordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             // 
-            // basePN
-            // 
-            this.basePN.Controls.Add(this.binRB);
-            this.basePN.Controls.Add(this.hexRB);
-            this.basePN.Controls.Add(this.octRB);
-            this.basePN.Controls.Add(this.decRB);
-            this.basePN.Location = new System.Drawing.Point(12, 366);
-            this.basePN.Name = "basePN";
-            this.basePN.Size = new System.Drawing.Size(73, 91);
-            this.basePN.TabIndex = 212;
-            this.basePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // binRB
-            // 
-            this.binRB.AutoSize = true;
-            this.binRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.binRB.Location = new System.Drawing.Point(7, 67);
-            this.binRB.Name = "binRB";
-            this.binRB.Size = new System.Drawing.Size(39, 17);
-            this.binRB.TabIndex = 119;
-            this.binRB.Text = "Bin";
-            this.binRB.UseVisualStyleBackColor = true;
-            this.binRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
-            this.binRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.binRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // hexRB
-            // 
-            this.hexRB.AutoSize = true;
-            this.hexRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.hexRB.Location = new System.Drawing.Point(7, 4);
-            this.hexRB.Name = "hexRB";
-            this.hexRB.Size = new System.Drawing.Size(44, 17);
-            this.hexRB.TabIndex = 116;
-            this.hexRB.Text = "Hex";
-            this.hexRB.UseVisualStyleBackColor = true;
-            this.hexRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
-            this.hexRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.hexRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // octRB
-            // 
-            this.octRB.AutoSize = true;
-            this.octRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.octRB.Location = new System.Drawing.Point(7, 46);
-            this.octRB.Name = "octRB";
-            this.octRB.Size = new System.Drawing.Size(42, 17);
-            this.octRB.TabIndex = 118;
-            this.octRB.Text = "Oct";
-            this.octRB.UseVisualStyleBackColor = true;
-            this.octRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
-            this.octRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.octRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // decRB
-            // 
-            this.decRB.AutoSize = true;
-            this.decRB.Checked = true;
-            this.decRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.decRB.Location = new System.Drawing.Point(7, 25);
-            this.decRB.Name = "decRB";
-            this.decRB.Size = new System.Drawing.Size(43, 17);
-            this.decRB.TabIndex = 117;
-            this.decRB.TabStop = true;
-            this.decRB.Text = "Dec";
-            this.decRB.UseVisualStyleBackColor = true;
-            this.decRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
-            this.decRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.decRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // angleGB
-            // 
-            this.angleGB.Controls.Add(this.graRB);
-            this.angleGB.Controls.Add(this.degRB);
-            this.angleGB.Controls.Add(this.radRB);
-            this.angleGB.Location = new System.Drawing.Point(12, 279);
-            this.angleGB.Name = "angleGB";
-            this.angleGB.Size = new System.Drawing.Size(190, 28);
-            this.angleGB.TabIndex = 128;
-            this.angleGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // graRB
-            // 
-            this.graRB.AutoSize = true;
-            this.graRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.graRB.Location = new System.Drawing.Point(134, 6);
-            this.graRB.Name = "graRB";
-            this.graRB.Size = new System.Drawing.Size(53, 17);
-            this.graRB.TabIndex = 116;
-            this.graRB.Text = "Grads";
-            this.graRB.UseVisualStyleBackColor = true;
-            this.graRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
-            this.graRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.graRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // degRB
-            // 
-            this.degRB.AutoSize = true;
-            this.degRB.Checked = true;
-            this.degRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.degRB.Location = new System.Drawing.Point(7, 6);
-            this.degRB.Name = "degRB";
-            this.degRB.Size = new System.Drawing.Size(65, 17);
-            this.degRB.TabIndex = 114;
-            this.degRB.TabStop = true;
-            this.degRB.Text = "Degrees";
-            this.degRB.UseVisualStyleBackColor = true;
-            this.degRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
-            this.degRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.degRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // radRB
-            // 
-            this.radRB.AutoSize = true;
-            this.radRB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.radRB.Location = new System.Drawing.Point(72, 6);
-            this.radRB.Name = "radRB";
-            this.radRB.Size = new System.Drawing.Size(63, 17);
-            this.radRB.TabIndex = 115;
-            this.radRB.Text = "Radians";
-            this.radRB.UseVisualStyleBackColor = true;
-            this.radRB.CheckedChanged += new System.EventHandler(this.angelRB_CheckedChanged);
-            this.radRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            this.radRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
-            // gridPanel
-            // 
-            this.gridPanel.BackColor = System.Drawing.Color.White;
-            this.gridPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.gridPanel.Controls.Add(this.dnBT);
-            this.gridPanel.Controls.Add(this.upBT);
-            this.gridPanel.Controls.Add(this.countLB);
-            this.gridPanel.Controls.Add(this.staDGV);
-            this.gridPanel.Controls.Add(this.hisDGV);
-            this.gridPanel.Location = new System.Drawing.Point(236, 291);
-            this.gridPanel.Name = "gridPanel";
-            this.gridPanel.Size = new System.Drawing.Size(190, 105);
-            this.gridPanel.TabIndex = 186;
-            this.gridPanel.TabStop = true;
-            this.gridPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // countLB
-            // 
-            this.countLB.AutoSize = true;
-            this.countLB.Font = new System.Drawing.Font("Tahoma", 8.25F);
-            this.countLB.Location = new System.Drawing.Point(4, 4);
-            this.countLB.Name = "countLB";
-            this.countLB.Size = new System.Drawing.Size(56, 13);
-            this.countLB.TabIndex = 2;
-            this.countLB.Text = "Count = 0";
-            this.countLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // staDGV
-            // 
-            this.staDGV.AllowCellClick = false;
-            this.staDGV.AllowCellDoubleClick = false;
-            this.staDGV.AllowCellStateChanged = false;
-            this.staDGV.AllowUserToAddRows = false;
-            this.staDGV.AllowUserToDeleteRows = false;
-            this.staDGV.AllowUserToResizeColumns = false;
-            this.staDGV.AllowUserToResizeRows = false;
-            this.staDGV.BackgroundColor = System.Drawing.Color.White;
-            this.staDGV.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.staDGV.ColumnHeadersVisible = false;
-            this.staDGV.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Column2});
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.staDGV.DefaultCellStyle = dataGridViewCellStyle1;
-            this.staDGV.Location = new System.Drawing.Point(-1, 21);
-            this.staDGV.MultiSelect = false;
-            this.staDGV.Name = "staDGV";
-            this.staDGV.ReadOnly = true;
-            this.staDGV.RowHeadersVisible = false;
-            this.staDGV.RowHeadersWidth = 20;
-            this.staDGV.RowTemplate.Height = 20;
-            this.staDGV.ScrollBars = System.Windows.Forms.ScrollBars.None;
-            this.staDGV.Size = new System.Drawing.Size(190, 85);
-            this.staDGV.TabIndex = 0;
-            this.staDGV.TabStop = false;
-            this.staDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.staDGV_CellBeginEdit);
-            this.staDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.statisticsDGV_CellEndEdit);
-            this.staDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.staDGV_CellStateChanged);
-            this.staDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // Column2
-            // 
-            this.Column2.HeaderText = "Column2";
-            this.Column2.Name = "Column2";
-            this.Column2.ReadOnly = true;
-            this.Column2.Width = 190;
-            // 
-            // hisDGV
-            // 
-            this.hisDGV.AllowCellClick = true;
-            this.hisDGV.AllowCellDoubleClick = true;
-            this.hisDGV.AllowCellStateChanged = true;
-            this.hisDGV.AllowUserToAddRows = false;
-            this.hisDGV.AllowUserToDeleteRows = false;
-            this.hisDGV.AllowUserToResizeColumns = false;
-            this.hisDGV.AllowUserToResizeRows = false;
-            this.hisDGV.BackgroundColor = System.Drawing.Color.White;
-            this.hisDGV.ColumnHeadersVisible = false;
-            this.hisDGV.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.Column1});
-            this.hisDGV.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
-            this.hisDGV.Location = new System.Drawing.Point(-1, 21);
-            this.hisDGV.MultiSelect = false;
-            this.hisDGV.Name = "hisDGV";
-            this.hisDGV.ReadOnly = true;
-            this.hisDGV.RowHeadersVisible = false;
-            this.hisDGV.RowHeadersWidth = 35;
-            this.hisDGV.RowTemplate.DefaultCellStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
-            this.hisDGV.RowTemplate.DefaultCellStyle.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.hisDGV.RowTemplate.DefaultCellStyle.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.hisDGV.RowTemplate.Height = 20;
-            this.hisDGV.RowTemplate.Resizable = System.Windows.Forms.DataGridViewTriState.False;
-            this.hisDGV.ScrollBars = System.Windows.Forms.ScrollBars.None;
-            this.hisDGV.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.hisDGV.Size = new System.Drawing.Size(190, 85);
-            this.hisDGV.TabIndex = 0;
-            this.hisDGV.TabStop = false;
-            this.hisDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
-            this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
-            this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
-            this.hisDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.historyDGV_CellStateChanged);
-            this.hisDGV.DoubleClick += new System.EventHandler(this.hisDGV_DoubleClick);
-            this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // Column1
-            // 
-            this.Column1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-            this.Column1.DefaultCellStyle = dataGridViewCellStyle2;
-            this.Column1.HeaderText = "Column1";
-            this.Column1.Name = "Column1";
-            this.Column1.ReadOnly = true;
-            // 
-            // screenPN
-            // 
-            this.screenPN.BackColor = System.Drawing.Color.White;
-            this.screenPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.screenPN.ContextMenu = this.mainContextMenu;
-            this.screenPN.Controls.Add(this.expressionTB);
-            this.screenPN.Controls.Add(this.mem_lb);
-            this.screenPN.Controls.Add(this.scr_lb);
-            this.screenPN.Location = new System.Drawing.Point(12, 12);
-            this.screenPN.Name = "screenPN";
-            this.screenPN.Size = new System.Drawing.Size(190, 47);
-            this.screenPN.TabIndex = 154;
-            this.screenPN.TabStop = true;
-            this.screenPN.BackColorChanged += new System.EventHandler(this.screenPN_BackColorChanged);
-            this.screenPN.SizeChanged += new System.EventHandler(this.screenPN_SizeChanged);
-            this.screenPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // expressionTB
-            // 
-            this.expressionTB.AllowTextChanged = true;
-            this.expressionTB.BackColor = System.Drawing.Color.Transparent;
-            this.expressionTB.ContextMenu = this.mainContextMenu;
-            this.expressionTB.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.expressionTB.Location = new System.Drawing.Point(13, 0);
-            this.expressionTB.MouseButtonClicked = System.Windows.Forms.MouseButtons.None;
-            this.expressionTB.MouseX = 0;
-            this.expressionTB.Name = "expressionTB";
-            this.expressionTB.Size = new System.Drawing.Size(175, 13);
-            this.expressionTB.TabIndex = 251;
-            this.expressionTB.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.expressionTB.TextChanged += new System.EventHandler(this.expressionTB_TextChanged);
-            this.expressionTB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // mem_lb
-            // 
-            this.mem_lb.AutoSize = true;
-            this.mem_lb.BackColor = System.Drawing.Color.Transparent;
-            this.mem_lb.Location = new System.Drawing.Point(1, 26);
-            this.mem_lb.Name = "mem_lb";
-            this.mem_lb.Size = new System.Drawing.Size(15, 13);
-            this.mem_lb.TabIndex = 21;
-            this.mem_lb.Text = "M";
-            this.mem_lb.Visible = false;
-            this.mem_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.mem_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // scr_lb
-            // 
-            this.scr_lb.BackColor = System.Drawing.Color.Transparent;
-            this.scr_lb.Font = new System.Drawing.Font("Consolas", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.scr_lb.Location = new System.Drawing.Point(13, 0);
-            this.scr_lb.Name = "scr_lb";
-            this.scr_lb.Size = new System.Drawing.Size(175, 45);
-            this.scr_lb.TabIndex = 22;
-            this.scr_lb.Text = "0";
-            this.scr_lb.TextAlign = System.Drawing.ContentAlignment.BottomRight;
-            this.scr_lb.TextChanged += new System.EventHandler(this.scr_lb_TextChanged);
-            this.scr_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.scr_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // feMPG_PN
-            // 
-            this.feMPG_PN.BackColor = System.Drawing.Color.White;
-            this.feMPG_PN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.feMPG_PN.Controls.Add(this.typeFEmpgLB);
-            this.feMPG_PN.Controls.Add(this.typeFECB2);
-            this.feMPG_PN.Controls.Add(this.typeFECB1);
-            this.feMPG_PN.Controls.Add(this.fempgLB2);
-            this.feMPG_PN.Controls.Add(this.fempgLB1);
-            this.feMPG_PN.Controls.Add(this.fuelEconomyBT);
-            this.feMPG_PN.Controls.Add(this.fempgResultTB);
-            this.feMPG_PN.Location = new System.Drawing.Point(236, 12);
-            this.feMPG_PN.Name = "feMPG_PN";
-            this.feMPG_PN.Size = new System.Drawing.Size(356, 241);
-            this.feMPG_PN.TabIndex = 33;
-            this.feMPG_PN.Visible = false;
-            this.feMPG_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // typeFEmpgLB
-            // 
-            this.typeFEmpgLB.AutoSize = true;
-            this.typeFEmpgLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFEmpgLB.Location = new System.Drawing.Point(12, 9);
-            this.typeFEmpgLB.Name = "typeFEmpgLB";
-            this.typeFEmpgLB.Size = new System.Drawing.Size(190, 13);
-            this.typeFEmpgLB.TabIndex = 8;
-            this.typeFEmpgLB.Text = "Select the value you want to calculate";
-            this.typeFEmpgLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // typeFECB2
-            // 
-            this.typeFECB2.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFECB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFECB2.FormattingEnabled = true;
-            this.typeFECB2.Items.AddRange(new object[] {
-            "Distance (kilometers)",
-            "Fuel economy (L/100 km)",
-            "Fuel used (liters)"});
-            this.typeFECB2.Location = new System.Drawing.Point(12, 32);
-            this.typeFECB2.MaxDropDownItems = 11;
-            this.typeFECB2.Name = "typeFECB2";
-            this.typeFECB2.Size = new System.Drawing.Size(330, 21);
-            this.typeFECB2.TabIndex = 9;
-            this.typeFECB2.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFECB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // typeFECB1
-            // 
-            this.typeFECB1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeFECB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeFECB1.FormattingEnabled = true;
-            this.typeFECB1.Items.AddRange(new object[] {
-            "Distance (miles)",
-            "Fuel economy (mpg)",
-            "Fuel used (gallons)"});
-            this.typeFECB1.Location = new System.Drawing.Point(12, 32);
-            this.typeFECB1.MaxDropDownItems = 11;
-            this.typeFECB1.Name = "typeFECB1";
-            this.typeFECB1.Size = new System.Drawing.Size(330, 21);
-            this.typeFECB1.TabIndex = 9;
-            this.typeFECB1.SelectedIndexChanged += new System.EventHandler(this.typeFECB_SelectedIndexChanged);
-            this.typeFECB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // fempgLB2
-            // 
-            this.fempgLB2.AutoSize = true;
-            this.fempgLB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgLB2.Location = new System.Drawing.Point(12, 86);
-            this.fempgLB2.Name = "fempgLB2";
-            this.fempgLB2.Size = new System.Drawing.Size(92, 13);
-            this.fempgLB2.TabIndex = 7;
-            this.fempgLB2.Text = "Fuel used (gallon)";
-            this.fempgLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // fempgLB1
-            // 
-            this.fempgLB1.AutoSize = true;
-            this.fempgLB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgLB1.Location = new System.Drawing.Point(12, 62);
-            this.fempgLB1.Name = "fempgLB1";
-            this.fempgLB1.Size = new System.Drawing.Size(82, 13);
-            this.fempgLB1.TabIndex = 6;
-            this.fempgLB1.Text = "Distance (miles)";
-            this.fempgLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // fuelEconomyBT
-            // 
-            this.fuelEconomyBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fuelEconomyBT.Location = new System.Drawing.Point(12, 210);
-            this.fuelEconomyBT.Name = "fuelEconomyBT";
-            this.fuelEconomyBT.Size = new System.Drawing.Size(82, 22);
-            this.fuelEconomyBT.TabIndex = 12;
-            this.fuelEconomyBT.Text = "Calculate";
-            this.fuelEconomyBT.UseVisualStyleBackColor = true;
-            this.fuelEconomyBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
-            this.fuelEconomyBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // fempgResultTB
-            // 
-            this.fempgResultTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fempgResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.fempgResultTB.Location = new System.Drawing.Point(177, 212);
-            this.fempgResultTB.MaxLength = 20;
-            this.fempgResultTB.Name = "fempgResultTB";
-            this.fempgResultTB.ReadOnly = true;
-            this.fempgResultTB.Size = new System.Drawing.Size(165, 21);
-            this.fempgResultTB.TabIndex = 13;
-            this.fempgResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fempgResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.fempgResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
-            // unitconvGB
-            // 
-            this.unitconvGB.BackColor = System.Drawing.Color.White;
-            this.unitconvGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.unitconvGB.Controls.Add(this.toCombobox);
-            this.unitconvGB.Controls.Add(this.typeUnitLB);
-            this.unitconvGB.Controls.Add(this.fromCB);
-            this.unitconvGB.Controls.Add(this.typeUnitCB);
-            this.unitconvGB.Controls.Add(this.invert_unit);
-            this.unitconvGB.Controls.Add(this.toLB);
-            this.unitconvGB.Controls.Add(this.toTB);
-            this.unitconvGB.Controls.Add(this.fromLB);
-            this.unitconvGB.Controls.Add(this.fromTB);
-            this.unitconvGB.Location = new System.Drawing.Point(236, 12);
-            this.unitconvGB.Name = "unitconvGB";
-            this.unitconvGB.Size = new System.Drawing.Size(356, 241);
-            this.unitconvGB.TabIndex = 31;
-            this.unitconvGB.Visible = false;
-            this.unitconvGB.LocationChanged += new System.EventHandler(this.unitconvGB_LocationChanged);
-            this.unitconvGB.SizeChanged += new System.EventHandler(this.unitconvGB_SizeChanged);
-            this.unitconvGB.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.unitconvGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // toCombobox
-            // 
-            this.toCombobox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.toCombobox.FormattingEnabled = true;
-            this.toCombobox.Location = new System.Drawing.Point(12, 181);
-            this.toCombobox.Name = "toCombobox";
-            this.toCombobox.Size = new System.Drawing.Size(330, 21);
-            this.toCombobox.TabIndex = 14;
-            this.toCombobox.SelectedIndexChanged += new System.EventHandler(this.toCB_SelectedIndexChanged);
-            this.toCombobox.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // typeUnitLB
-            // 
-            this.typeUnitLB.AutoSize = true;
-            this.typeUnitLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeUnitLB.Location = new System.Drawing.Point(12, 8);
-            this.typeUnitLB.Name = "typeUnitLB";
-            this.typeUnitLB.Size = new System.Drawing.Size(215, 13);
-            this.typeUnitLB.TabIndex = 8;
-            this.typeUnitLB.Text = "Select the type of unit you want to convert";
-            this.typeUnitLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // fromCB
-            // 
-            this.fromCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.fromCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fromCB.FormattingEnabled = true;
-            this.fromCB.Location = new System.Drawing.Point(12, 104);
-            this.fromCB.MaxDropDownItems = 14;
-            this.fromCB.Name = "fromCB";
-            this.fromCB.Size = new System.Drawing.Size(330, 21);
-            this.fromCB.TabIndex = 11;
-            this.fromCB.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
-            this.fromCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // typeUnitCB
-            // 
-            this.typeUnitCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeUnitCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeUnitCB.FormattingEnabled = true;
-            this.typeUnitCB.Items.AddRange(new object[] {
-            "Angle",
-            "Area",
-            "Energy",
-            "Length",
-            "Power",
-            "Pressure",
-            "Temperature",
-            "Time",
-            "Velocity",
-            "Volume",
-            "Weight / Mass"});
-            this.typeUnitCB.Location = new System.Drawing.Point(12, 31);
-            this.typeUnitCB.MaxDropDownItems = 11;
-            this.typeUnitCB.Name = "typeUnitCB";
-            this.typeUnitCB.Size = new System.Drawing.Size(330, 21);
-            this.typeUnitCB.TabIndex = 9;
-            this.typeUnitCB.SelectedIndexChanged += new System.EventHandler(this.typeUnitCB_SelectedIndexChanged);
-            this.typeUnitCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.typeUnitCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
-            // 
-            // invert_unit
-            // 
-            this.invert_unit.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.invert_unit.Location = new System.Drawing.Point(11, 208);
-            this.invert_unit.Name = "invert_unit";
-            this.invert_unit.Size = new System.Drawing.Size(61, 27);
-            this.invert_unit.TabIndex = 15;
-            this.invert_unit.Text = "&Invert";
-            this.invert_unit.UseVisualStyleBackColor = true;
-            this.invert_unit.Click += new System.EventHandler(this.invert_unit_Click);
-            this.invert_unit.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // toLB
-            // 
-            this.toLB.AutoSize = true;
-            this.toLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.toLB.Location = new System.Drawing.Point(12, 138);
-            this.toLB.Name = "toLB";
-            this.toLB.Size = new System.Drawing.Size(19, 13);
-            this.toLB.TabIndex = 7;
-            this.toLB.Text = "To";
-            this.toLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // toTB
-            // 
-            this.toTB.BackColor = System.Drawing.SystemColors.Control;
-            this.toTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.toTB.Location = new System.Drawing.Point(12, 154);
-            this.toTB.Name = "toTB";
-            this.toTB.ReadOnly = true;
-            this.toTB.Size = new System.Drawing.Size(330, 21);
-            this.toTB.TabIndex = 12;
-            this.toTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // fromLB
-            // 
-            this.fromLB.AutoSize = true;
-            this.fromLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fromLB.Location = new System.Drawing.Point(12, 61);
-            this.fromLB.Name = "fromLB";
-            this.fromLB.Size = new System.Drawing.Size(31, 13);
-            this.fromLB.TabIndex = 6;
-            this.fromLB.Text = "From";
-            this.fromLB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fromLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // fromTB
-            // 
-            this.fromTB.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.fromTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.fromTB.Location = new System.Drawing.Point(12, 77);
-            this.fromTB.MaxLength = 20;
-            this.fromTB.Name = "fromTB";
-            this.fromTB.Size = new System.Drawing.Size(330, 23);
-            this.fromTB.TabIndex = 10;
-            this.fromTB.Text = "Enter value";
-            this.fromTB.TextChanged += new System.EventHandler(this.fromTB_TextChanged);
-            this.fromTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.fromTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.fromTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
-            // datecalcGB
-            // 
-            this.datecalcGB.BackColor = System.Drawing.Color.White;
-            this.datecalcGB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.datecalcGB.Controls.Add(this.result2);
-            this.datecalcGB.Controls.Add(this.calmethodLB);
-            this.datecalcGB.Controls.Add(this.result1);
-            this.datecalcGB.Controls.Add(this.periodsDateUD);
-            this.datecalcGB.Controls.Add(this.secondDate);
-            this.datecalcGB.Controls.Add(this.periodsMonthUD);
-            this.datecalcGB.Controls.Add(this.dtP2);
-            this.datecalcGB.Controls.Add(this.periodsYearUD);
-            this.datecalcGB.Controls.Add(this.subrb);
-            this.datecalcGB.Controls.Add(this.dtP1);
-            this.datecalcGB.Controls.Add(this.addrb);
-            this.datecalcGB.Controls.Add(this.addSubResultLB);
-            this.datecalcGB.Controls.Add(this.firstDate);
-            this.datecalcGB.Controls.Add(this.autocal_date);
-            this.datecalcGB.Controls.Add(this.dateDifferenceLB);
-            this.datecalcGB.Controls.Add(this.calculate_date);
-            this.datecalcGB.Controls.Add(this.yearAddSubLB);
-            this.datecalcGB.Controls.Add(this.datemethodCB);
-            this.datecalcGB.Controls.Add(this.monthAddSubLB);
-            this.datecalcGB.Controls.Add(this.dayAddSubLB);
-            this.datecalcGB.Location = new System.Drawing.Point(236, 12);
-            this.datecalcGB.Name = "datecalcGB";
-            this.datecalcGB.Size = new System.Drawing.Size(356, 241);
-            this.datecalcGB.TabIndex = 32;
-            this.datecalcGB.Visible = false;
-            this.datecalcGB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // result2
-            // 
-            this.result2.Location = new System.Drawing.Point(12, 159);
-            this.result2.Name = "result2";
-            this.result2.ReadOnly = true;
-            this.result2.Size = new System.Drawing.Size(330, 21);
-            this.result2.TabIndex = 209;
-            this.result2.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // calmethodLB
-            // 
-            this.calmethodLB.AutoSize = true;
-            this.calmethodLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.calmethodLB.Location = new System.Drawing.Point(12, 8);
-            this.calmethodLB.Name = "calmethodLB";
-            this.calmethodLB.Size = new System.Drawing.Size(155, 13);
-            this.calmethodLB.TabIndex = 74;
-            this.calmethodLB.Text = "Select the date input you want";
-            this.calmethodLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // result1
-            // 
-            this.result1.Location = new System.Drawing.Point(12, 108);
-            this.result1.Name = "result1";
-            this.result1.ReadOnly = true;
-            this.result1.Size = new System.Drawing.Size(330, 21);
-            this.result1.TabIndex = 208;
-            this.result1.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // periodsDateUD
-            // 
-            this.periodsDateUD.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.periodsDateUD.Location = new System.Drawing.Point(282, 100);
-            this.periodsDateUD.Maximum = new decimal(new int[] {
-            730000,
-            0,
-            0,
-            0});
-            this.periodsDateUD.Name = "periodsDateUD";
-            this.periodsDateUD.Size = new System.Drawing.Size(60, 21);
-            this.periodsDateUD.TabIndex = 205;
-            this.periodsDateUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.periodsDateUD.ThousandsSeparator = true;
-            this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // secondDate
-            // 
-            this.secondDate.AutoSize = true;
-            this.secondDate.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.secondDate.Location = new System.Drawing.Point(214, 67);
-            this.secondDate.Name = "secondDate";
-            this.secondDate.Size = new System.Drawing.Size(23, 13);
-            this.secondDate.TabIndex = 60;
-            this.secondDate.Text = "To:";
-            this.secondDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // periodsMonthUD
-            // 
-            this.periodsMonthUD.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.periodsMonthUD.Location = new System.Drawing.Point(169, 100);
-            this.periodsMonthUD.Maximum = new decimal(new int[] {
-            24000,
-            0,
-            0,
-            0});
-            this.periodsMonthUD.Name = "periodsMonthUD";
-            this.periodsMonthUD.Size = new System.Drawing.Size(44, 21);
-            this.periodsMonthUD.TabIndex = 204;
-            this.periodsMonthUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.periodsMonthUD.ThousandsSeparator = true;
-            this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // dtP2
-            // 
-            this.dtP2.Checked = false;
-            this.dtP2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.dtP2.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtP2.Location = new System.Drawing.Point(243, 63);
-            this.dtP2.Name = "dtP2";
-            this.dtP2.Size = new System.Drawing.Size(99, 21);
-            this.dtP2.TabIndex = 202;
-            this.dtP2.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
-            this.dtP2.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // periodsYearUD
-            // 
-            this.periodsYearUD.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.periodsYearUD.Location = new System.Drawing.Point(60, 100);
-            this.periodsYearUD.Maximum = new decimal(new int[] {
-            2000,
-            0,
-            0,
-            0});
-            this.periodsYearUD.Name = "periodsYearUD";
-            this.periodsYearUD.Size = new System.Drawing.Size(44, 21);
-            this.periodsYearUD.TabIndex = 203;
-            this.periodsYearUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            this.periodsYearUD.ThousandsSeparator = true;
-            this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // subrb
-            // 
-            this.subrb.AutoSize = true;
-            this.subrb.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.subrb.Location = new System.Drawing.Point(254, 64);
-            this.subrb.Name = "subrb";
-            this.subrb.Size = new System.Drawing.Size(66, 17);
-            this.subrb.TabIndex = 202;
-            this.subrb.Text = "Subtract";
-            this.subrb.UseVisualStyleBackColor = true;
-            this.subrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
-            // 
-            // dtP1
-            // 
-            this.dtP1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.dtP1.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.dtP1.Location = new System.Drawing.Point(60, 63);
-            this.dtP1.Name = "dtP1";
-            this.dtP1.Size = new System.Drawing.Size(99, 21);
-            this.dtP1.TabIndex = 201;
-            this.dtP1.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
-            this.dtP1.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // addrb
-            // 
-            this.addrb.AutoSize = true;
-            this.addrb.Checked = true;
-            this.addrb.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.addrb.Location = new System.Drawing.Point(176, 64);
-            this.addrb.Name = "addrb";
-            this.addrb.Size = new System.Drawing.Size(44, 17);
-            this.addrb.TabIndex = 202;
-            this.addrb.TabStop = true;
-            this.addrb.Text = "Add";
-            this.addrb.UseVisualStyleBackColor = true;
-            this.addrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
-            // 
-            // addSubResultLB
-            // 
-            this.addSubResultLB.AutoSize = true;
-            this.addSubResultLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.addSubResultLB.Location = new System.Drawing.Point(12, 140);
-            this.addSubResultLB.Name = "addSubResultLB";
-            this.addSubResultLB.Size = new System.Drawing.Size(91, 13);
-            this.addSubResultLB.TabIndex = 67;
-            this.addSubResultLB.Text = "Difference (days)";
-            this.addSubResultLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // firstDate
-            // 
-            this.firstDate.AutoSize = true;
-            this.firstDate.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.firstDate.Location = new System.Drawing.Point(12, 67);
-            this.firstDate.Name = "firstDate";
-            this.firstDate.Size = new System.Drawing.Size(35, 13);
-            this.firstDate.TabIndex = 59;
-            this.firstDate.Text = "From:";
-            this.firstDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // autocal_date
-            // 
-            this.autocal_date.AutoSize = true;
-            this.autocal_date.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.autocal_date.Location = new System.Drawing.Point(12, 205);
-            this.autocal_date.Name = "autocal_date";
-            this.autocal_date.Size = new System.Drawing.Size(96, 17);
-            this.autocal_date.TabIndex = 210;
-            this.autocal_date.Text = "A&uto Calculate";
-            this.autocal_date.UseVisualStyleBackColor = true;
-            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_cb_CheckedChanged);
-            this.autocal_date.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // dateDifferenceLB
-            // 
-            this.dateDifferenceLB.AutoSize = true;
-            this.dateDifferenceLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.dateDifferenceLB.Location = new System.Drawing.Point(12, 90);
-            this.dateDifferenceLB.Name = "dateDifferenceLB";
-            this.dateDifferenceLB.Size = new System.Drawing.Size(204, 13);
-            this.dateDifferenceLB.TabIndex = 64;
-            this.dateDifferenceLB.Text = "Difference (years, months, weeks, days)";
-            this.dateDifferenceLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // calculate_date
-            // 
-            this.calculate_date.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.calculate_date.Location = new System.Drawing.Point(253, 199);
-            this.calculate_date.Name = "calculate_date";
-            this.calculate_date.Size = new System.Drawing.Size(75, 27);
-            this.calculate_date.TabIndex = 211;
-            this.calculate_date.TabStop = false;
-            this.calculate_date.Text = "&Calculate";
-            this.calculate_date.UseVisualStyleBackColor = true;
-            this.calculate_date.Click += new System.EventHandler(this.calculate_bt_Click);
-            this.calculate_date.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // yearAddSubLB
-            // 
-            this.yearAddSubLB.AutoSize = true;
-            this.yearAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.yearAddSubLB.Location = new System.Drawing.Point(12, 102);
-            this.yearAddSubLB.Name = "yearAddSubLB";
-            this.yearAddSubLB.Size = new System.Drawing.Size(33, 13);
-            this.yearAddSubLB.TabIndex = 64;
-            this.yearAddSubLB.Text = "Year:";
-            // 
-            // datemethodCB
-            // 
-            this.datemethodCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.datemethodCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.datemethodCB.FormattingEnabled = true;
-            this.datemethodCB.Items.AddRange(new object[] {
-            "Calculate the difference between two dates",
-            "Add or subtract days to a specified date"});
-            this.datemethodCB.Location = new System.Drawing.Point(12, 31);
-            this.datemethodCB.Name = "datemethodCB";
-            this.datemethodCB.Size = new System.Drawing.Size(330, 21);
-            this.datemethodCB.TabIndex = 200;
-            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.cal_method_SelectedIndexChanged);
-            this.datemethodCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.datemethodCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
-            // 
-            // monthAddSubLB
-            // 
-            this.monthAddSubLB.AutoSize = true;
-            this.monthAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.monthAddSubLB.Location = new System.Drawing.Point(118, 102);
-            this.monthAddSubLB.Name = "monthAddSubLB";
-            this.monthAddSubLB.Size = new System.Drawing.Size(41, 13);
-            this.monthAddSubLB.TabIndex = 64;
-            this.monthAddSubLB.Text = "Month:";
-            // 
-            // dayAddSubLB
-            // 
-            this.dayAddSubLB.AutoSize = true;
-            this.dayAddSubLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.dayAddSubLB.Location = new System.Drawing.Point(240, 102);
-            this.dayAddSubLB.Name = "dayAddSubLB";
-            this.dayAddSubLB.Size = new System.Drawing.Size(30, 13);
-            this.dayAddSubLB.TabIndex = 64;
-            this.dayAddSubLB.Text = "Day:";
-            // 
-            // VhPN
-            // 
-            this.VhPN.BackColor = System.Drawing.Color.White;
-            this.VhPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.VhPN.Controls.Add(this.typeVhLB);
-            this.VhPN.Controls.Add(this.typeVhCB);
-            this.VhPN.Controls.Add(this.VhLB3);
-            this.VhPN.Controls.Add(this.VhLB1);
-            this.VhPN.Controls.Add(this.VhLB5);
-            this.VhPN.Controls.Add(this.VhLB4);
-            this.VhPN.Controls.Add(this.VhBT);
-            this.VhPN.Controls.Add(this.VhLB2);
-            this.VhPN.Controls.Add(this.VhResultTB);
-            this.VhPN.Location = new System.Drawing.Point(236, 12);
-            this.VhPN.Name = "VhPN";
-            this.VhPN.Size = new System.Drawing.Size(356, 241);
-            this.VhPN.TabIndex = 35;
-            this.VhPN.Visible = false;
-            this.VhPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // typeVhLB
-            // 
-            this.typeVhLB.AutoSize = true;
-            this.typeVhLB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeVhLB.Location = new System.Drawing.Point(12, 9);
-            this.typeVhLB.Name = "typeVhLB";
-            this.typeVhLB.Size = new System.Drawing.Size(190, 13);
-            this.typeVhLB.TabIndex = 8;
-            this.typeVhLB.Text = "Select the value you want to calculate";
-            this.typeVhLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // typeVhCB
-            // 
-            this.typeVhCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.typeVhCB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.typeVhCB.FormattingEnabled = true;
-            this.typeVhCB.Items.AddRange(new object[] {
-            "Lease period",
-            "Lease value",
-            "Periodic payment",
-            "Residual value"});
-            this.typeVhCB.Location = new System.Drawing.Point(12, 32);
-            this.typeVhCB.MaxDropDownItems = 11;
-            this.typeVhCB.Name = "typeVhCB";
-            this.typeVhCB.Size = new System.Drawing.Size(330, 21);
-            this.typeVhCB.TabIndex = 9;
-            this.typeVhCB.SelectedIndexChanged += new System.EventHandler(this.typeVhCB_SelectedIndexChanged);
-            this.typeVhCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // VhLB3
-            // 
-            this.VhLB3.AutoSize = true;
-            this.VhLB3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB3.Location = new System.Drawing.Point(12, 110);
-            this.VhLB3.Name = "VhLB3";
-            this.VhLB3.Size = new System.Drawing.Size(98, 13);
-            this.VhLB3.TabIndex = 6;
-            this.VhLB3.Text = "Payments per year";
-            this.VhLB3.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // VhLB1
-            // 
-            this.VhLB1.AutoSize = true;
-            this.VhLB1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB1.Location = new System.Drawing.Point(12, 62);
-            this.VhLB1.Name = "VhLB1";
-            this.VhLB1.Size = new System.Drawing.Size(64, 13);
-            this.VhLB1.TabIndex = 6;
-            this.VhLB1.Text = "Lease value";
-            this.VhLB1.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // VhLB5
-            // 
-            this.VhLB5.AutoSize = true;
-            this.VhLB5.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB5.Location = new System.Drawing.Point(12, 158);
-            this.VhLB5.Name = "VhLB5";
-            this.VhLB5.Size = new System.Drawing.Size(91, 13);
-            this.VhLB5.TabIndex = 8;
-            this.VhLB5.Text = "Interest rate (%)";
-            this.VhLB5.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB5.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // VhLB4
-            // 
-            this.VhLB4.AutoSize = true;
-            this.VhLB4.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB4.Location = new System.Drawing.Point(12, 134);
-            this.VhLB4.Name = "VhLB4";
-            this.VhLB4.Size = new System.Drawing.Size(76, 13);
-            this.VhLB4.TabIndex = 7;
-            this.VhLB4.Text = "Residual value";
-            this.VhLB4.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // VhBT
-            // 
-            this.VhBT.Enabled = false;
-            this.VhBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhBT.Location = new System.Drawing.Point(12, 210);
-            this.VhBT.Name = "VhBT";
-            this.VhBT.Size = new System.Drawing.Size(82, 22);
-            this.VhBT.TabIndex = 12;
-            this.VhBT.Text = "Calculate";
-            this.VhBT.UseVisualStyleBackColor = true;
-            this.VhBT.Click += new System.EventHandler(this.fempgCalculateBT_Click);
-            this.VhBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // VhLB2
-            // 
-            this.VhLB2.AutoSize = true;
-            this.VhLB2.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhLB2.Location = new System.Drawing.Point(12, 86);
-            this.VhLB2.Name = "VhLB2";
-            this.VhLB2.Size = new System.Drawing.Size(68, 13);
-            this.VhLB2.TabIndex = 7;
-            this.VhLB2.Text = "Lease period";
-            this.VhLB2.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhLB2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
-            // 
-            // VhResultTB
-            // 
-            this.VhResultTB.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.VhResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
-            this.VhResultTB.Location = new System.Drawing.Point(177, 212);
-            this.VhResultTB.MaxLength = 20;
-            this.VhResultTB.Name = "VhResultTB";
-            this.VhResultTB.ReadOnly = true;
-            this.VhResultTB.Size = new System.Drawing.Size(165, 21);
-            this.VhResultTB.TabIndex = 15;
-            this.VhResultTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.VhResultTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
-            this.VhResultTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
             // calc
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
             this.ClientSize = new System.Drawing.Size(214, 282);
+            this.Controls.Add(this.datecalcGB);
             this.Controls.Add(this.VhPN);
             this.Controls.Add(this.morgagePN);
             this.Controls.Add(this.feMPG_PN);
             this.Controls.Add(this.PNbinary);
-            this.Controls.Add(this.unknownPN);
             this.Controls.Add(this.basePN);
             this.Controls.Add(this.angleGB);
             this.Controls.Add(this.radioButton1);
@@ -5283,7 +5383,7 @@ Method={7};
             this.Controls.Add(this.CAD);
             this.Controls.Add(this.x2cross);
             this.Controls.Add(this.unitconvGB);
-            this.Controls.Add(this.datecalcGB);
+            this.Controls.Add(this.unknownPN);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -5296,24 +5396,24 @@ Method={7};
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Calculator";
             this.Load += new System.EventHandler(this.calc_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseaAtTitleBar);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.VhPN.ResumeLayout(false);
+            this.VhPN.PerformLayout();
             this.morgagePN.ResumeLayout(false);
             this.morgagePN.PerformLayout();
-            this.unknownPN.ResumeLayout(false);
-            this.unknownPN.PerformLayout();
+            this.feMPG_PN.ResumeLayout(false);
+            this.feMPG_PN.PerformLayout();
             this.basePN.ResumeLayout(false);
             this.basePN.PerformLayout();
             this.angleGB.ResumeLayout(false);
             this.angleGB.PerformLayout();
             this.gridPanel.ResumeLayout(false);
             this.gridPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.staDGV)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.hisDGV)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.staDGV)).EndInit();
             this.screenPN.ResumeLayout(false);
             this.screenPN.PerformLayout();
-            this.feMPG_PN.ResumeLayout(false);
-            this.feMPG_PN.PerformLayout();
             this.unitconvGB.ResumeLayout(false);
             this.unitconvGB.PerformLayout();
             this.datecalcGB.ResumeLayout(false);
@@ -5321,8 +5421,8 @@ Method={7};
             ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).EndInit();
-            this.VhPN.ResumeLayout(false);
-            this.VhPN.PerformLayout();
+            this.unknownPN.ResumeLayout(false);
+            this.unknownPN.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -5454,7 +5554,6 @@ Method={7};
             //
             this.screenPN.Location = new Point(12, 12);
             this.screenPN.Size = new Size(385, 47);
-            this.percent_bt.Enabled = false;
 
             hideSciComponent(true);
             //
@@ -5467,103 +5566,99 @@ Method={7};
         /// </summary>
         private void HiddenProperties()
         {
-            this.num1BT.ContextMenu = helpCTMN;
-            this.num2BT.ContextMenu = helpCTMN;
-            this.num1BT.ContextMenu = helpCTMN;
-            this.num2BT.ContextMenu = helpCTMN;
-            this.num3BT.ContextMenu = helpCTMN;
-            this.num4BT.ContextMenu = helpCTMN;
-            this.num5BT.ContextMenu = helpCTMN;
-            this.num6BT.ContextMenu = helpCTMN;
-            this.num7BT.ContextMenu = helpCTMN;
-            this.num8BT.ContextMenu = helpCTMN;
-            this.num9BT.ContextMenu = helpCTMN;
-            this.num0BT.ContextMenu = helpCTMN;
-            this.btdot.ContextMenu = helpCTMN;
-            this.addbt.ContextMenu = helpCTMN;
-            this.mulbt.ContextMenu = helpCTMN;
-            this.divbt.ContextMenu = helpCTMN;
-            this.minusbt.ContextMenu = helpCTMN;
-            this.equal.ContextMenu = helpCTMN;
-            this.invert_bt.ContextMenu = helpCTMN;
-            this.madd.ContextMenu = helpCTMN;
-            this.mem_minus_bt.ContextMenu = helpCTMN;
-            this.mem_clear.ContextMenu = helpCTMN;
-            this.mem_recall.ContextMenu = helpCTMN;
-            this.percent_bt.ContextMenu = helpCTMN;
-            this.sqrt_bt.ContextMenu = helpCTMN;
-            this.mem_store.ContextMenu = helpCTMN;
-            this.changesignBT.ContextMenu = helpCTMN;
-            this.clearbt.ContextMenu = helpCTMN;
-            this.ce.ContextMenu = helpCTMN;
-            this.backspacebt.ContextMenu = helpCTMN;
-            //---------------------------------------------
-            this.open_bracket.ContextMenu = helpCTMN;
-            this.close_bracket.ContextMenu = helpCTMN;
-            this.nvx_bt.ContextMenu = helpCTMN;
-            this.btFactorial.ContextMenu = helpCTMN;
-            this._3vx_bt.ContextMenu = helpCTMN;
-            this._10x_bt.ContextMenu = helpCTMN;
-            this.x2_bt.ContextMenu = helpCTMN;
-            this.xn_bt.ContextMenu = helpCTMN;
-            this.x3_bt.ContextMenu = helpCTMN;
-            this.log_bt.ContextMenu = helpCTMN;
-            this.sinh_bt.ContextMenu = helpCTMN;
-            this.cosh_bt.ContextMenu = helpCTMN;
-            this.tanh_bt.ContextMenu = helpCTMN;
-            this.dms_bt.ContextMenu = helpCTMN;
-            this.pi_bt.ContextMenu = helpCTMN;
-            this.inv_ChkBox.ContextMenu = helpCTMN;
-            this.int_bt.ContextMenu = helpCTMN;
-            this.fe_ChkBox.ContextMenu = helpCTMN;
-            this.sin_bt.ContextMenu = helpCTMN;
-            this.cos_bt.ContextMenu = helpCTMN;
-            this.tan_bt.ContextMenu = helpCTMN;
-            this.ln_bt.ContextMenu = helpCTMN;
-            this.exp_bt.ContextMenu = helpCTMN;
-            this.degRB.ContextMenu = helpCTMN;
-            this.radRB.ContextMenu = helpCTMN;
-            this.graRB.ContextMenu = helpCTMN;
-            this.bracketTime_lb.ContextMenu = helpCTMN;
-            //---------------------------------------------
-            this.RoLBT.ContextMenu = helpCTMN;
-            this.or_BT.ContextMenu = helpCTMN;
-            this.LshBT.ContextMenu = helpCTMN;
-            this.modsciBT.ContextMenu = helpCTMN;
-            this.RoRBT.ContextMenu = helpCTMN;
-            this.RshBT.ContextMenu = helpCTMN;
-            this.open_bracket.ContextMenu = helpCTMN;
-            this.close_bracket.ContextMenu = helpCTMN;
-            this.NotBT.ContextMenu = helpCTMN;
-            this.AndBT.ContextMenu = helpCTMN;
-            this.XorBT.ContextMenu = helpCTMN;
-            this.modproBT.ContextMenu = helpCTMN;
-            this.openproBT.ContextMenu = helpCTMN;
-            this.closeproBT.ContextMenu = helpCTMN;
-            this.btnA.ContextMenu = helpCTMN;
-            this.btnB.ContextMenu = helpCTMN;
-            this.btnC.ContextMenu = helpCTMN;
-            this.btnD.ContextMenu = helpCTMN;
-            this.btnE.ContextMenu = helpCTMN;
-            this.btnF.ContextMenu = helpCTMN;
-            this.qwordRB.ContextMenu = helpCTMN;
-            this.dwordRB.ContextMenu = helpCTMN;
-            this._wordRB.ContextMenu = helpCTMN;
-            this._byteRB.ContextMenu = helpCTMN;
-            this.hexRB.ContextMenu = helpCTMN;
-            this.decRB.ContextMenu = helpCTMN;
-            this.octRB.ContextMenu = helpCTMN;
-            this.binRB.ContextMenu = helpCTMN;
-            //---------------------------------------------
-            this.AddstaBT.ContextMenu = helpCTMN;
-            this.CAD.ContextMenu = helpCTMN;
-            this.sigmax2BT.ContextMenu = helpCTMN;
-            this.sigmaxBT.ContextMenu = helpCTMN;
-            this.sigman_1BT.ContextMenu = helpCTMN;
-            this.sigmanBT.ContextMenu = helpCTMN;
-            this.xcross.ContextMenu = helpCTMN;
-            this.x2cross.ContextMenu = helpCTMN;
-            //---------------------------------------------
+            num1BT.ContextMenu = helpCTMN;
+            num2BT.ContextMenu = helpCTMN;
+            num1BT.ContextMenu = helpCTMN;
+            num2BT.ContextMenu = helpCTMN;
+            num3BT.ContextMenu = helpCTMN;
+            num4BT.ContextMenu = helpCTMN;
+            num5BT.ContextMenu = helpCTMN;
+            num6BT.ContextMenu = helpCTMN;
+            num7BT.ContextMenu = helpCTMN;
+            num8BT.ContextMenu = helpCTMN;
+            num9BT.ContextMenu = helpCTMN;
+            num0BT.ContextMenu = helpCTMN;
+            btdot.ContextMenu = helpCTMN;
+            addbt.ContextMenu = helpCTMN;
+            mulbt.ContextMenu = helpCTMN;
+            divbt.ContextMenu = helpCTMN;
+            minusbt.ContextMenu = helpCTMN;
+            equal.ContextMenu = helpCTMN;
+            invert_bt.ContextMenu = helpCTMN;
+            madd.ContextMenu = helpCTMN;
+            mem_minus_bt.ContextMenu = helpCTMN;
+            mem_clear.ContextMenu = helpCTMN;
+            mem_recall.ContextMenu = helpCTMN;
+            percent_bt.ContextMenu = helpCTMN;
+            sqrt_bt.ContextMenu = helpCTMN;
+            mem_store.ContextMenu = helpCTMN;
+            changesignBT.ContextMenu = helpCTMN;
+            clearbt.ContextMenu = helpCTMN;
+            ce.ContextMenu = helpCTMN;
+            backspacebt.ContextMenu = helpCTMN;
+            //-----------------------------------------------------------------
+            open_bracket.ContextMenu = helpCTMN;
+            close_bracket.ContextMenu = helpCTMN;
+            nvx_bt.ContextMenu = helpCTMN;
+            btFactorial.ContextMenu = helpCTMN;
+            _3vx_bt.ContextMenu = helpCTMN;
+            _10x_bt.ContextMenu = helpCTMN;
+            x2_bt.ContextMenu = helpCTMN;
+            xn_bt.ContextMenu = helpCTMN;
+            x3_bt.ContextMenu = helpCTMN;
+            log_bt.ContextMenu = helpCTMN;
+            sinh_bt.ContextMenu = helpCTMN;
+            cosh_bt.ContextMenu = helpCTMN;
+            tanh_bt.ContextMenu = helpCTMN;
+            dms_bt.ContextMenu = helpCTMN;
+            pi_bt.ContextMenu = helpCTMN;
+            inv_ChkBox.ContextMenu = helpCTMN;
+            int_bt.ContextMenu = helpCTMN;
+            fe_ChkBox.ContextMenu = helpCTMN;
+            sin_bt.ContextMenu = helpCTMN;
+            cos_bt.ContextMenu = helpCTMN;
+            tan_bt.ContextMenu = helpCTMN;
+            ln_bt.ContextMenu = helpCTMN;
+            exp_bt.ContextMenu = helpCTMN;
+            degRB.ContextMenu = helpCTMN;
+            radRB.ContextMenu = helpCTMN;
+            graRB.ContextMenu = helpCTMN;
+            bracketTime_lb.ContextMenu = helpCTMN;
+            //-----------------------------------------------------------------
+            RoLBT.ContextMenu = helpCTMN;
+            or_BT.ContextMenu = helpCTMN;
+            LshBT.ContextMenu = helpCTMN;
+            modsciBT.ContextMenu = helpCTMN;
+            RoRBT.ContextMenu = helpCTMN;
+            RshBT.ContextMenu = helpCTMN;
+            open_bracket.ContextMenu = helpCTMN;
+            close_bracket.ContextMenu = helpCTMN;
+            NotBT.ContextMenu = helpCTMN;
+            AndBT.ContextMenu = helpCTMN;
+            XorBT.ContextMenu = helpCTMN;
+            modproBT.ContextMenu = helpCTMN;
+            openproBT.ContextMenu = helpCTMN;
+            closeproBT.ContextMenu = helpCTMN;
+            btnA.ContextMenu = helpCTMN;
+            btnB.ContextMenu = helpCTMN;
+            btnC.ContextMenu = helpCTMN;
+            btnD.ContextMenu = helpCTMN;
+            btnE.ContextMenu = helpCTMN;
+            btnF.ContextMenu = helpCTMN;
+            qwordRB.ContextMenu = helpCTMN;
+            dwordRB.ContextMenu = helpCTMN;
+            _wordRB.ContextMenu = helpCTMN;
+            _byteRB.ContextMenu = helpCTMN;
+            //-----------------------------------------------------------------
+            AddstaBT.ContextMenu = helpCTMN;
+            CAD.ContextMenu = helpCTMN;
+            sigmax2BT.ContextMenu = helpCTMN;
+            sigmaxBT.ContextMenu = helpCTMN;
+            sigman_1BT.ContextMenu = helpCTMN;
+            sigmanBT.ContextMenu = helpCTMN;
+            xcross.ContextMenu = helpCTMN;
+            x2cross.ContextMenu = helpCTMN;
+            //-----------------------------------------------------------------
 
             screenPN.ContextMenu = gridPanel.ContextMenu = mainContextMenu;
             //hideStdComponent(true);
@@ -5575,61 +5670,55 @@ Method={7};
             copyMI.Text = "&Copy\tCtrl+C";
             pasteMI.Text = "&Paste\tCtrl+V";
             cancelEditHisMI.Text = "Ca&ncel edit\tEsc";
-            cancelEditDSMI.Text = "Ca&ncel edit\tEsc";
             reCalculateMI.Text = "Re&calculate\t=";
+
+            cancelEditDSMI.Text = "Ca&ncel edit\tEsc";
             commitDSMI.Text = "C&ommit\t=";
+
+            clearDatasetMI.Text = "C&lear\tD";
+            parser.Transfer += new Parser.SendValue(parser_Transfer);
+        }
+
+        private void parser_Transfer(int sentValue, int count, int total)
+        {
+            co.count = count;
+            co.total = total;
+            co.Progress = sentValue;
         }
         /// <summary>
-        /// khởi tạo mảng các textbox trong hàm chức năng fuel economy
+        /// khởi tạo mảng các textbox trong hàm chức năng fuel economy, ...
         /// </summary>
-        private void InitArrayOfControls()
+        private void InitCustomControls(ref ITextBox[] itb, IPanel ipn, int capacity)
         {
-            fempgTB = new ITextBox[2];
-            for (int i = 0; i < 2; i++)
+            itb = new ITextBox[capacity];
+            for (int i = 0; i < capacity; i++)
             {
-                fempgTB[i] = new ITextBox();
-                fempgTB[i].Text = "Enter value";
-                fempgTB[i].Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-                fempgTB[i].ForeColor = SystemColors.GrayText;
-                fempgTB[i].Location = new Point(177, 59 + 24 * i);
-                fempgTB[i].Size = new Size(165, 21);
-                fempgTB[i].MaxLength = 20;
-                fempgTB[i].NumberModeOnly = true;
-                fempgTB[i].TabIndex = 10 + i;
-                fempgTB[i].Enter += new EventHandler(DisableKeyboard);
-                feMPG_PN.Controls.Add(fempgTB[i]);
+                InitTextBoxesProperties(itb, i);
             }
 
-            morgageTB = new ITextBox[4];
-            for (int i = 0; i < 4; i++)
-            {
-                morgageTB[i] = new ITextBox();
-                morgageTB[i].Text = "Enter value";
-                morgageTB[i].Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-                morgageTB[i].ForeColor = SystemColors.GrayText;
-                morgageTB[i].Location = new Point(177, 59 + 24 * i);
-                morgageTB[i].Size = new Size(165, 21);
-                morgageTB[i].MaxLength = 20;
-                morgageTB[i].NumberModeOnly = true;
-                morgageTB[i].TabIndex = 10 + i;
-                morgageTB[i].Enter += new EventHandler(DisableKeyboard);
-                morgagePN.Controls.Add(morgageTB[i]);
-            }
+            ipn.Controls.AddRange(itb);
+        }
 
-            VhTB = new ITextBox[5];
-            for (int i = 0; i < 5; i++)
+        private void InitTextBoxesProperties(ITextBox[] ilb, int index)
+        {
+            ilb[index] = new ITextBox();
+            ilb[index].Text = "Enter value";
+            ilb[index].Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            ilb[index].ForeColor = SystemColors.GrayText;
+            ilb[index].Location = new Point(177, 59 + 24 * index);
+            ilb[index].Size = new Size(165, 21);
+            ilb[index].MaxLength = 20;
+            ilb[index].NumberModeOnly = true;
+            ilb[index].TabIndex = 10 + index;
+            ilb[index].Enter += new EventHandler(DisableKeyboard);
+        }
+
+        private void InitCancelOperation()
+        {
+            if (co == null)
             {
-                VhTB[i] = new ITextBox();
-                VhTB[i].Text = "Enter value";
-                VhTB[i].Font = new Font("Segoe UI", 9F, FontStyle.Italic);
-                VhTB[i].ForeColor = SystemColors.GrayText;
-                VhTB[i].Location = new Point(177, 59 + 24 * i);
-                VhTB[i].Size = new Size(165, 21);
-                VhTB[i].MaxLength = 20;
-                VhTB[i].NumberModeOnly = true;
-                VhTB[i].TabIndex = 10 + i;
-                VhTB[i].Enter += new EventHandler(DisableKeyboard);
-                VhPN.Controls.Add(VhTB[i]);
+                co = new CancelOperation();
+                co.DoCancel += new CancelOperation.CancelProcess(co_DoCancel);
             }
         }
         /// <summary>
@@ -5643,28 +5732,28 @@ Method={7};
             for (int i = 1; i >= 0; i--)
                 for (int j = 7; j >= 0; j--)
                 {
-                    k = 8 * i + j;  // k = 8j + i
+                    k = 8 * i + j;  // k = 8j + index
                     bin_digit[k] = new ILabel();
                     PNbinary.Controls.Add(bin_digit[k]);
                     bin_digit[k].Text = "0000";
                     bin_digit[k].TabIndex = k;
                     bin_digit[k].Font = new Font("Consolas", 9F);
                     bin_digit[k].Size = new Size(35, 15);
-                    //bin_digit[k].Location = new Point(374 - 53 * i, 34 - 32 * i);
+                    //bin_digit[k].Location = new Point(374 - 53 * index, 34 - 32 * index);
                     bin_digit[k].Location = new Point(345 - 49 * j, 27 - 25 * i);
-                    bin_digit[k].Click += new EventHandler(bin_digit_Click);
+                    bin_digit[k].MouseDown += new MouseEventHandler(bin_digit_MouseDown);
                 }
             #endregion
 
-            #region init selectIndex binary number
-            flagpoint = new Label[6];
+            #region init index binary number
+            flagpoint = new ILabel[6];
             for (int i = 1; i >= 0; i--)
             {
                 for (int j = 2; j >= 0; j--)
                 {
                     k = 3 * i + j;  // k = 3i + j
                     int idex = 16 * (k - i) - (j == 0 ? 0 : 1);  // j != 0 ? 1 : 0
-                    flagpoint[k] = new Label();
+                    flagpoint[k] = new ILabel();
                     PNbinary.Controls.Add(flagpoint[k]);
                     flagpoint[k].Text = idex.ToString();
                     flagpoint[k].TabIndex = k;
@@ -5672,7 +5761,7 @@ Method={7};
                     flagpoint[k].ForeColor = SystemColors.GrayText;
                     flagpoint[k].Font = new Font("Consolas", 9F);
                     flagpoint[k].Location = new Point(394 - 196 * j - (j == 0 ? 49 : 0), 40 - 25 * i);
-                    flagpoint[k].MouseDown += new MouseEventHandler(MoveFormWithoutMouseaAtTitleBar);
+                    flagpoint[k].MouseDown += new MouseEventHandler(MoveFormWithoutMouseAtTitleBar);
                 }
             }
 
@@ -5813,7 +5902,6 @@ Method={7};
             this.screenPN.Size = new Size(385, 47);
 
             hideSciComponent(true);
-            this.percent_bt.Enabled = false;
 
             this.gridPanel.Location = new Point(12, 12);
             this.gridPanel.Size = new Size(385, gridPanel.Size.Height);
@@ -5890,7 +5978,6 @@ Method={7};
             this.sqrt_bt.Enabled = false;
             this.sqrt_bt.Location = new Point(363, 161);
 
-            this.percent_bt.Enabled = false;
             this.percent_bt.Location = new Point(363, 193);
 
             this.invert_bt.Enabled = false;
@@ -6030,10 +6117,11 @@ Method={7};
             else
                 screenPN.BackColor = staDGV.BackgroundColor = hisDGV.BackgroundColor = Color.White;
 
-            if (fempgTB[0].Focused || fempgTB[1].Focused)
-            {
-                screenPN.Focus();
-            }
+            if (fempgTB != null)
+                if (fempgTB[0].Focused || fempgTB[1].Focused)
+                {
+                    screenPN.Focus();
+                }
 
             for (int i = 0; i < hisDGV.RowCount; i++)
             {
@@ -6101,7 +6189,7 @@ Method={7};
         private IPanel screenPN;
         private ContextMenu helpCTMN;
         private MenuItem hotkeyMI;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private Label bracketTime_lb;
         private Button close_bracket;
         private Button open_bracket;
@@ -6134,42 +6222,43 @@ Method={7};
         private IPanel gridPanel;
         private IDataGridView hisDGV;
         private DataGridViewTextBoxColumn Column1;
-        //----------------------------------------------
-        private Label calmethodLB;
+        //------------------------------------------------------------------
+        private Button calculate_date;
         private CheckBox autocal_date;
         private ComboBox datemethodCB;
-        private Button calculate_date;
-        private Label addSubResultLB;
-        private Label dateDifferenceLB;
         private DateTimePicker dtP2;
-        private Label secondDate;
+        private INumericUpDown periodsYearUD;
+        private INumericUpDown periodsMonthUD;
+        private INumericUpDown periodsDateUD;
+        private IPanel datecalcGB;
         private DateTimePicker dtP1;
-        private Label firstDate;
-        private NumericUpDown periodsDateUD;
-        private NumericUpDown periodsYearUD;
-        private NumericUpDown periodsMonthUD;
-        private Label yearAddSubLB;
-        private Label monthAddSubLB;
+        private Label addSubResultLB;
+        private Label calmethodLB;
+        private Label dateDifferenceLB;
         private Label dayAddSubLB;
-        private TextBox result1;
-        private TextBox result2;
+        private Label firstDate;
+        private Label monthAddSubLB;
+        private Label secondDate;
+        private Label yearAddSubLB;
         private RadioButton subrb;
         private RadioButton addrb;
-        private IPanel datecalcGB;
-        //----------------------------------------------
+        private TextBox result1;
+        private TextBox result2;
+        //------------------------------------------------------------------
         private Label typeUnitLB;
         private Label fromLB;
         private Label toLB;
-        private ComboBox typeUnitCB;
         private TextBox fromTB;
         private TextBox toTB;
+        private ComboBox typeUnitCB;
         private ComboBox fromCB;
         private ComboBox toCombobox;
         private Button invert_unit;
         private Button dnBT;
         private Button upBT;
         private IPanel unitconvGB;
-        //----------------------------------------------
+        //------------------------------------------------------------------
+        private MainMenu menuStrip1;
         private MenuItem viewMI;
         private MenuItem standardMI;
         private MenuItem scientificMI;
@@ -6186,7 +6275,6 @@ Method={7};
         private MenuItem copyMI;
         private MenuItem pasteMI;
         private MenuItem sepMI3;
-        private MenuItem sepMI4;
         private MenuItem historyOptionMI;
         private MenuItem copyHistoryMI;
         private MenuItem editHistoryMI;
@@ -6199,18 +6287,18 @@ Method={7};
         private MenuItem cancelEditDSMI;
         private MenuItem commitDSMI;
         private MenuItem clearDatasetMI;
-        private MenuItem fastFactMI;
+        private MenuItem sepMI6;
+        private MenuItem preferrencesMI;
         private MenuItem helpMI;
         private MenuItem helpTopicsTSMI;
         private MenuItem sepMI5;
         private MenuItem aboutMI;
-        private MainMenu menuStrip1;
         private MenuItem worksheetsMI;
         private MenuItem mortgageMI;
         private MenuItem vehicleLeaseMI;
         private MenuItem fe_MPG_MI;
         private MenuItem feL100_MI;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private ContextMenu mainContextMenu;
         private MenuItem copyCTMN;
         private MenuItem pasteCTMN;
@@ -6219,15 +6307,15 @@ Method={7};
         private MenuItem hideHistoryCTMN;
         private MenuItem clearDatasetCTMN;
         private MenuItem clearHistoryCTMN;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private RadioButton qwordRB;
         private RadioButton dwordRB;
         private RadioButton _wordRB;
         private RadioButton _byteRB;
-        private RadioButton binRB;
-        private RadioButton octRB;
-        private RadioButton decRB;
-        private RadioButton hexRB;
+        private IRadioButton hexRB;
+        private IRadioButton decRB;
+        private IRadioButton octRB;
+        private IRadioButton binRB;
         private IPanel PNbinary;
         private IPanel basePN;
         private IPanel unknownPN;
@@ -6249,8 +6337,8 @@ Method={7};
         private Button modproBT;
         private Button closeproBT;
         private ILabel[] bin_digit;
-        private Label[] flagpoint;
-        //----------------------------------------------
+        private ILabel[] flagpoint;
+        //------------------------------------------------------------------
         private IDataGridView staDGV;
         private DataGridViewTextBoxColumn Column2;
         private Button sigmax2BT;
@@ -6262,7 +6350,7 @@ Method={7};
         private Button CAD;
         private Button x2cross;
         private Label countLB;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private IPanel feMPG_PN;
         private Label typeFEmpgLB;
         private ComboBox typeFECB1;
@@ -6272,10 +6360,10 @@ Method={7};
         private TextBox fempgResultTB;
         private Button fuelEconomyBT;
         private ITextBox[] fempgTB;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private RadioButton radioButton1;
         private BackgroundWorker mWorker;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private IPanel morgagePN;
         private Label typeMorgageLB;
         private ComboBox typeMorgageCB;
@@ -6286,7 +6374,7 @@ Method={7};
         private Button morgageBT;
         private TextBox morgageResultTB;
         private ITextBox[] morgageTB;
-        //----------------------------------------------
+        //------------------------------------------------------------------
         private IPanel VhPN;
         private Label typeVhLB;
         private ComboBox typeVhCB;

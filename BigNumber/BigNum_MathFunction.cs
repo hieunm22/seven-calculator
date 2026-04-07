@@ -139,7 +139,8 @@ namespace Calculator
         static public void DEG(BigNumber xx, BigNumber rr)
         {
             //12.3456789 = 12°34'56.789"
-            BigNumber dd = "0", mm = 0, ss = 0.0, mTemp = "0";
+            BigNumber dd = 0, mm = 0, ss = 0, mTemp = 0;
+            //BigNumber dd = "0", mm = 0, ss = 0.0, mTemp = "0";
             Copy(rr, dd);
             if (!IsInteger(rr))
             {
@@ -147,29 +148,36 @@ namespace Calculator
                 Sub(rr, dd, mTemp);
 
                 string mT = mTemp.ToFullString().Substring(2);
-                Copy(mT.Substring(0, 2), mm);
-                Copy(mT.Substring(2, 2), ss);
 
-                if (mTemp.mantissa[2] != 0)
+                if (mT.Length <= 2) Copy(mT.PadRight(2, '0'), mm);                    
+                else
                 {
-                    byte[] man = new byte[18];
-                    ss.dataLength = mTemp.dataLength - 2;
-                    if (mTemp.StrValue.Length % 2 != 0) mT += 0;
-                    for (int i = 2; i < mT.Length / 2; i++)
-                    {
-                        man[i - 2] = byte.Parse(mT.Substring(2 * i, 2));
-                    }
-                    // tìm hạng của ma trận ss.mantissa
-                    int rank = ss.mantissa.Length - 1;
-                    for (; rank >= 0; rank--)
-                    {
-                        if (ss.mantissa[rank] != 0) break;
-                    }
-                    byte[] resultArr = new byte[++rank + man.Length];
-                    Array.Copy(ss.mantissa, resultArr, rank);
-                    Array.Copy(man, 0, resultArr, rank, resultArr.Length - rank);
-                    ss.mantissa = resultArr;
+                    Copy(mT.Substring(0, 2), mm);
+                    Copy(mT.Substring(2, mT.Length - 2), ss);
+                    if (ss >= 100) ss = ss.mantissa[0];
                 }
+
+                if (mTemp.mantissa.Length > 2)
+                    if (mTemp.mantissa[2] != 0)
+                    {
+                        byte[] man = new byte[18];
+                        ss.dataLength = mTemp.dataLength - 2;
+                        if (mTemp.StrValue.Length % 2 != 0) mT += 0;
+                        for (int i = 2; i < mT.Length / 2; i++)
+                        {
+                            man[i - 2] = byte.Parse(mT.Substring(2 * i, 2));
+                        }
+                        // tìm hạng của ma trận ss.mantissa
+                        int rank = ss.mantissa.Length - 1;
+                        for (; rank >= 0; rank--)
+                        {
+                            if (ss.mantissa[rank] != 0) break;
+                        }
+                        byte[] resultArr = new byte[++rank + man.Length];
+                        Array.Copy(ss.mantissa, resultArr, rank);
+                        Array.Copy(man, 0, resultArr, rank, resultArr.Length - rank);
+                        ss.mantissa = resultArr;
+                    }
 
                 // ss=mm*60+ss, xx=dd+ss/3600
                 Mul(mm, 60, mTemp);
@@ -177,6 +185,7 @@ namespace Calculator
                 Div(ss, 3600, mTemp);
                 Add(dd, mTemp, xx);
             }
+            else Copy(rr, xx);
         }
         /// <summary>
         /// DMS
@@ -493,7 +502,7 @@ namespace Calculator
                     /*
                      *   if we are within a factor of 4 on the error term,
                      *   we will be accurate enough after the *next* iteration
-                     *   is complete. (note that the sign of the exponent on
+                     *   is complete. (note that the IsSign of the exponent on
                      *   the error term will be a negative number).
                      */
 
@@ -763,7 +772,6 @@ namespace Calculator
 	     *  y = -----      ( |y| < 1 )
 	     *      x + 2
          *
-         *
          *          [ 1 + y ]                     y^3     y^5     y^7
 	     *  log [---------------]  =  2 * [ y  +  ---  +  ---  +  ---  ... ]
          *          [ 1 - y ]                      3       5       7
@@ -792,12 +800,9 @@ namespace Calculator
 
             m1 = 3L;
 
-            while (true)
+            Mul(term, tmp2, tmp0);
+            while (tmp0.exponent >= tolerance && tmp0.signum != 0)
             {
-                Mul(term, tmp2, tmp0);
-
-                if ((tmp0.exponent < tolerance) || (tmp0.signum == 0)) break;
-
                 local_precision = dplaces + tmp0.exponent;
 
                 if (local_precision < 20)
@@ -952,14 +957,7 @@ namespace Calculator
 
             t0_5.exponent = src.exponent - ii;
 
-            if (src.signum > 0)
-            {
-                Add(src, t0_5, dst);
-            }
-            else
-            {
-                Sub(src, t0_5, dst);
-            }
+            Add(src, src.signum * t0_5, dst);
 
             dst.dataLength = ii;
             Normalize(dst);
@@ -996,15 +994,10 @@ namespace Calculator
             }
         }
 
-        static int GetSizeofInt()
-        {
-            return (sizeof(int));
-        }
-
         static int NextPowerOfTwo(int n)
         {
             int ct, k;
-            int size_flag = GetSizeofInt();
+            int size_flag = sizeof(int);
             int bit_limit = 8 * size_flag + 1;
 
             if (n <= 2)
@@ -1071,18 +1064,15 @@ namespace Calculator
                      */
 
                     numdiv = 0;
-
-                    while (true)
+                    ii++;
+                    do
                     {
+                        ii--;
                         Unpack(ctmp.mantissa[ii], ref  numdiv2, ref numrem);
 
                         ctmp.mantissa[ii + 1] = (byte)(10 * numrem + numdiv);
                         numdiv = numdiv2;
-
-                        if (ii == 0) break;
-
-                        ii--;
-                    }
+                    } while (ii != 0);
 
                     ctmp.mantissa[0] = numdiv2;
                 }
@@ -1141,14 +1131,14 @@ namespace Calculator
 
         }
         /// <summary>
-        /// expand mantissa array with given length and copy old content
+        /// expand mantissa array with given length and copy old configContent
         /// throws: ArgumentOutOfRangeException
         /// </summary>
         static public void Expand(BigNumber atm, int newLength)
         {
             if (newLength > atm.mantissa.Length)
             {
-                byte[] newdata = new byte[newLength];
+                var newdata = new byte[newLength];
                 Array.Copy(atm.mantissa, newdata, atm.mantissa.Length);
                 atm.mantissa = newdata;
             }
@@ -1163,14 +1153,19 @@ namespace Calculator
         /// </summary>
         static private void Unpack(byte packed, ref byte msb, ref byte lsb)
         {
-            msb = s_MsbLookup[packed % 100];
-            lsb = s_LsbLookup[packed % 10];
+            //msb = s_MsbLookup[packed % 100];
+            msb = (byte)(packed / 10);
+            //lsb = s_LsbLookup[packed % 10];
+            lsb = (byte)(packed % 10);
         }
 
         static private void UnpackMult(int tbl_lookup, ref byte msb, ref byte lsb)
         {
-            msb = s_MsbLookupMult[tbl_lookup];
-            lsb = s_LsbLookupMult[tbl_lookup];
+            msb = (byte)(tbl_lookup / 100);
+            lsb = (byte)(tbl_lookup % 100);
+
+            //msb = s_MsbLookupMult[tbl_lookup];
+            //lsb = s_LsbLookupMult[tbl_lookup];
         }
 
         static private void Pad(BigNumber atm, int length)
@@ -1211,23 +1206,20 @@ namespace Calculator
         static private void Normalize(BigNumber atm)
         {
             if (atm.signum == 0) return;
-            int ucp = 0;
-            int i;
-            int index;
+            int ucp = 0, i, index;
             int datalength = atm.dataLength;
             int exponent = atm.exponent;
             byte numdiv = 0, numrem = 0, numrem2 = 0;
 
             Pad(atm, datalength + 3);
 
+            // extract first 2 nibbles
+            Unpack(atm.mantissa[0], ref numdiv, ref numrem);
             // remove leading zeroes
-            while (true)
+            while (numdiv < 1)
             {
-                // extract first 2 nibbles
-                Unpack(atm.mantissa[0], ref numdiv, ref numrem);
-
                 // if first digit is greater 1 we are done
-                if (numdiv >= 1) break;
+                //if (numdiv >= 1) break;
 
                 // otherwise we have leading zeroes
                 index = (datalength + 1) >> 1;
@@ -1262,6 +1254,9 @@ namespace Calculator
                     datalength--;
                     exponent--;
                 }
+
+                // extract first 2 nibbles
+                Unpack(atm.mantissa[0], ref numdiv, ref numrem);
             }
 
             // remove trailing zeroes
@@ -1432,7 +1427,7 @@ namespace Calculator
 
                 res += (char)('0' + numrem);
 
-                //if (++i == num_digits)
+                //if (++index == num_digits)
                 //    break;
             } while (++i != num_digits);
 

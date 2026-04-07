@@ -12,9 +12,9 @@ namespace Calculator
         {
             //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
             BigNumber src_Temp = src;
-            if (src.Abs() > "6.28318530717958647692528676655900576")
+            if (src.Abs() > BN_DoublePI)
             {
-                src_Temp = src - src.signum * (2 * BN_PI) * (src / "6.28318530717958647692528676655900576").Floor();
+                src_Temp = src - src.signum * BN_DoublePI * (src / BN_DoublePI).Round(10).Floor();
             }
             BigNumber result = src_Temp, f_comma_x = 0;
             BigNumber lastFactorial = 6;
@@ -23,8 +23,8 @@ namespace Calculator
             {
                 //fx = ((n & 1) == 0 ? 1 : -1) / lastFactorial;  //fx=(-1)^n / (2n+1)!
                 //fx = sign / lastFactorial;  //fx=(-1)^n / (2n+1)!
-                f_comma_x = (sign / lastFactorial * src_Temp.Pow(2 * n + 1, 31)).Round(40);       //f'(x)
-                result = (result + f_comma_x).Round(40);
+                f_comma_x = (sign / lastFactorial * src_Temp.Pow(2 * n + 1, 31)).Round(36);       //f'(x)
+                result = (result + f_comma_x).Round(36);
                 n++;
                 lastFactorial = lastFactorial * (2 * n) * (2 * n + 1);
 				sign = -sign;
@@ -61,14 +61,15 @@ namespace Calculator
         private BigNumber Tanx(BigNumber src)
         {
             BigNumber src_Temp = src;
-            if (src.Abs() > "6,28318530717958647692528676655900576")
+            if (src.Abs() > BN_DoublePI)
             {
-                src_Temp = src - src.signum * (2 * BN_PI) * (src / 2 / "6,28318530717958647692528676655900576").Floor();
+                src_Temp = src - src.signum * BN_DoublePI * (src / BN_DoublePI).Floor();
             }
-            // epsilon = | |src| - pi/2 |, neu epsilon qua nho thi tra ve exception
-            BigNumber epsilon = (src_Temp.Abs() - BN_PI / 2).Abs();
+            // epsilon = | |src| / (pi/2) |, neu epsilon lam tron den 10 chu so ma ra so nguyen thi tra ve exception
+            // neu src_Temp la boi cua pi/2
+            var epsilon = src_Temp.Abs() / BN_PI * 2;   //3.2637657012293963088473017370737
+            if (IsInteger(epsilon.Round(10))) throw new Exception("Invalid parameter for this function");
 
-            if (epsilon < "1E-35") throw new Exception("Invalid parameter for this function");
             return Sinx(src_Temp) / Cosx(src_Temp);
         }
         /// <summary>
@@ -104,9 +105,9 @@ namespace Calculator
                 while (f_comma_x.Abs() > 1e-35);
                 return result.Round(31);
             }
-            BigNumber source = (1 - src * src).Sqrt(numDefaultPlaces);
+            var source = (1 - src * src).Sqrt(numDefaultPlaces);
             result = ArcSinx(source);
-            result = "1,57079632679489661923132169163975" - result;
+            result = "1.570796326794896619231321691639751442098584" - result;
             result.signum = src.signum;
             return result;
         }
@@ -123,7 +124,7 @@ namespace Calculator
         /// <param name="src">x</param>
         private BigNumber ArcCosx(BigNumber src)
         {
-            return "1,57079632679489661923132169163975" - ArcSinx(src);
+            return "1.570796326794896619231321691639751442098584" - ArcSinx(src);
         }
         /// <summary>
         /// Arccos(x)
@@ -147,75 +148,23 @@ namespace Calculator
         {
             return ArcTanx(this);
         }
-
-        #region Binary Split Algorithm
-        static BigNumber factorial(string str)
-        {
-            long n = long.Parse(str);
-            BigNumber p = 1, r = 1;
-            loop(n, ref p, ref r);
-            //int kkk = BitCount(n);
-            return r * Two__.Pow(BitCount(n));
-        }
-
-        static void loop(long n, ref BigNumber p, ref BigNumber r)
-        {
-            if (n <= 2) return;
-            loop(n / 2, ref p, ref r);
-            //BigNumber part = partProduct(n / 2 + 1 + ((n / 2) & 1), n - 1 + (n & 1));
-            p = p * partProduct(n / 2 + 1 + ((n / 2) & 1), n - 1 + (n & 1));
-            r = r * p;
-        }
-
-        static BigNumber partProduct(long n, long m)
-        {
-            if (m <= (n + 1)) return n;
-            if (m == (n + 2)) return (BigNumber)n * m;
-            long k = (n + m) / 2;
-            if ((k & 1) != 1) k = k - 1;
-            return partProduct(n, k) * partProduct(k + 2, m);
-        }
-
-        static long BitCount(long v)
-        {
-            long w = v;
-            w -= (0xaaaaaaaa & w) >> 1;
-            w = (w & 0x33333333) + ((w >> 2) & 0x33333333);
-            w = w + (w >> 4) & 0x0f0f0f0f;
-            w += w >> 8;
-            w += w >> 16;
-            return v - (w & 0xff);
-        }
-        #endregion
-
-        /// <summary>
-        /// tính giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác cao, nhưng mất nhiều thời gian
-        /// </summary>
-        public BigNumber Factorial()
-        {
-            return factorial(this.IntString);
-        }
         /// <summary>
         /// tính nhanh giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác thấp
         /// </summary>
-        static private string fastFactorial(string inp_num)
+        private string fastFactorial(string inp_num)
         {
             BigNumber x = inp_num;
             x = 2 * x + 1;
-            if (x >= 10000)
-            {
-                x = (2 * BN_PI).LogE() + (x / 2).LogE() * x - x - (1 - 7 / (30 * x * x)) / (6 * x);
-                x = x / 2 / Ten__.LogE();
-                BigNumber ex = x.Floor();
-                x = Ten__.Pow(x - ex);
+            x = (2 * BN_PI).LogE() + (x / 2).LogE() * x - x - (1 - 7 / (30 * x * x)) / (6 * x);
+            x = x / 2 / Ten__.LogE();
+            BigNumber ex = x.Floor();
+            x = Ten__.Pow(x - ex);
 
-                try { x.exponent = int.Parse(ex.IntString) + 1; }
-                catch { throw new Exception("Result is too large"); }
+            try { x.exponent = int.Parse(ex.IntString) + 1; }
+            catch { throw new Exception("Exponent is too overflow"); }
 
-                x = x.Round(23);
-                return x.StrValue;
-            }
-            return factorial(inp_num).StrValue;
+            x = x.Round(23);
+            return x.StrValue;
         }
         /// <summary>
         /// tính nhanh giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác thấp

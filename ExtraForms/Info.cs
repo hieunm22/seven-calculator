@@ -24,7 +24,7 @@ namespace Calculator
             string hotkey = "";
             switch (control.Text)
             {
-                #region select by text
+                #region select by comparing to text
                 case "1": case "2": case "3": case "4": case "5": case "6": case "7":
                 case "8": case "9": case "0": case "+": case "-": case "*": case "/":
                 case "%": case "(": case ")": case "A": case "B": case "D": case "E": case "F":
@@ -83,7 +83,7 @@ namespace Calculator
                     break;
                 case "Exp": hotkey = "E or X";
                     break;
-                case "Mod": case "CAD": hotkey = "D";
+                case "CAD": hotkey = "D";
                     break;
                 case "xⁿ": hotkey = "Y or ^";
                     break;
@@ -155,6 +155,10 @@ namespace Calculator
                     displayText.Text = "Display the number of open bracket";
                     wei = 2 * displayText.Location.X + displayText.Size.Width;
                     return;
+                case "modproBT": hotkey = "%";
+                    break;
+                case "modsciBT": hotkey = "D";
+                    break;
                 #endregion
             }
             hotkeyLB.Text = hotkey;
@@ -163,7 +167,7 @@ namespace Calculator
 
         private void toolTip_Click(object sender, EventArgs e)
         {
-            Close();
+            this.Close();
         }
 
         private void toolTip_Activated(object sender, EventArgs e)
@@ -174,7 +178,7 @@ namespace Calculator
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            Close();
+            this.Close();
             if (Form_Closed != null) Form_Closed(keyData);
             return base.ProcessCmdKey(ref msg, keyData);
         }

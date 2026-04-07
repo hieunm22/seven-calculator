@@ -5,8 +5,16 @@ namespace Calculator
 {
     // true.GetHashCode() = 1
     // false.GetHashCode() = 0
+    /// <summary>
+    /// tổng hợp các method
+    /// </summary>
     class Misc
     {
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         /// <summary>
         /// chia các hàng đơn vị của một số thực thành từng nhóm 3 số
         /// </summary>
@@ -98,7 +106,7 @@ namespace Calculator
         {
             string result = expression;
             //[a-z]{2,}
-            Regex regEx = new Regex(@"(?<=[\d\)])(?=[a-df-z\(])|(?<=pi)(?=[^\+\-\*\/\\^!\%\ )])|"
+            var regEx = new Regex(@"(?<=[\d\)])(?=[a-df-z\(])|(?<=pi)(?=[^\+\-\*\/\\^!\%\ )])|"
                 + @"(?<=\))(?=\d)|(?<=[^\/\*\+\-])(?=expert)", RegexOptions.IgnoreCase);//(?=exp)
             result = regEx.Replace(result, "*");
             return result;
@@ -111,8 +119,8 @@ namespace Calculator
         public static string InsertBracket(string expression)
         {
             string result = expression.Replace(DecimalSeparator, ",");
-            Regex reg = new Regex(@"(-|)([a-z]{2,})([\+-]?\d+,*\d*[eE][\+-]?\d+|[\+-]?\d+,*\d*)");
-            Match m = reg.Match(result);
+            var reg = new Regex(@"(-|)([a-z]{2,})([\+-]?\d+,*\d*[eE][\+-]?\d+|[\+-]?\d+,*\d*)");
+            var m = reg.Match(result);
             while (m.Success)
             {
                 result = result.Replace(m.Value, m.Groups[1].Value + m.Groups[2].Value + "(" + m.Groups[3].Value + ")");
@@ -128,7 +136,7 @@ namespace Calculator
         /// <param name="expression">chuỗi cần thay thế</param>
         public static string RemoveBracket(string expression)
         {
-            // "((-7))" -> xoa bot 1 cap dau ngoac -> (-7)
+            // "((-7))" -> xoa bot 1 capacity dau ngoac -> (-7)
             Regex reg = new Regex(@"(\(\()([\+-]?\d+,*\d*[eE][\+-]?\d+|[\-\+]?\d+,*\d*)(\)\))");    // ((mot_bieu_thuc))
             expression = expression.Replace(DecimalSeparator, ",");
             Match m = reg.Match(expression);
@@ -195,28 +203,6 @@ namespace Calculator
             dt1 = new DateTime(dt1.Year, dt1.Month, dt1.Day/*, 0, 0, 0*/);
             dt2 = new DateTime(dt2.Year, dt2.Month, dt2.Day/*, 0, 0, 0*/);
             return (dt2 - dt1).Days;
-
-            #region CODE thủ công
-            //if (dt1 > dt2) { DateTime dtp1_Temp = dt1; dt1 = dt2; dt2 = dtp1_Temp; }
-            //int dist = 0;
-            //if (dt1.Year == dt2.Year) return dt2.DayOfYear - dt1.DayOfYear;
-            //else
-            //{
-            //   //tinh so ngay tinh tu ngay dung truoc den ngay 31/12 cua nam do
-            //    dist = 365 - dt1.DayOfYear + isBis(dt1.Year).GetHashCode();
-
-            //   if (dt2.Year - dt1.Year == 1) dist += dt2.DayOfYear;
-            //   else
-            //   {
-            //       for (int i = dt1.Year + 1; i <= dt2.Year - 1; i++)
-            //       {
-            //           dist += 365 + isBis(i).GetHashCode();
-            //       }
-            //       dist += dt2.DayOfYear;
-            //   }
-            //}
-            //return dist;
-            #endregion
         }
         /// <summary>
         /// chênh lệch giữa 2 ngày theo năm, tháng, tuần, ngày
@@ -274,19 +260,19 @@ namespace Calculator
         /// </summary>
         public static double getRate(int type, int from, int to)
         {
-            if (type == 0) rates = new double[] { Math.PI / 180, Math.PI / 200, 1.0 };
+            if (type == 0) rates = new double[] { Math.PI / 180, Math.PI / 200, 1 };
             if (type == 1) rates = new double[] { 4046.8564224, 1e4,
-                1e-4, 0.09290304, 6.4516E-4, 1e6, 1.0, 2589988.110336, 1e-6, 0.83612736 };
-            if (type == 2) rates = new double[] { 1055.05585, 4.1868, 1.60217653e-19, 1.3558179483314, 1.0, 4186.8, 1e3 };
+                1e-4, 0.09290304, 6.4516E-4, 1e6, 1, 2589988.110336, 1e-6, 0.83612736 };
+            if (type == 2) rates = new double[] { 1055.05585, 4.1868, 1.60217653e-19, 1.3558179483314, 1, 4186.8, 1e3 };
             if (type == 3) rates = new double[] { 1e-10, 0.01, 20.1168, 1.8288, 0.3048,
-                0.1016, 0.0254, 1e3, 0.201168, 1.0, 1e-6,1609.344, 1e-3, 1e-9,1852, 0.0042175176, 5.0292, 0.2286, 0.9144};
-            if (type == 4) rates = new double[] { 17.58426666666667, 0.0225969658055233, 745.6998715822702, 1000.0, 1.0 };
-            if (type == 5) rates = new double[] { 101325.0, 1e5, 1e3, 133.322368, 1.0, 6894.75729 };
-            if (type == 7) rates = new double[] { 8.64e4, 3.6e3, 1e-6, 1e-3, 60.0, 1.0, 6.048e5 };
-            if (type == 8) rates = new double[] { 0.01, 0.3048, 0.2777777777777778, 0.5144444444444444, 340.2933, 1.0, 0.44704 };
-            if (type == 9) rates = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1.0, 0.764554857984, 2.84130625e-5, 2.95735295625e-5,
+                0.1016, 0.0254, 1e3, 0.201168, 1, 1e-6,1609.344, 1e-3, 1e-9,1852, 0.0042175176, 5.0292, 0.2286, 0.9144};
+            if (type == 4) rates = new double[] { 17.58426666666667, 0.0225969658055233, 745.6998715822702, 1000.0, 1 };
+            if (type == 5) rates = new double[] { 101325.0, 1e5, 1e3, 133.322368, 1, 6894.75729 };
+            if (type == 7) rates = new double[] { 8.64e4, 3.6e3, 1e-6, 1e-3, 60.0, 1, 6.048e5 };
+            if (type == 8) rates = new double[] { 0.01, 0.3048, 0.2777777777777778, 0.5144444444444444, 340.2933, 1, 0.44704 };
+            if (type == 9) rates = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1, 0.764554857984, 2.84130625e-5, 2.95735295625e-5,
                 4.54609e-3, 3.785411784e-3, 1e-3, 5.6826125e-4, 4.73176473e-4, 1.1365225e-3, 9.46352946e-4 };
-            if (type == 10) rates = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1.0, 1016.0469088, 1e-6,
+            if (type == 10) rates = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1, 1016.0469088, 1e-6,
                 0.028349523125, 0.45359237, 907.18474, /*1 / 0.157473044418 =*/6.35029318, 1e3 };
             double rateResult = 1;
             if (from >= 0 && to >= 0) rateResult = rates[from] / rates[to];
@@ -299,22 +285,27 @@ namespace Calculator
         {
             if (i1 == i2) return inp;
             double temperature = 1;
-            switch (i1)
+            switch (i1.ToString() + i2.ToString())
             {
-                case 0:    // °C
-                    if (i2 == 1) temperature = 1.8 * inp + 32;   // °F
-                    if (i2 == 2) temperature = inp + 273;        // °K
+                case "01": temperature = 1.8 * inp + 32;            // °C -> °F
                     break;
-                case 1:    // °F
-                    if (i2 == 0) temperature = 5F / 9 * (inp - 32);         // °C
-                    if (i2 == 2) temperature = 5F / 9 * (inp - 32) + 273;   // °K
+                case "02": temperature = inp + 273;                 // °C -> °K
                     break;
-                case 2:    // °K
-                    if (i2 == 0) temperature = inp - 273;                // °C
-                    if (i2 == 1) temperature = 1.8 * (inp - 273) + 32;   // °F
+                case "10": temperature = 5F / 9 * (inp - 32);       // °F -> °C
+                    break;
+                case "12": temperature = 5F / 9 * (inp - 32) + 273; // °F -> °K
+                    break;
+                case "20": temperature = inp - 273;                 // °K -> °C
+                    break;
+                case "21": temperature = 1.8 * (inp - 273) + 32;    // °K -> °F
                     break;
             }
             return temperature;
+        }
+
+        public static void WriteAllText(string path, string content)
+        {
+            System.IO.File.WriteAllText(path, content);
         }
     }
     /// <summary>
@@ -361,68 +352,92 @@ namespace Calculator
         /// <summary>
         /// đổi 1 số từ hệ 10 sang các hệ khác
         /// </summary>
-        public static string dec_to_other(string decimalNumber, /*int from, */int dest, int size)
+        public static string dec_to_other(string decimalNumber, /*int from, */int dest, int size, bool isSign)
         {
             // from nguon, dest dest
             if (decimalNumber == "0") return "0";
-            string result = string.Empty;
             BigNumber realNumber = decimalNumber;
             if (realNumber < 0) realNumber += BigNumber.Two__.Pow(size);
 
-            byte remainder;
+            //byte remainder;
 
-            if (dest == 2)
+            if (dest == 2 || dest == 8)  // 10 -> 2 || 10 -> 8
             {
                 switch (size)
                 {
                     case 08:
-                        return Convert_Byte(ulong.Parse(realNumber.IntString));
+                        if (realNumber <= sbyte.MaxValue && isSign)
+                            return Convert.ToString(sbyte.Parse(realNumber.IntString), dest);
+                        else
+                            return Convert.ToString(byte.Parse(realNumber.IntString), dest);
                     case 16:
-                        return Convert_Word(ulong.Parse(realNumber.IntString));
+                        if (realNumber <= short.MaxValue && isSign)
+                            return Convert.ToString(short.Parse(realNumber.IntString), dest);
+                        else
+                            return Convert.ToString(ushort.Parse(realNumber.IntString), dest);
                     case 32:
-                        return ConvertDword(ulong.Parse(realNumber.IntString));
+                        if (realNumber <= int.MaxValue && isSign)
+                            return Convert.ToString(int.Parse(realNumber.IntString), dest);
+                        else
+                            return Convert.ToString(uint.Parse(realNumber.IntString), dest);
                     case 64:
-                        return ConvertQword(ulong.Parse(realNumber.IntString));
+                        byte remainder;
+                        string result = "";
+                        while (realNumber > 0)
+                        {
+                            remainder = byte.Parse((realNumber - dest * (realNumber / dest).Floor()).IntString);
+                            realNumber = (realNumber / dest).Floor();
+                            result = remainder.ToString() + result;
+                        }
+                        if (dest == 2 && result.Length > 64) throw new Exception("Overflow");
+                        if (dest == 8 && result.Length > 22) throw new Exception("Overflow");
+                        return result;
                 }
-            }
-            if (dest == 8)
-            {
-                while (realNumber > 0)
-                {
-                    remainder = byte.Parse((realNumber - dest * (realNumber / dest).Floor()).IntString);
-                    realNumber = (realNumber / dest).Floor();
-                    result = remainder.ToString() + result;
-                }
-            }
-            if (dest == 16)
-            {
-                result = ulong.Parse(decimalNumber).ToString("X2").TrimStart('0');
             }
 
-            return result;
-        }
+            if (dest == 16) // 10 -> 16
+            {
+                try
+                {
+                    return ulong.Parse(realNumber.StrValue).ToString("X2").TrimStart('0');  // bat buoc phai la ulong
+                }
+                catch { throw new Exception("Overflow"); }
+            }
+            return decimalNumber;
+      }
         /// <summary>
         /// đổi 1 số từ hệ khác 10 sang hệ 10
         /// </summary>
-        public static string other_to_dec(string decimalNumber, int from/*, int dest*/, int Size)
+        public static string other_to_dec(string decimalNumber, int from/*, int dest*/, int Size, bool isSign)
         {
             // from nguon, dest dich
-            ulong result = 0;
+            long result = 0;
             BigNumber bs = 1;
             char[] memberChar = decimalNumber.ToCharArray();
-            if (memberChar.Length < Size) Size = memberChar.Length;
-            for (int i = Size - 1; i >= 0; i--)
+            //if (memberChar.Length < Size) Size = memberChar.Length;
+            for (int i = memberChar.Length - 1; i >= 0; i--)
             {
                 if (memberChar[i] < 58 && memberChar[i] >= 48)
-                    result += ulong.Parse(((memberChar[i] - 48) * bs).StrValue);
+                {
+                    result += (long)ulong.Parse(((memberChar[i] - 48) * bs).StrValue);
+                }
                 else if (memberChar[i] < 71 && memberChar[i] >= 65) //A-F
-                    result += ulong.Parse(((memberChar[i] - 55) * bs).StrValue);
+                {
+                    result += (long)ulong.Parse(((memberChar[i] - 55) * bs).StrValue);
+                }
                 else    //a-f
-                    result += ulong.Parse(((memberChar[i] - 87) * bs).StrValue);
+                {
+                    result += (long)ulong.Parse(((memberChar[i] - 87) * bs).StrValue);
+                }
                 bs *= from;
             }
-            return result.ToString();
-            //return Convert.ToUInt64(decimalNumber, from).ToString();
+            BigNumber ketqua = result;
+            if (Size == memberChar.Length && memberChar[0] == '1' )
+            {
+                if (result > 0 && isSign) ketqua -= BigNumber.Two__.Pow(Size);
+                if (result < 0 && !isSign) ketqua += BigNumber.Two__.Pow(Size);
+            }
+            return ketqua.StrValue;
         }
         /// <summary>
         /// chuẩn hoá xâu - cắt những số 0 thừa ở đầu xâu
@@ -430,43 +445,7 @@ namespace Calculator
         public static string standardString(string str)
         {
             string result = str.TrimStart('0');
-            if (result == "") result = "0";
-            return result;
-        }
-
-        public static string Convert_Byte(ulong decimalNumber)
-        {
-            byte n = (byte)decimalNumber;
-            string result = Convert.ToString(n, 2);
-            return result;
-        }
-
-        public static string Convert_Word(ulong decimalNumber)
-        {
-            ushort n = (ushort)decimalNumber;
-            string result = Convert.ToString(n, 2);
-            return result;
-        }
-
-        public static string ConvertDword(ulong decimalNumber)
-        {
-            uint n = (uint)decimalNumber;
-            string result = Convert.ToString(n, 2);
-            return result;
-        }
-
-        public static string ConvertQword(ulong decimalNumber)
-        {
-            string result = string.Empty;
-            BigNumber realNumber = decimalNumber.ToString();
-
-            int remainder;
-            while (realNumber > 0)
-            {
-                remainder = int.Parse((realNumber - 2 * (realNumber / 2).Floor()).IntString);
-                realNumber = (realNumber / 2).Floor();
-                result = remainder.ToString() + result;
-            }
+            if (result == "") return "0";
             return result;
         }
     }

@@ -30,20 +30,29 @@ namespace Calculator    // version 1.72
         private void emaillb_MouseEnter(object sender, EventArgs e)
         {
             emaillb.ForeColor = Color.Red;
-            emaillb.Font = new Font("Tahoma", 9F, FontStyle.Underline);
+            emaillb.Font = new Font("Tahoma", 8.25f, FontStyle.Underline);
             emaillb.Cursor = Cursors.Hand;
         }
 
         private void emaillb_MouseLeave(object sender, EventArgs e)
         {
             emaillb.ForeColor = Color.Blue;
-            emaillb.Font = new Font("Tahoma", 9F, FontStyle.Regular);
+            emaillb.Font = new Font("Tahoma", 8.25f, FontStyle.Regular);
             emaillb.Cursor = Cursors.Arrow;
         }
 
         private void copyEmailAddrTSMI_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(emaillb.Text);
+        }
+
+        private void MoveForm(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                Misc.ReleaseCapture();
+                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
+            }
         }
     }
 }
