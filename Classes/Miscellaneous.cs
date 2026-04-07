@@ -1,55 +1,50 @@
 ﻿using System;
+using System.Globalization;
 using System.Text.RegularExpressions;
-using Microsoft.Win32;
 
 namespace Calculator
 {
     // true.GetHashCode() = 1
     // false.GetHashCode() = 0
-    class Miscellaneous
+    class Misc
     {
         /// <summary>
-        /// chia các hàng đơn vị của 1 số thực thành từng nhóm
+        /// chia các hàng đơn vị của mot_so_thuc thành từng nhóm 3 số
         /// </summary>
-        /// <param dwordname="obj">chuỗi cần chia</param>
-        public string grouping(object obj)
+        /// <param name="obj">chuỗi cần chia</param>
+        /// <returns>1000000000 thành 1.000.000.000</returns>
+        public static string grouping(object obj)
         {
-            string outp = "";
-            int comma = ("" + obj).IndexOf(getDecimalSym());
-            int exper = ("" + obj).IndexOf("E");
-            if (comma > 0) outp = ("" + obj).Substring(0, comma);
-            else outp = "" + obj;
-            if (exper > 0) outp = ("" + obj).Substring(0, exper);
-            if (("" + obj)[0] == '-') outp = outp.Substring(1); 
-            //int bit = outp.Length - 3;
-            // them 1 dau cach vao giua nhom 3 so o xau ket qua
-            //while (bit > 0 && outp.IndexOf(getDecimalSym()) < 0)
-            //{
-            //    outp = outp.Insert(bit, getThousandSym());
-            //    bit -= 3;
-            //}
-            int temp = outp.Length;
-            for (int i = 3; i < temp; i = i + 3)
-            {
-                outp = outp.Insert(temp - i, getThousandSym());
-            }
+            if (obj.ToString() == "0") return "0";
+            string output = obj.ToString();
+            // biến này lưu giá trị phần nguyên của obj
 
-            if (comma > 0 && exper < 0) outp += ("" + obj).Substring(comma);
-            if (exper > 0) outp += ("" + obj).Substring(exper);
-            if (("" + obj)[0] == '-') outp = "-" + outp;
-            return outp;
+            int comma = output.IndexOf(DecimalSym);
+            if (comma > 0) output = output.Substring(0, comma);	//cắt phần lẻ trước khi chia
+
+            if (obj.ToString()[0] == '-') output = output.Substring(1);	// bỏ dấu âm ở đầu nếu có
+            int temp = output.Length; // phải lưu độ dài biến output vì khi chia, độ dài biến output thay đổi liên tục
+            for (int i = 3; i < temp; i += 3)   // bắt đầu chia
+            {
+                output = output.Insert(temp - i, ThousandSym);
+            }
+            if (comma > 0)  //thêm phần lẻ vào chuỗi đã được nhóm
+            {
+                output += obj.ToString().Substring(comma);
+            }
+            if (obj.ToString()[0] == '-') output = "-" + output;
+
+            return output;
         }
         /// <summary>
         /// chia các hàng đơn vị của 1 số thực thành từng nhóm
         /// </summary>
-        /// <param name="inp">chuỗi cần chia</param>
+        /// <param name="input">chuỗi cần chia</param>
         /// <param name="num">số kí tự của từng nhóm</param>
-        /// <returns></returns>
-        public string grouping(string inp, int num)
+        public static string grouping(string input, int num)
         {
-            string outp = inp;
+            string outp = input;
             int bit = outp.Length - num;
-            //bool spacement = false;
             // them 1 dau cach vao giua nhom 3 so o xau ket qua
             while (bit > 0)
             {
@@ -62,12 +57,11 @@ namespace Calculator
         /// loại bỏ các dấu phân cách hàng đơn vị của 1 số
         /// </summary>
         /// <param dwordname="inputstr">xâu số nhập vào</param>
-        public string de_group(string inputstr)
+        public static string de_group(string inputstr)
         {
             int inp_length = inputstr.Length;
             // bo cac dau . o xau dau vao
-            while (inputstr.IndexOf(getThousandSym()) > 0) 
-                inputstr = inputstr.Replace(getThousandSym(), "");
+            while (inputstr.IndexOf(ThousandSym) > 0) inputstr = inputstr.Replace(ThousandSym, "");
             while (inputstr.IndexOf(" ") > 0) inputstr = inputstr.Replace(" ", "");
             return inputstr;
         }
@@ -75,83 +69,174 @@ namespace Calculator
         /// kiểm tra xem 1 xâu nhập vào có phải là số hay không
         /// </summary>
         /// <param dwordname="input_str">chuỗi cần kiểm tra</param>
-        public bool isNumber(string str)
+        public static bool isNumber(string str)
         {
             try
             {
-                str = str.Trim();
-                double foo = double.Parse(str);
-                return (true);
+                double.Parse(str.Trim());
+                return true;
             }
-            catch
+            catch { return false; }
+        }
+        /// <summary>
+        /// lấy kí tự phân cách giữa phần nguyên và phần lẻ của số
+        /// </summary>
+        private static string getDecimalSym()
+        {
+            return CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+        }
+        /// <summary>
+        /// kí tự phân cách giữa phần nguyên và phần lẻ của số
+        /// </summary>
+        public static string DecimalSym
+        {
+            get { return getDecimalSym(); }
+        }
+        /// <summary>
+        /// lấy kí tự phân cách giữa các hàng đơn vị với nhau: tỷ, triệu, nghìn
+        /// </summary>
+        private static string getThousandSym()
+        {
+            return CultureInfo.CurrentCulture.NumberFormat.NumberGroupSeparator;
+        }
+        /// <summary>
+        /// kí tự phân cách giữa các hàng đơn vị với nhau: tỷ, triệu, nghìn
+        /// </summary>
+        public static string ThousandSym
+        {
+            get { return getThousandSym(); }
+        }
+        /// <summary>
+        /// thêm dấu * vào các vị trí thích hợp
+        /// </summary>
+        /// <param name="expression">biểu thức cần chèn dấu *</param>
+        public static string InsertMultiplyChar(string expression)
+        {
+            string result = expression;
+            Regex regEx = new Regex(@"(?<=[\d\)])(?=[a-df-z\(])|(?<=pi)(?=[^\+\-\*\/\\^!)])|"
+                + @"(?<=\))(?=\d)|(?<=[^\/\*\+\-])(?=expert)", RegexOptions.IgnoreCase);//(?=exp)
+            result = regEx.Replace(result, "*");
+            return result;
+        }
+        /// <summary>
+        /// thêm dấu ngoặc vào các vị trí đặt hàm
+        /// 1 + ln2 --> 1 + ln(2)
+        /// </summary>
+        /// <param name="expression">chuỗi cần thay thế</param>
+        public static string InsertBracket(string expression)
+        {
+            string result = expression;
+            Regex reg = new Regex(@"(-|)([a-z]{2,})([\+-]?\d+,*\d*[eE][\+-]?\d+|[\+-]?\d+,*\d*)");
+            Match m = reg.Match(result);
+            while (m.Success)
             {
-                return (false);
+                result = result.Replace(m.Value, string.Format("{0}{1}({2})", m.Groups[1].Value, m.Groups[2].Value, m.Groups[3].Value));
+                m = reg.Match(result);
             }
+            return result;
         }
         /// <summary>
-        /// lấy dấu phân cách phần nguyên và phần lẻ của 1 số
+        /// xoá các dấu ngoặc thừa trong biểu thức
+        /// 2 + sqr((((-3)))) --> 2 + sqr(-3)
+        /// 2 + ((((3)))) --> 2 + 3
         /// </summary>
-        private string getDecimalSym()
+        /// <param name="pattern">chuỗi nhận dạng</param>
+        /// <param name="expression">chuỗi cần thay thế</param>
+        public static string RemoveBracket(string expression)
         {
-            RegistryKey reg = Registry.CurrentUser;
-            reg = reg.OpenSubKey("Control Panel\\International");
-            string ret = reg.GetValue("sDecimal").ToString();
-            reg.Close();
-            return ret;
-        }
-        /// <summary>
-        /// lấy dấu phân cách hàng đơn vị của 1 số
-        /// </summary>
-        private string getThousandSym()
-        {
-            RegistryKey reg = Registry.CurrentUser;
-            reg = reg.OpenSubKey("Control Panel\\International");
-            return (string) reg.GetValue("sThousand");
+            // "((-7))" -> xoa bot 1 cap dau ngoac -> (-7)
+            Regex reg = new Regex(@"(\(\()([\+-]?\d+,*\d*[eE][\+-]?\d+|[\-\+]?\d+,*\d*)(\)\))");    // ((mot_so_thuc))
+            Match m = reg.Match(expression);
+            while (m.Success)
+            {
+                expression = expression.Replace(m.Value, m.Value.Substring(1, m.Value.Length - 2));
+                m = reg.Match(expression);
+            }
+            return expression;
         }
         /// <summary>
         /// kiểm tra xem năm đưa vào có phải năm nhuận hay không (is Bissextile)
         /// </summary>
-        /// <param dwordname="year">true nếu year là năm nhuận, false nếu ngược lại</param>
-        private bool isBis(int year)
+        /// <param name="year">năm đưa vào</param>
+        /// <returns>true nếu year là năm nhuận, false nếu ngược lại</returns>
+        private static bool isBis(int year)
         {
             return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
         }
         /// <summary>
         /// trả về giá trị là khoảng thời gian giữa 2 ngày trong control datetimempicker
         /// </summary>
-        public int differenceBW2Dates(DateTime dtp1, DateTime dtp2)
+        public static int differenceBW2Dates(DateTime dt1, DateTime dt2)
         {
-            double dist = dtp2.Subtract(dtp1).Days;
-            dist = Math.Round(dist);
-            return (int)Math.Abs(dist);
+            if (dt1 > dt2) { DateTime dtp1_Temp = dt1; dt1 = dt2; dt2 = dtp1_Temp; }
+            dt1 = new DateTime(dt1.Year, dt1.Month, dt1.Day, 0, 0, 0);
+            dt2 = new DateTime(dt2.Year, dt2.Month, dt2.Day, 0, 0, 0);
+            double dist = (dt2 - dt1).Days;
+            return (int)dist;
+
+            #region CODE thủ công
+            //if (dt1 > dt2) { DateTime dtp1_Temp = dt1; dt1 = dt2; dt2 = dtp1_Temp; }
+            //int dist = 0;
+            //if (dt1.Year == dt2.Year) return dt2.DayOfYear - dt1.DayOfYear;
+            //else
+            //{
+            //   //tinh so ngay tinh tu ngay dung truoc den ngay 31/12 cua nam do
+            //    dist = 365 - dt1.DayOfYear + isBis(dt1.Year).GetHashCode();
+
+            //   if (dt2.Year - dt1.Year == 1) dist += dt2.DayOfYear;
+            //   else
+            //   {
+            //       for (int j = dt1.Year + 1; j <= dt2.Year - 1; j++)
+            //       {
+            //           dist += 365 + isBis(j).GetHashCode();
+            //       }
+            //       dist += dt2.DayOfYear;
+            //   }
+            //}
+            //return dist;
+            #endregion
         }
         /// <summary>
         /// chênh lệch giữa 2 ngày theo năm, tháng, tuần, ngày
         /// </summary>
-        /// <param dwordname="dtp1">ngày thứ nhất, luôn là ngày phía trước dtp2</param>
-        /// <param dwordname="dtp2">ngày thứ hai, luôn là ngày phía sau dtp1</param>
-        public int[] differencesTimes(DateTime dtp1, DateTime dtp2)
+        /// <param dwordname="dt1">ngày thứ nhất, luôn là ngày phía trước dt2, dtp1 < dtp2</param>
+        /// <param dwordname="dt2">ngày thứ hai,  luôn là ngày phía sau   dt1, dtp1 < dtp2</param>
+        public static int[] differencesTimes(DateTime dtp1, DateTime dtp2)
         {
+			DateTime dtp1_Temp;
+            if (dtp1 > dtp2) { dtp1_Temp = dtp1; dtp1 = dtp2; dtp2 = dtp1_Temp; }
             int[] differ = new int[4];
-            DateTime dtp1_Temp = dtp1;
+            dtp1_Temp = dtp1;
             // differ[0] - year - DONE
             differ[0] = dtp2.Year - dtp1_Temp.Year;
             dtp1_Temp = dtp1.AddYears(differ[0]);
-            differ[0] = differ[0] - (dtp1_Temp.DayOfYear > dtp2.DayOfYear).GetHashCode();
+            if (dtp1_Temp.DayOfYear > dtp2.DayOfYear) differ[0]--;
 
             // differ[1] - month - DONE
             dtp1_Temp = dtp1.AddYears(differ[0]);
             differ[1] = dtp2.Month - dtp1_Temp.Month;
-            differ[1] = differ[1] - (dtp1_Temp.Day > dtp2.Day).GetHashCode();
-            differ[1] = differ[1] + 12 * (differ[1] < 0).GetHashCode();
+            if (isBis(dtp1.Year) && isBis(dtp2.Year))   // chua ro la && hay ||
+            {
+                if (dtp1/*_Temp*/.Day > dtp2.Day) differ[1]--;
+            }
+            else
+            {
+                if (dtp1_Temp.Day > dtp2.Day) differ[1]--;
+            }
+            if (differ[1] < 0) differ[1] += 12;
 
             // differ[3] - day - DONE
             int diff3 = 0;
             dtp1_Temp = dtp1_Temp.AddMonths(differ[1]);
             diff3 = dtp2.DayOfYear - dtp1_Temp.DayOfYear;
-            // neu la nam nhuan thi +366, khong thi 365      
             // neu diff3 < 0 thi moi +365/366, khong thi thoi
-            diff3 += (365 + isBis(dtp1_Temp.Year).GetHashCode()) * (diff3 < 0).GetHashCode();
+            if (diff3 < 0)
+            {
+                // năm nhuận + 366, năm thường +365
+                //if (isBis(dtp1_Temp.Year)) diff3 += 366;
+                //else diff3 += 365;
+                diff3 += (365 + isBis(dtp1_Temp.Year).GetHashCode());
+            }
             differ[3] = diff3 % 7;
 
             // differ[2], từ 3 mới suy ra 2 - week - ALWAYS DONE
@@ -164,161 +249,55 @@ namespace Calculator
         /// <summary>
         /// biến lưu trữ tỷ lệ giữa các đơn vị đo
         /// </summary>
-        double[][] rates = new double[11][];
+        static double[][] rates = new double[11][];
         /// <summary>
         /// lấy tỷ lệ giữa các đơn vị đo
         /// </summary>
-        public double getRate(int type, int i1, int i2)
+        public static double getRate(int type, int from, int to)
         {
             rates[00] = new double[] { Math.PI / 180, Math.PI / 200, 1.0 };
-            rates[01] = new double[] { 4046.8564224, 1e4, 
+            rates[01] = new double[] { 4046.8564224, 1e4,
                 1e-4, 0.09290304, 6.4516E-4, 1e6, 1.0, 2589988.110336, 1e-6, 0.83612736 };
-            rates[02] = new double[] { 1055.05585, 4.184, 1.60217646e-19, 1.35581795, 1.0, 4184.0, 1e3 };
-            rates[03] = new double[] { 1e-10, 0.01, 20.1168, 1.8288, 0.3048, 
+            rates[02] = new double[] { 1055.05585, 4.1868, 1.60217653e-19, 1.3558179483314, 1.0, 4186.8, 1e3 };
+            rates[03] = new double[] { 1e-10, 0.01, 20.1168, 1.8288, 0.3048,
                 0.1016, 0.0254, 1e3, 0.201168, 1.0, 1e-6,1609.344,
-                1e-3, 1e-9,1852, 0.004233333, 5.0292, 0.2286, 0.9144};
-            rates[04] = new double[] { 17.5842642, 0.0225969658, 745.699872, 1000.0, 1.0 };
+                1e-3, 1e-9,1852, 0.0042175176, 5.0292, 0.2286, 0.9144};
+            //rates[04] = new double[] { 17.5842642, 0.0225969658, 745.699872, 1000.0, 1.0 };
+            rates[04] = new double[] { 17.58426666666667, 0.0225969658055233, 745.6998715822702, 1000.0, 1.0 };
             rates[05] = new double[] { 101325.0, 1e5, 1e3, 133.322368, 1.0, 6894.75729 };
             rates[07] = new double[] { 8.64e4, 3.6e3, 1e-6, 1e-3, 60.0, 1.0, 6.048e5 };
-            rates[08] = new double[] { 0.01, 0.3048, 1000.0 / 3600, 1852.0, 340.2933, 1.0, 0.44704 };
-            rates[09] = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1.0, 0.764554857984, 2.84130625e-5, 2.957352956e-5,
-                4.54609e-3, 3.785412e-3, 1e-3, 5.50610471358e-4, 4.5464e-4, 1.1365255e-3, 9.46352946e-4 };
-            rates[10] = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1.0, 1016.04691, 1e-6, 
-                0.0283495231, 0.45359237, 907.18474, /*1 / 0.157473044418 =*/6.35029318, 1e3 };
-            double rr = 1;
-            if (i1 >= 0 && i2 >= 0) rr = rates[type][i1] / rates[type][i2];
-            return (double) rr;
+            rates[08] = new double[] { 0.01, 0.3048, 0.2777777777777778, 0.5144444444444444, 340.2933, 1.0, 0.44704 };
+            rates[09] = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1.0, 0.764554857984, 2.84130625e-5, 2.95735295625e-5,
+                4.54609e-3, 3.785411784e-3, 1e-3, 5.6826125e-4, 4.73176473e-4, 1.1365225e-3, 9.46352946e-4 };
+            rates[10] = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1.0, 1016.0469088, 1e-6,
+                0.028349523125, 0.45359237, 907.18474, /*1 / 0.157473044418 =*/6.35029318, 1e3 };
+            double rateResult = 1;
+            if (from >= 0 && to >= 0) rateResult = rates[type][from] / rates[type][to];
+            return rateResult;
         }
         /// <summary>
         /// đổi giữa các đơn vị đo nhiệt độ
         /// </summary>
-        public double getTemperature(int i1, int i2, double inp)
+        public static double getTemperature(int i1, int i2, double inp)
         {
-            double rr = 1;
-            if (i1 == 0)    // °C
+            double temperature = 1;
+            switch (i1)
             {
-                if (i2 == 1) rr = 1.8 * inp + 32;   // °F
-                if (i2 == 2) rr = inp + 273;        // °K
+                case 0:    // °C
+                    if (i2 == 1) temperature = 1.8 * inp + 32;   // °F
+                    if (i2 == 2) temperature = inp + 273;        // °K
+                    break;
+                case 1:    // °F
+                    if (i2 == 0) temperature = 5F / 9F * (inp - 32);         // °C
+                    if (i2 == 2) temperature = 5F / 9F * (inp - 32) + 273;   // °K
+                    break;
+                case 2:    // °K
+                    if (i2 == 0) temperature = inp - 273;                // °C
+                    if (i2 == 1) temperature = 1.8 * (inp - 273) + 32;   // °F
+                    break;
             }
-            if (i1 == 1)    // °F
-            {
-                if (i2 == 0) rr = 5F / 9F * (inp - 32);         // °C
-                if (i2 == 2) rr = 5F / 9F * (inp - 32) + 273;   // °K
-            }
-            if (i1 == 2)    // °K
-            {
-                if (i2 == 0) rr = inp - 273;                // °C
-                if (i2 == 1) rr = 1.8 * (inp - 273) + 32;   // °F
-            }
-            if (i1 == i2) rr = inp;
-            return (double) rr;
-        }
-        /// <summary>
-        /// cắt các số 0 thừa ở đầu và cuối xâu
-        /// </summary>
-        public string splitNumber(string input_str)
-        {
-            string result = input_str;
-            if (result.IndexOf(getDecimalSym()) >= 0)
-            {
-                while (result[result.Length - 1] == '0' && result.Length > 1)
-                {
-                    result = result.Substring(0, result.Length - 1);
-                }
-                if (result[result.Length - 1] == getDecimalSym()[0])
-                {
-                    result = result.Substring(0, result.Length - 1);
-                }
-            }
-            return result;
-        }
-        /// <summary>
-        /// input_str = "1e16",  return 10000000000000000,  tạm hiểu thế
-        /// input_str = "1e-16", return 0.0000000000000001, tạm hiểu thế
-        /// </summary>
-        public string ToDouble(string input_str)
-        {
-            string result = input_str.Substring(0, input_str.IndexOf('E'));
-            int base_ = int.Parse(input_str.Substring(input_str.IndexOf('E') + 1));
-            int afterDecSym = (result.IndexOf(getDecimalSym()) > 0).GetHashCode(); // 1 = có dấu ',', 0 = không có dấu ','
-            afterDecSym *= (result.Length - result.IndexOf(getDecimalSym()) - 1);
-            //result = wrap.Remove((n = (wrap.IndexOf(getDecimalSym()) >= 0).GetHashCode()), n);
-            if (result.IndexOf(getDecimalSym()) >= 0)
-            {
-                result = result.Remove(result.IndexOf(getDecimalSym()), 1);
-            }
-            for (int i = afterDecSym * (base_ >= 0).GetHashCode(); i < Math.Abs(base_); i++)
-            {
-                if (base_ < 0)
-                    result = "0" + result;
-                else
-                    result += "0";
-            }
-            if (result.IndexOf("-") > 0)
-            {
-                result = result.Remove(result.IndexOf("-"), 1);
-                result = "-" + result.Insert(1, getDecimalSym());
-            }
-
-            //if (base_ < 0) result = result.Insert(1, getDecimalSym());
-
-            return result;
-        }	
-        /// <summary>
-        /// hàm tính luỹ thừa của a^m
-        /// </summary>
-        /// <param dwordname="a">cơ số của luỹ thừa</param>
-        /// <param dwordname="m">số mũ của luỹ thừa</param>
-        /// <returns>kết quả của a^m</returns>
-        public static double luythua(double a, double m)
-        {
-            int i = 0;
-            double r = 1, s = Math.Abs(m), mu = 1;
-
-            if (m == 0) mu = 1;
-            if (Math.Abs(m) == 1) r = a;
-            if (Math.Abs(m) > 1)
-            {
-                s = (double) ((int) m);
-                if (m - s == 0)
-                    for (i = 0; i < s; i++) r *= a;
-                else
-                {
-                    for (i = 0; i < Math.Abs(m) - 1; i++) r *= a;
-                    r = r * Math.Exp(Math.Abs(m - s) * Math.Log(a) / Math.Log(Math.E));
-                }
-            }
-            if (Math.Abs(m) < 1) r = Math.Exp(s * Math.Log(a) / Math.Log(Math.E));
-            if (m > 0) mu = r; else mu = 1 / r;
-            return mu;
-        }
-        /// <summary>
-        /// input_str = "2^5" (2 mũ 5), return 32, tạm hiểu thế
-        /// </summary>
-        public double power(string input_str)
-        {
-            int daumu = input_str.IndexOf('^');
-            if (daumu > 0)
-            {
-                double d1 = double.Parse(input_str.Substring(0, daumu));
-                double d2 = double.Parse(input_str.Substring(daumu + 1));
-                return luythua(d1, d2);
-            }
-            else return 1;
-        }
-        /// <summary>
-        /// input_str = "32√5" - căn bậc 5 của 32, return 2, tạm hiểu thế
-        /// </summary>
-        public double power_inv(string input_str)
-        {
-            int daumu = input_str.IndexOf('√');
-            if (daumu > 0)
-            {
-                double d1 = double.Parse(input_str.Substring(0, daumu));
-                double d2 = double.Parse(input_str.Substring(daumu + 1));
-                return luythua(d1, 1 / d2);
-            }
-            else return 1;
+            if (i1 == i2) temperature = inp;
+            return (double) temperature;
         }
     }
     /// <summary>
@@ -327,7 +306,7 @@ namespace Calculator
     class Binary
     {
         /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu bin hay không
+        /// kiểm tra 1 xâu có phải kiểu decimalNumber hay không
         /// </summary>
         public static bool CheckIsBin(string str)
         {
@@ -358,16 +337,16 @@ namespace Calculator
         /// </summary>
         public static bool CheckIsHex(string str)
         {
-            Regex reg = new Regex("^[0-9A-Fa-f]+$");
+            Regex reg = new Regex("^[0-9,A-F,a-f]+$");
 
             return reg.IsMatch(str);
         }
-
         /// <summary>
         /// tính a^n với a, n nguyên
         /// </summary>
         public static ulong powan(int coso, int somu)
         {
+            if (somu == 64) return ulong.MaxValue;
             ulong luythua = 1;
             for (int j = 1; j <= somu; j++)
             {
@@ -378,134 +357,142 @@ namespace Calculator
         /// <summary>
         /// đổi 1 số từ hệ 10 sang các hệ khác
         /// </summary>
-        public static string dec_to_other(string phannguyen, /*int cs, */int bs)
+        public static string dec_to_other(string decimalNumber, /*int from, */int dest, int size)
         {
-            // cs nguon, bs dich
-            ulong sothuc = ulong.Parse(phannguyen);
-            int bit = 0, i = 0, dich = 10;  // i - bien chay, bit - do dai xau ket qua
-            ulong[] array = new ulong[64];
-            string[] mangchar = new string[64];
-            string ketqua = "";
-            if (bs == 1) dich = 2;
-            if (bs == 2) dich = 8;
-            if (bs == 4) return sothuc.ToString("X2");
-            if (sothuc == 0) ketqua = "0";
-            for (i = 0; i <= 31; i++) array[i] = 16;
-            while (sothuc != 0)
+            // from nguon, dest dest
+            if (decimalNumber == "0") return "0";
+            string result = string.Empty;
+            BigNumber realNumber = decimalNumber;
+
+            int remainder;
+            if (dest != 2)
             {
-                array[bit] = sothuc % (ulong)dich;
-                sothuc = sothuc / (ulong)dich;
-                bit++;
+                //result = Convert.ToString((long)realNumber, dest).ToUpper();
+
+                #region code moi
+                while (realNumber > 0)
+                {
+                    remainder = int.Parse((realNumber - dest * (realNumber / dest).Floor()).IntString);
+                    realNumber = (realNumber / dest).Floor();
+                    if (remainder < 10)
+                        result = remainder.ToString() + result;
+                    else
+                        result = Convert.ToChar(remainder + 55) + result;
+                }
+                #endregion
             }
-            for (i = bit - 1; i >= 0; i--)
+            else
             {
-                if (bs == 4)  // neu ket qua muon dua ra la so hexa
+                switch (size)
                 {
-                    mangchar[i] = (array[i]).ToString();
+                    case 08:
+                        return Convert_Byte(ulong.Parse(realNumber.IntString));
+                    case 16:
+                        return Convert_Word(ulong.Parse(realNumber.IntString));
+                    case 32:
+                        return ConvertDword(ulong.Parse(realNumber.IntString));
+                    case 64:
+                        return ConvertQword(ulong.Parse(realNumber.IntString));
                 }
-                else         // neu ket qua muon dua ra khong phai la so hexa
-                {
-                    mangchar[i] = (array[i]).ToString();
-                }
-                ketqua += mangchar[i];
             }
-            return ketqua;
+            return result;
         }
         /// <summary>
         /// đổi 1 số từ hệ khác 10 sang hệ 10
         /// </summary>
-        public static string other_to_dec(string phannguyen, int cs/*, int bs*/)
+        public static string other_to_dec(string decimalNumber, int from/*, int dest*/, int Size)
         {
-            // cs nguon, bs dich
-            int i = 0, dich = 2;
+            // from nguon, dest dich
             ulong result = 0;
-            ulong[] array = new ulong[64];
-            char[] mangchar = new char[64];
-            string ketqua;
-            if (cs == 2) dich = 8;
-            if (cs == 3) dich = 10;
-            if (cs == 4) dich = 16;
-            // lay tung chu so cua xau input ghi ra array
-            for (i = 0; i <= phannguyen.Length - 1; i++)
+            BigNumber bs = 1;
+            char[] memberChar = decimalNumber.ToCharArray();
+            if (memberChar.Length < Size) Size = memberChar.Length;
+            for (int i = Size - 1; i >= 0; i--)
             {
-                mangchar[i] = phannguyen[i];
-                if ((mangchar[i] >= 48) && (mangchar[i] <= 57)) array[i] = (ulong)(mangchar[i] - 48);
-                if ((mangchar[i] >= 65) && (mangchar[i] <= 70)) array[i] = (ulong)(mangchar[i] - 55);
+                if (memberChar[i] < 58 && memberChar[i] >= 48)
+                    result += ulong.Parse(((memberChar[i] - 48) * bs).StringValue);
+                else if (memberChar[i] < 71 && memberChar[i] >= 65)
+                    result += ulong.Parse(((memberChar[i] - 55) * bs).StringValue);
+                else
+                    result += ulong.Parse(((memberChar[i] - 87) * bs).StringValue);
+                bs *= from;
             }
-            for (i = phannguyen.Length - 1; i >= 0; i--)
-            {
-                result += array[i] * powan(dich, phannguyen.Length - i - 1);
-            }
-            ketqua = (result).ToString();
-            return ketqua;
-        }
-        /// <summary>
-        /// đổi 1 số từ hệ 2 sang các hệ khác
-        /// </summary>
-        public static string bin_to_other(string binnum, int cs)
-        {
-            // cs nguon, bs dich
-            string binnum64 = binnum, ketqua = "";
-            string[] hex = new string[16];
-            string[] oct = new string[22];
-            for (int i = binnum.Length; i < 64; i++) binnum64 = "0" + binnum64;
-
-            #region sang hệ 8
-            if (cs == 2)
-            {
-                for (int i = 0; i < 21; i++)
-                {
-                    oct[i] = binnum64.Substring(61 - 3 * i, 3);
-                    if (oct[i] == "000") ketqua = "0" + ketqua;
-                    if (oct[i] == "001") ketqua = "1" + ketqua;
-                    if (oct[i] == "010") ketqua = "2" + ketqua;
-                    if (oct[i] == "011") ketqua = "3" + ketqua;
-                    if (oct[i] == "100") ketqua = "4" + ketqua;
-                    if (oct[i] == "101") ketqua = "5" + ketqua;
-                    if (oct[i] == "110") ketqua = "6" + ketqua;
-                    if (oct[i] == "111") ketqua = "7" + ketqua;
-                }
-                oct[21] = binnum64[0].ToString();
-                if (oct[21] == "1") ketqua = "1" + ketqua;
-            }
-            #endregion
-
-            #region sang hệ 16
-            if (cs == 4)
-            {
-                for (int i = 0; i < 16; i++)
-                {
-                    hex[i] = binnum64.Substring(60 - 4 * i, 4);
-                    if (hex[i] == "0000") ketqua = "0" + ketqua;
-                    if (hex[i] == "0001") ketqua = "1" + ketqua;
-                    if (hex[i] == "0010") ketqua = "2" + ketqua;
-                    if (hex[i] == "0011") ketqua = "3" + ketqua;
-                    if (hex[i] == "0100") ketqua = "4" + ketqua;
-                    if (hex[i] == "0101") ketqua = "5" + ketqua;
-                    if (hex[i] == "0110") ketqua = "6" + ketqua;
-                    if (hex[i] == "0111") ketqua = "7" + ketqua;
-                    if (hex[i] == "1000") ketqua = "8" + ketqua;
-                    if (hex[i] == "1001") ketqua = "9" + ketqua;
-                    if (hex[i] == "1010") ketqua = "A" + ketqua;
-                    if (hex[i] == "1011") ketqua = "B" + ketqua;
-                    if (hex[i] == "1100") ketqua = "C" + ketqua;
-                    if (hex[i] == "1101") ketqua = "D" + ketqua;
-                    if (hex[i] == "1110") ketqua = "E" + ketqua;
-                    if (hex[i] == "1111") ketqua = "F" + ketqua;
-                }
-            }
-            #endregion
-
-            return standardString(ketqua);
+            return result.ToString();
+            //return Convert.ToUInt64(decimalNumber, from).ToString();
         }
         /// <summary>
         /// chuẩn hoá xâu - cắt những số 0 thừa ở đầu xâu
         /// </summary>
-        private static string standardString(string str)
+        public static string standardString(string str)
         {
-            string result = str;
-            while (result[0] == '0' && result.Length > 1)
-                result = result.Substring(1, result.Length - 1);
+            string result = str.TrimStart(new char[] { '0' });
+            if (result == "") result = "0";
+            return result;
+        }
+
+        #region code cu
+        //public static string Convert_Byte(ulong decimalNumber)
+        //{
+        //    Byte n = (Byte)decimalNumber;
+        //    string result = Convert.ToString(n, 2);
+        //    return result;
+        //}
+
+        //public static string Convert_Word(ulong decimalNumber)
+        //{
+        //    UInt16 n = (UInt16)decimalNumber;
+        //    string result = Convert.ToString(n, 2);
+        //    return result;
+        //}
+
+        //public static string ConvertDword(ulong decimalNumber)
+        //{
+        //    UInt32 n = (UInt32)decimalNumber;
+        //    string result = Convert.ToString(n, 2);
+        //    return result;
+        //}
+
+        //public static string ConvertQword(ulong decimalNumber)
+        //{
+        //    UInt64 n = decimalNumber;
+        //    string result = Convert.ToString((Int64)n, 2);
+        //    return result;
+        //}
+        #endregion
+
+        public static string Convert_Byte(ulong decimalNumber)
+        {
+            Byte n = (Byte)decimalNumber;
+            string result = Convert.ToString(n, 2);
+            return result;
+        }
+
+        public static string Convert_Word(ulong decimalNumber)
+        {
+            UInt16 n = (UInt16)decimalNumber;
+            string result = Convert.ToString(n, 2);
+            return result;
+        }
+
+        public static string ConvertDword(ulong decimalNumber)
+        {
+            UInt32 n = (UInt32)decimalNumber;
+            string result = Convert.ToString(n, 2);
+            return result;
+        }
+
+        public static string ConvertQword(ulong decimalNumber)
+        {
+            string result = string.Empty;
+            BigNumber realNumber = decimalNumber.ToString();
+
+            int remainder;
+            while (realNumber > 0)
+            {
+                remainder = int.Parse((realNumber - 2 * (realNumber / 2).Floor()).IntString);
+                realNumber = (realNumber / 2).Floor();
+                result = remainder.ToString() + result;
+            }
             return result;
         }
     }

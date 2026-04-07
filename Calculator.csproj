@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{56A9F57B-E826-4DCB-8127-FD8430F061AC}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -13,7 +13,31 @@
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>calc_ico.ico</ApplicationIcon>
-    <NoWin32Manifest>true</NoWin32Manifest>
+    <StartupObject>
+    </StartupObject>
+    <TargetZone>LocalIntranet</TargetZone>
+    <GenerateManifests>false</GenerateManifests>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <TargetFrameworkProfile />
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,7 +47,14 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <NoWarn>
+    </NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>
+    </DocumentationFile>
+    <GenerateSerializationAssemblies>Auto</GenerateSerializationAssemblies>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,11 +63,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Windows.Forms">
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="About.cs">
@@ -45,34 +79,23 @@
     <Compile Include="About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
+    <Compile Include="BigNumber\BigNum.cs" />
+    <Compile Include="BigNumber\BigNum_MathFunction.cs" />
+    <Compile Include="BigNumber\BigNum_LookupTables.cs" />
+    <Compile Include="BigNumber\BigNum_BasicOperator.cs" />
+    <Compile Include="BigNumber\BigNum_SinCosTan.cs" />
     <Compile Include="calc.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="calc.Designer.cs">
       <DependentUpon>calc.cs</DependentUpon>
     </Compile>
+    <Compile Include="OverrideControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Classes\Miscellaneous.cs" />
-    <Compile Include="Classes\Number.cs" />
     <Compile Include="Classes\Parser.cs" />
-    <Compile Include="Temp_Form\Statistics.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Temp_Form\Statistics.Designer.cs">
-      <DependentUpon>Statistics.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Temp_Form\Scientific.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Temp_Form\Scientific.Designer.cs">
-      <DependentUpon>Scientific.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
-    <Compile Include="Temp_Form\Programmer.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Temp_Form\Programmer.Designer.cs">
-      <DependentUpon>Programmer.cs</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="About.resx">
       <DependentUpon>About.cs</DependentUpon>
@@ -82,38 +105,33 @@
       <DependentUpon>calc.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Temp_Form\Scientific.resx">
-      <DependentUpon>Scientific.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Temp_Form\Programmer.resx">
-      <DependentUpon>Programmer.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Temp_Form\sciWithHistory.resx">
-      <DependentUpon>sciWithHistory.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Temp_Form\Statistics.resx">
-      <DependentUpon>Statistics.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Temp_Form\stdWithHistory.resx">
-      <DependentUpon>stdWithHistory.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Temp_Form\sciWithHistory.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Temp_Form\sciWithHistory.Designer.cs">
-      <DependentUpon>sciWithHistory.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Temp_Form\stdWithHistory.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Temp_Form\stdWithHistory.Designer.cs">
-      <DependentUpon>stdWithHistory.cs</DependentUpon>
-    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
     <Content Include="calc_ico.ico" />
