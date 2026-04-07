@@ -514,9 +514,9 @@
             this.digitGroupingTSMI.Size = new System.Drawing.Size(188, 22);
             this.digitGroupingTSMI.Text = "D&igit grouping";
             // 
-            // toolStripSeparator3
+            // sepTSMI3
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Name = "sepTSMI3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(185, 6);
             // 
             // basicTSMI

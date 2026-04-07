@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Microsoft.Win32;
-using Microsoft.JScript;
-using System.Runtime.InteropServices;
 
 namespace Calculator
 {
@@ -13,6 +12,116 @@ namespace Calculator
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
+
+        #region muParser Code
+        private void muParserMethod()
+        {
+            try
+            {
+                m_parser = new Parser();
+                m_parser.DefineFun("fun1", new Parser.Fun1Delegate(fun1));
+                m_parser.DefineFun("fun2", new Parser.Fun2Delegate(fun2));
+                m_parser.DefineFun("fun3", new Parser.Fun3Delegate(fun3));
+                m_parser.DefineFun("fun4", new Parser.Fun4Delegate(fun4));
+                m_parser.DefineFun("fun5", new Parser.Fun5Delegate(fun5));
+                m_parser.DefineFun("prod", new Parser.MultFunDelegate(prod));
+                m_parser.DefineOprt("%", new Parser.Fun2Delegate(fun2), 2);
+
+                m_parser.DefinePostfixOprt("m", new Parser.Fun1Delegate(milli));
+                m_parser.DefineInfixOprt("!", new Parser.Fun1Delegate(not), Parser.EPrec.prLOGIC);
+
+                m_parser.DefineVar("ans", m_ans);
+                m_parser.DefineVar("my_var1", m_val1);
+                m_parser.DefineVar("my_var2", m_val2);
+            }
+            catch (ParserException exc)
+            {
+                DumpException(exc);
+            }
+        }
+
+        private void DumpException(ParserException exc)
+        {
+            string sMsg;
+
+            sMsg = "An error occured:\n";
+            sMsg += string.Format("  Expression:  \"{0}\"\n", exc.Expression);
+            sMsg += string.Format("  Message:     \"{0}\"\n", exc.Message);
+            sMsg += string.Format("  Token:       \"{0}\"\n", exc.Token);
+            sMsg += string.Format("  Position:      {0}\n", exc.Position);
+
+            //meHistory.SelectionColor = System.Drawing.Color.Red;
+            //meHistory.AppendText(sMsg);
+            //meHistory.SelectionColor = System.Drawing.Color.Black;
+
+            //meHistory.SelectionStart = meHistory.TextLength;
+            //meHistory.ScrollToCaret();
+        }
+
+        private Parser m_parser;
+        private ParserVariable m_val1 = new ParserVariable(0);
+        private ParserVariable m_val2 = new ParserVariable(0);
+        private ParserVariable m_ans = new ParserVariable(0);
+
+        public double prod(double[] a, int size)
+        {
+            double val = 1;
+            for (int i = 0; i < size; ++i)
+                val *= a[i];
+
+            return val;
+        }
+
+        public double strFun1(String str, double val1)
+        {
+            return val1 * 2;
+        }
+
+        public double strFun2(String str, double val1, double val2)
+        {
+            return val1 + val2;
+        }
+
+        public double strFun3(String str, double val1, double val2, double val3)
+        {
+            return val1 + val2 + val3;
+        }
+
+        public double milli(double val1)
+        {
+            return val1 / 1000.0;
+        }
+
+        public double not(double val1)
+        {
+            return (val1 == 0) ? 1 : 0;
+        }
+
+        public double fun1(double val1)
+        {
+            return val1 * 2;
+        }
+
+        public double fun2(double val1, double val2)
+        {
+            return val1 + val2;
+        }
+
+        public double fun3(double val1, double val2, double val3)
+        {
+            return val1 + val2 + val3;
+        }
+
+        public double fun4(double val1, double val2, double val3, double val4)
+        {
+            return val1 + val2 + val3 + val4;
+        }
+
+        public double fun5(double val1, double val2, double val3, double val4, double val5)
+        {
+            return val1 + val2 + val3 + val4 + val5;
+        }
+        #endregion
 
         #region dll import
         [DllImport("User32.dll")]
@@ -81,7 +190,7 @@ namespace Calculator
                     if (scientificTSMI.Checked) sci_operation(12);
                     if (programmerTSMI.Checked) pro_operation(12);
                 }
-                if (key_hc == 109 | key_hc == 00189 && devbt.Enabled)    // -
+                if (key_hc == 109 | key_hc == 00189 && minusbt.Enabled)    // -
                 {
                     if (standardTSMI.Checked) std_operation(13);
                     if (scientificTSMI.Checked) sci_operation(13);
@@ -151,6 +260,19 @@ namespace Calculator
                     scr_lb.Text = str;
                     confirm_num = true;
                 }
+
+                if (key_hc == 196676)   // ctrl shift d
+                {
+                    if (clearHistoryTSMI.Enabled && clearHistoryTSMI.Visible)
+                    {
+                        clear_history();
+                    }
+                    if (clearDatasetTSMI.Enabled && clearDatasetTSMI.Visible)
+                    {
+                        clear_statistics();
+                    }
+                }
+
                 if (key_hc == 131158 && pasteTSMI.Enabled) pasteCommand();  // ctrl V
                 #endregion
             }
@@ -176,19 +298,25 @@ namespace Calculator
 
                         if (iData.GetDataPresent(DataFormats.Text))
                         {
-                            if (!decRB.Visible)
-                                pasteTSMI.Enabled = Binary.isNumber(Clipboard.GetText());
-                            if (binRB.Checked && binRB.Visible)
-                                pasteTSMI.Enabled = Binary.CheckIsBin(Clipboard.GetText());
-                            if (octRB.Checked && octRB.Visible)
-                                pasteTSMI.Enabled = Binary.CheckIsOct(Clipboard.GetText());
-                            if (decRB.Checked && decRB.Visible)
-                                pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText());
-                            if (hexRB.Checked && hexRB.Visible)
-                                pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText());
-                            pasteCTMN.Enabled = pasteTSMI.Enabled;
+                            if (!programmerTSMI.Checked)
+                                pasteTSMI.Enabled = misc.isNumber(Clipboard.GetText().Trim());
+                            else
+                            {
+                                if (binRB.Checked)
+                                    pasteTSMI.Enabled = Binary.CheckIsBin(Clipboard.GetText().Trim());
+                                if (octRB.Checked)
+                                    pasteTSMI.Enabled = Binary.CheckIsOct(Clipboard.GetText().Trim());
+                                if (decRB.Checked)
+                                    pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText().Trim());
+                                if (hexRB.Checked)
+                                {
+                                    pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText().Trim());
+                                    pasteTSMI.Enabled &= hexRB.Visible = true;
+                                }
+                            }
                         }
                         else pasteTSMI.Enabled = false;
+                        pasteCTMN.Enabled = pasteTSMI.Enabled;
                     }
                     catch { }
                     SendMessage(nextClipboardViewer, m.Msg, m.WParam, m.LParam);
@@ -208,7 +336,6 @@ namespace Calculator
         } 
 
         #region user's method
-        Microsoft.JScript.Vsa.VsaEngine vsa = Microsoft.JScript.Vsa.VsaEngine.CreateEngine();
         /// <summary>
         /// form standard
         /// </summary>
@@ -350,20 +477,28 @@ namespace Calculator
             programmerTSMI.Checked = false;
             statisticsTSMI.Checked = false;
             mi.Checked = true;
-            if (mi == standardTSMI || mi == scientificTSMI)
-            {
-                screenPN.ContextMenu = contextmenu1;
-            }
-            else
-            {
-                screenPN.ContextMenu = null;
-            }
+
+            screenPN.ContextMenu = contextMenu1;
+            historyDGV.ContextMenu = contextMenu1;
             scr_lb.ContextMenu = screenPN.ContextMenu;
+            pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText().Trim());
+
             historyTSMI.Enabled = !programmerTSMI.Checked && !statisticsTSMI.Checked;
-            datasetTSMI.Visible = (mi == statisticsTSMI);
+            datasetTSMI.Visible = statisticsTSMI.Checked;
             historyOptionTSMI.Visible = historyTSMI.Enabled;
-            datasetTSMI.Visible = (mi == statisticsTSMI);
-            toolStripSeparator3.Visible = (mi != programmerTSMI);
+            datasetTSMI.Visible = statisticsTSMI.Checked;
+            sepTSMI3.Visible = (mi != programmerTSMI);
+            pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText().Trim());
+
+            sepCTMN.Visible = sepTSMI3.Visible;
+            showHistoryCTMN.Visible = !historyTSMI.Checked && (standardTSMI.Checked || scientificTSMI.Checked);
+            hideHistoryCTMN.Visible = historyTSMI.Checked && (standardTSMI.Checked || scientificTSMI.Checked);
+            clearDataSetCTMN.Visible = statisticsTSMI.Checked;
+            clearHistoryCTMN.Visible = hideHistoryCTMN.Visible;
+            clearDataSetCTMN.Enabled = false;
+            clearHistoryCTMN.Enabled = false;
+            pasteCTMN.Enabled = pasteTSMI.Enabled;
+            
             clearHistoryTableB4SwitchForm();
         }
         /// <summary>
@@ -382,26 +517,50 @@ namespace Calculator
                     if (historyTSMI.Checked) stdWithHistory();
                     else initializedForm(false);
                     this.Size = new Size(237, 340 + 130 * his);
-                    hideSciComponent(false);
+                    //hideSciComponent(false);
+                    //hideProComponent(false);
+                    //hideStaComponent(false);
+                    //hideStdComponent(true);
                 }
                 if (scientificTSMI.Checked)
                 {
                     if (historyTSMI.Checked) sciWithHistory();
                     else scientificLoad(false);
                     this.Size = new Size(447, 340 + 130 * his);
-                    hideSciComponent(true);
+                    //hideProComponent(false);
+                    //hideStaComponent(false);
+                    //hideStdComponent(true);
+                    //hideSciComponent(true);
                 }
                 if (programmerTSMI.Checked)
                 {
                     programmerMode();
                     this.Size = new Size(447, 420);
-                    hideSciComponent(false);
+                    //hideStaComponent(false);
+                    //hideStdComponent(false);
+                    //hideSciComponent(false);
+                    //hideProComponent(true);
+
+                    //clearbt.Visible = true;
+                    //ce.Visible = true;
+                    //addbt.Visible = true;
+                    //mem_minus_bt.Visible = true;
+                    //mulbt.Visible = true;
+                    //minusbt.Visible = true;
+                    //divbt.Visible = true;
+                    //sqrt_bt.Visible = true;
+                    //invert_bt.Visible = true;
+                    //percent_bt.Visible = true;
+                    //equal.Visible = true;
                 }
                 if (statisticsTSMI.Checked)
                 {
                     statisticsMode();
                     this.Size = new Size(237, 470);
-                    hideSciComponent(false);
+                    //hideStdComponent(false);
+                    //hideSciComponent(false);
+                    //hideProComponent(false);
+                    //hideStaComponent(true);
                 }
                 datecalcGB.Visible = false;
                 unitconvGB.Visible = false;
@@ -415,7 +574,8 @@ namespace Calculator
         /// </summary>
         private void clearHistoryTableB4SwitchForm()
         {
-            while (historyDGV[0, 0].Value != null) historyDGV[0, 0].Value = null;
+            while (historyDGV.Rows.Count > 0)
+                historyDGV.Rows.RemoveAt(0);
         }
         /// <summary>
         /// nạp thông tin trong registry
@@ -427,7 +587,7 @@ namespace Calculator
             if (readFromRegistry("Programmer")) programmerTSMI_Click(sender, e);
             if (readFromRegistry("Statistics")) statisticsTSMI_Click(sender, e);
             if (readFromRegistry("DigitGrouping")) digitGroupingTSMI_Click(sender, e);
-            if (readFromRegistry("History")) historyTSMI_Click(sender, e);
+            if (readFromRegistry("History") && historyTSMI.Enabled) historyTSMI_Click(sender, e);
             if (readFromRegistry("Date"))
             {
                 dateCalculationTSMI_Click(sender, e);
@@ -655,7 +815,7 @@ namespace Calculator
             return (string) reg.GetValue("sDecimal");
         }
 
-        private string decimalSym
+        public string decimalSym
         {
             get { return getDecimalSym(); }
         }
@@ -669,7 +829,7 @@ namespace Calculator
             return (string) reg.GetValue("sThousand");
         }
 
-        private string thousandSym
+        public string thousandSym
         {
             get { return getThousandSym(); }
         }
@@ -680,7 +840,9 @@ namespace Calculator
         {
             historyTSMI.Checked = !historyTSMI.Checked;
             clearHistoryCTMN.Visible = historyTSMI.Checked;
-            showHistoryCTMN.Checked = historyTSMI.Checked;
+            clearHistoryCTMN.Enabled = (historyDGV.Rows.Count > 0);
+            showHistoryCTMN.Visible = !historyTSMI.Checked;
+            hideHistoryCTMN.Visible = historyTSMI.Checked;
             prcmdkey = true;
             int his = ((historyTSMI.Checked && historyTSMI.Enabled) || statisticsTSMI.Checked).GetHashCode();
             int sci = scientificTSMI.Checked.GetHashCode();
@@ -697,7 +859,9 @@ namespace Calculator
                 if (scientificTSMI.Checked) sciWithHistory();
                 historyDGV.CurrentCell = null;
                 currentCellToNull();
-                hideSciComponent(scientificTSMI.Checked);
+                hideProComponent(programmerTSMI.Checked);
+                hideStaComponent(statisticsTSMI.Checked);
+                hideSciComponent(scientificTSMI.Checked);   // phải đứng cuối
             }
             else
             {
@@ -730,13 +894,21 @@ namespace Calculator
                 basicTSMI.Checked = false;
                 if (tsmi == unitConversionTSMI)
                 {
-                    typeCB.SelectedIndex = readFromSubkey("Type", "UnitConversion");
-                    toTB.Text = "";
+                    try
+                    {
+                        typeCB.SelectedIndex = readFromSubkey("Type", "UnitConversion");
+                    }
+                    catch { typeCB.SelectedIndex = 0; }
+                    toTB.Text = getToTBText(fromTB.Text);
                     //this.AcceptButton = calculate_unit;
                 }
                 if (tsmi == dateCalculationTSMI)
                 {
-                    calmethodCB.SelectedIndex = readFromSubkey("Method", "DateCalculation");
+                    try
+                    {
+                        calmethodCB.SelectedIndex = readFromSubkey("Method", "DateCalculation");
+                    }
+                    catch { calmethodCB.SelectedIndex = 0; }
                     autocal_date.Checked = (readFromSubkey("AutoCalculate", "DateCalculation") == 1);
                     this.AcceptButton = calculate_date;
                 }
@@ -751,12 +923,12 @@ namespace Calculator
         /// </summary>
         private void hideStdComponent(bool bl)
         {
-            #region Hide programmer functions
+            #region Hide standard functions
             ce.Visible = bl;
             clearbt.Visible = bl;
             addbt.Visible = bl;
             mulbt.Visible = bl;
-            devbt.Visible = bl;
+            minusbt.Visible = bl;
             divbt.Visible = bl;
             equal.Visible = bl;
             invert_bt.Visible = bl;
@@ -818,7 +990,7 @@ namespace Calculator
             XorBT.Visible = bl;
             NotBT.Visible = bl;
             AndBT.Visible = bl;
-            nonameTB2.Visible = bl;
+            nonameTB.Visible = bl;
             openproBT.Visible = bl;
             closeproBT.Visible = bl;
             modproBT.Visible = bl;
@@ -930,10 +1102,11 @@ namespace Calculator
             this.btnF.Location = new Point(183, 329);
             this.btnF.Enabled = (hexRB.Checked);
 
-            if (binRB.Checked) pasteTSMI.Enabled = Binary.CheckIsBin(Clipboard.GetText());
-            if (octRB.Checked) pasteTSMI.Enabled = Binary.CheckIsOct(Clipboard.GetText());
-            if (decRB.Checked) pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText());
-            if (hexRB.Checked) pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText());
+            if (binRB.Checked) pasteTSMI.Enabled = Binary.CheckIsBin(Clipboard.GetText().Trim());
+            if (octRB.Checked) pasteTSMI.Enabled = Binary.CheckIsOct(Clipboard.GetText().Trim());
+            if (decRB.Checked) pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText().Trim());
+            if (hexRB.Checked) pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText().Trim());
+            pasteCTMN.Enabled = pasteTSMI.Enabled;
         }
         /// <summary>
         /// sin or arcsin
@@ -971,38 +1144,39 @@ namespace Calculator
                     {
                         screenNumber /= 10;
                         base_++;
-                    } while (screenNumber >= 10);
+                    } while (Math.Abs(screenNumber) >= 10);
                     str = screenNumber + "E+" + base_;
                 }
-                if (Math.Abs(screenNumber) < 1)
+                if (Math.Abs(screenNumber) < 1 && screenNumber != 0)
                 {
                     do
                     {
                         screenNumber *= 10;
                         base_--;
-                    } while (screenNumber < 1);
+                    } while (Math.Abs(screenNumber) < 1);
                     str = screenNumber + "E" + base_;
                 }
             }
-            else { str = method_class.ToDouble(str); }
+            else { str = misc.ToDouble(str); }
             confirm_num = true;
-            displayToScreen();
+
+            if (!digitGroupingTSMI.Checked)
+                scr_lb.Text = str;
+            else
+            {
+                if (str.IndexOf('E') < 0)
+                    scr_lb.Text = misc.grouping(str);
+                else
+                    scr_lb.Text = str;
+            }
         }
         /// <summary>
         /// trả về 1 chuỗi là cách hiển thị số thực kiểu Mỹ
         /// Vd ở VN 2,54 thì ở Mỹ là 2.54
         /// </summary>
-        private string getUSNumber(string num)
+        private string getUSNumber(object num)
         {
-            return num.Replace(decimalSym, ".");
-        }
-        /// <summary>
-        /// trả về 1 chuỗi là cách hiển thị số thực kiểu Mỹ
-        /// Vd ở VN 2,54 thì ở Mỹ là 2.54
-        /// </summary>
-        private string getUSNumber(double num)
-        {
-            return ("" + num).Replace(decimalSym, ".");
+            return num.ToString().Replace(decimalSym, ".");
         }
         /// <summary>
         /// copy - ctrl c
@@ -1016,18 +1190,18 @@ namespace Calculator
         /// </summary>
         private void pasteCommand()
         {
-            if (method_class.isNumber(Clipboard.GetText().Trim()) && !programmerTSMI.Checked)
-                str = Clipboard.GetText().Trim();
+            if (misc.isNumber(Clipboard.GetText().Trim()) && !programmerTSMI.Checked)
+                str = Clipboard.GetText().Trim().Replace(thousandSym, "");
             if (programmerTSMI.Checked)
             {
                 if (Binary.CheckIsBin(Clipboard.GetText().Trim()) && binRB.Checked)
-                    str = Clipboard.GetText().Trim();
+                    str = Clipboard.GetText().Trim().Replace(thousandSym, "");
                 if (Binary.CheckIsOct(Clipboard.GetText().Trim()) && octRB.Checked)
-                    str = Clipboard.GetText().Trim();
+                    str = Clipboard.GetText().Trim().Replace(thousandSym, "");
                 if (Binary.CheckIsDec(Clipboard.GetText().Trim()) && decRB.Checked)
-                    str = Clipboard.GetText().Trim();
+                    str = Clipboard.GetText().Trim().Replace(thousandSym, "");
                 if (Binary.CheckIsHex(Clipboard.GetText().Trim()) && hexRB.Checked)
-                    str = Clipboard.GetText().Trim();
+                    str = Clipboard.GetText().Trim().Replace(thousandSym, "").ToUpper();
             }
             displayToScreen();
             if (programmerTSMI.Checked) screenToPanel();
@@ -1071,18 +1245,24 @@ namespace Calculator
         {
             double result = 0, inp_num = 0;
             decimal resultlong = 1;
-            int @base = 0;
+            long somu = 0;
             try
             {
                 inp_num = double.Parse(str);
             }
-            catch (Exception) { goto jump; }
-            if (func_name == 17)
+            catch (Exception) { goto breakpoint; }
+            if (func_name == 17)    // 1/x
             {
                 if (inp_num != 0)
-                { result = 1 / inp_num; str = "" + inp_num; }
+                { 
+                    result = 1 / inp_num; 
+                    //str = "" + inp_num; 
+                }
                 else
-                { str = "Infinity"; goto breakpoint; }
+                { 
+                    str = "Infinity";
+                    goto breakpoint;
+                }
             }
             if (func_name == 19)
             {
@@ -1134,30 +1314,31 @@ namespace Calculator
             if (func_name == 31) result = Math.Log(inp_num, Math.E);
             if (func_name == 32)
             {
-                if (inp_num - (int)inp_num == 0)
+                if (inp_num - (long)inp_num == 0)
                 {
-                    #region collapse my code
+                    #region calculate the factorial
                     //str = Number.Factorial(str, decimalSym);
-                    for (int i = 1; i <= (int)inp_num; i++)
+                    for (long i = 1; i <= (long)inp_num; i++)
                     {
                         resultlong *= i;
-                        if (resultlong > (decimal)1e15)
+                        if (resultlong > (decimal)1e20 && inp_num > 27)
                         {
                             do
                             {
                                 resultlong /= (decimal)10;
-                                @base++;
+                                somu++;
                             } while (resultlong > (decimal)10);
                         }
                     }
-                    if (@base > 25)
+                    if (somu > 20)
                         while (resultlong > (decimal)10)
                         {
                             resultlong /= (decimal)10;
-                            @base++;
+                            somu++;
                         } 
                     #endregion
                 }
+                else return;
             }
             if (func_name == 33) result = Math.Exp(inp_num);
             if (func_name == 38) result = inp_num * inp_num;
@@ -1167,7 +1348,7 @@ namespace Calculator
                 result = Math.Exp(Math.Log10(inp_num) / 3 / Math.Log10(Math.E));
             }
             //if (func_name == "nvx") result = inp_num * inp_num * inp_num;
-            if (func_name == 40) result = MethodsClass.luythua(10, inp_num);
+            if (func_name == 40) result = Miscellaneous.luythua(10, inp_num);
             if (func_name == 42) result = Math.Log10(inp_num);
             if (func_name == 35) result = Math.Sinh(inp_num);
             if (func_name == 36) result = Math.Cosh(inp_num);
@@ -1179,14 +1360,13 @@ namespace Calculator
             else
             {
                 str = "" + resultlong;
-                if (@base > 25) str += "E+" + @base;
+                if (somu > 15) str += "E+" + somu;
             }
             invertFunction(false);
 
-            breakpoint: ;//if (str.Length > 16) str = str.Substring(0, 16);
-            displayToScreen();
-            jump: confirm_num = true;
-        }
+            breakpoint: displayToScreen();
+            confirm_num = true;
+        } 
         /// <summary>
         /// nút backspace
         /// </summary>
@@ -1240,40 +1420,41 @@ namespace Calculator
                 if (pre_oprt == 13) { result = num_1 - num_2; oper = "-"; }
                 if (pre_oprt == 14) { result = num_1 * num_2; oper = "*"; }
                 if (pre_oprt == 15) { result = num_1 / num_2; oper = "/"; }
-                if (historyTSMI.Checked && historyTSMI.Enabled)
+
+                #region thu gọn lại cho đỡ bị trồi ra
+                if (historyDGV.Rows.Count < 4)
                 {
-                    #region thu gọn lại cho đỡ bị trồi ra
-                    if (historyDGV.Rows.Count < 4)
+                    historyDGV.Rows.Add();
+                    clearHistoryBT.Enabled = true;
+                    if (historyDGV[0, 0].Value != null)
                     {
-                        clearHistoryBT.Enabled = true;
-                        if (historyDGV[0, 0].Value != null)
-                        {
-                            historyDGV.Rows.Add();
-                            int count = historyDGV.Rows.Count;
-                            historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
-                            if (oper != "") 
-                                historyDGV[0, count - 1].Value = getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
-                            else historyDGV[0, count - 1].Value = getUSNumber("" + result);
-                        }
-                        else
-                        {
-                            historyDGV[0, 0].Value = getUSNumber("" + num_1) +
-                                oper + getUSNumber("" + num_2);
-                        }
+                        //historyDGV.Rows.Add();
+                        int count = historyDGV.Rows.Count;
+                        //historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
+                        if (oper != "")
+                            historyDGV[0, count - 1].Value = getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
+                        else historyDGV[0, count - 1].Value = getUSNumber("" + result);
                     }
                     else
                     {
-                        historyDGV[0, 0].Value = historyDGV[0, 1].Value;
-                        historyDGV[0, 1].Value = historyDGV[0, 2].Value;
-                        historyDGV[0, 2].Value = historyDGV[0, 3].Value;
-                        if (oper != "")
-                            historyDGV[0, historyDGV.Rows.Count - 1].Value = 
-                                getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
-                        else historyDGV[0, historyDGV.Rows.Count - 1].Value = getUSNumber("" + result);
+                        historyDGV[0, 0].Value = getUSNumber("" + num_1) +
+                            oper + getUSNumber("" + num_2);
                     }
-                    #endregion
                 }
+                else
+                {
+                    historyDGV[0, 0].Value = historyDGV[0, 1].Value;
+                    historyDGV[0, 1].Value = historyDGV[0, 2].Value;
+                    historyDGV[0, 2].Value = historyDGV[0, 3].Value;
+                    if (oper != "")
+                        historyDGV[0, historyDGV.Rows.Count - 1].Value =
+                            getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
+                    else historyDGV[0, historyDGV.Rows.Count - 1].Value = getUSNumber("" + result);
+                }
+                #endregion
+
                 str = "" + result;
+                historyDGV.CurrentCell = null;
                 displayToScreen(); 
                 #endregion
             }
@@ -1284,31 +1465,32 @@ namespace Calculator
                 {
                     expressionpow += str;
                     if (pre_oprt == 30)
-                        str = "" + method_class.power(expressionpow);
+                        str = "" + misc.power(expressionpow);
                     else
-                        str = "" + method_class.power_inv(expressionpow);
+                        str = "" + misc.power_inv(expressionpow);
                     sci_expression += getUSNumber(str);
-                    str = "" + Eval.JScriptEvaluate(sci_expression, vsa);
+                    str = "" + misc.Evaluate(sci_expression);
                 }
                 else
                 {
                     if (str[0] != '-') sci_expression += getUSNumber(str);
                     else sci_expression += "(" + getUSNumber(str) + ")";
 
-                    str = "" + Eval.JScriptEvaluate(sci_expression, vsa);
+                    str = "" + misc.Evaluate(sci_expression);
                 }
 
                 #region write to history panel
                 clearHistoryBT.Enabled = true;
                 if (historyDGV.Rows.Count < 4)
                 {
+                    historyDGV.Rows.Add();
                     if (historyDGV[0, 0].Value == null)
                         historyDGV.Rows[0].SetValues(sci_expression);
                     else
                     {
-                        historyDGV.Rows.Add();
+                        //historyDGV.Rows.Add();
                         int count = historyDGV.Rows.Count;
-                        historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
+                        //historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
                         historyDGV[0, count - 1].Value = sci_expression;
                     }
                 }
@@ -1358,19 +1540,28 @@ namespace Calculator
         /// </summary>
         private void statistics_add()
         {
-            if (statisticsDGV.Rows.Count == 1 && statisticsDGV[0, 0].Value == null)
-            {
-                statisticsDGV[0, 0].Value = str;
-            }
-            else
-            {
-                statisticsDGV.Rows.Add();
-                int sta_row = statisticsDGV.Rows.Count;
-                statisticsDGV[0, sta_row - 2].Value = statisticsDGV[0, sta_row - 1].Value;
-                statisticsDGV[0, sta_row - 1].Value = str;
-            }
-            countlb.Text = "Count = " + statisticsDGV.Rows.Count;
+            #region source cu
+            //if (statisticsDGV.Rows.Count == 1 && statisticsDGV[0, 0].Value == null)
+            //{
+            //    statisticsDGV[0, 0].Value = str;
+            //}
+            //else
+            //{
+            //    statisticsDGV.Rows.Add();
+            //    int sta_row = statisticsDGV.Rows.Count;
+            //    statisticsDGV[0, sta_row - 2].Value = statisticsDGV[0, sta_row - 1].Value;
+            //    statisticsDGV[0, sta_row - 1].Value = str;
+            //}
+            //countlb.Text = "Count = " + statisticsDGV.Rows.Count;
+            //confirm_num = true; 
+            #endregion
+            statisticsDGV.Rows.Add();
+            statisticsDGV[0, statisticsDGV.Rows.Count - 1].Value = str;
             confirm_num = true;
+            statisticsDGV.CurrentCell = null;
+            countlb.Text = "Count = " + statisticsDGV.Rows.Count;
+            clearDataSetCTMN.Enabled = true;
+            clearDatasetTSMI.Enabled = true;
         }
         /// <summary>
         /// đưa kết quả các phép tính +-*/ của form programmer lên màn hình
@@ -1425,23 +1616,30 @@ namespace Calculator
             {
                 if (digitGroupingTSMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = method_class.grouping(str);
-                    if (octRB.Checked) scr_lb.Text = method_class.grouping(str, 3);
+                    if (decRB.Checked) scr_lb.Text = misc.grouping(str);
+                    if (octRB.Checked) scr_lb.Text = misc.grouping(str, 3);
                     if (binRB.Checked || hexRB.Checked) 
-                        scr_lb.Text = method_class.grouping(str, 4);
+                        scr_lb.Text = misc.grouping(str, 4);
                 }
-                else scr_lb.Text = method_class.de_group(str);
+                else scr_lb.Text = misc.de_group(str);
             }
             else                        // nhóm cho form non-programmer
             {
-                //if (method_class.isNumber(str))
+                if (digitGroupingTSMI.Checked)
                 {
-                    if (digitGroupingTSMI.Checked)
+                    if (str.IndexOf("Infinity") < 0)
                     {
-                        if (str != "Infinity") scr_lb.Text = method_class.grouping(str);
+                        if (str.IndexOf('E') < 0) 
+                            scr_lb.Text = misc.grouping(str);
+                        else 
+                            scr_lb.Text = str;
                     }
                     else
-                        scr_lb.Text = method_class.de_group(str);
+                        scr_lb.Text = str;
+                }
+                else
+                {
+                    scr_lb.Text = misc.de_group(str);
                 }
             }
         }
@@ -1514,7 +1712,7 @@ namespace Calculator
             if (index == 13) operator_lb.Text = "-";
             if (index == 14) operator_lb.Text = "*";
             if (index == 15) operator_lb.Text = "/"; 
-            if (method_class.isNumber(scr_lb.Text))
+            if (misc.isNumber(scr_lb.Text))
             {
                 confirm_num = true;
                 if (pre_oprt == 0)
@@ -1531,40 +1729,40 @@ namespace Calculator
                         if (pre_oprt == 13) { result = num_1 - num_2; pre_op = "-"; }
                         if (pre_oprt == 14) { result = num_1 * num_2; pre_op = "*"; }
                         if (pre_oprt == 15) { result = num_1 / num_2; pre_op = "/"; }
-                        if (historyTSMI.Checked && historyTSMI.Enabled)
+
+                        #region thu gọn lại cho đỡ bị trồi ra
+                        clearHistoryBT.Enabled = true;
+                        if (historyDGV.Rows.Count < 4)
                         {
-                            #region thu gọn lại cho đỡ bị trồi ra
-                            clearHistoryBT.Enabled = true;
-                            if (historyDGV.Rows.Count < 4)
+                            historyDGV.Rows.Add();
+                            if (historyDGV[0, 0].Value != null)
                             {
-                                if (historyDGV[0, 0].Value != null)
-                                {
-                                    historyDGV.Rows.Add();
-                                    int count = historyDGV.Rows.Count;
-                                    historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
-                                    historyDGV[0, count - 1].Value = getUSNumber("" + num_1) +
-                                        pre_op + getUSNumber("" + num_2);
-                                }
-                                else
-                                {
-                                    historyDGV[0, 0].Value = getUSNumber("" + num_1) +
-                                        pre_op + getUSNumber("" + num_2);
-                                }
+                                //historyDGV.Rows.Add();
+                                int count = historyDGV.Rows.Count;
+                                //historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
+                                historyDGV[0, count - 1].Value = getUSNumber("" + num_1) +
+                                    pre_op + getUSNumber("" + num_2);
                             }
                             else
                             {
-                                historyDGV[0, 0].Value = historyDGV[0, 1].Value;
-                                historyDGV[0, 1].Value = historyDGV[0, 2].Value;
-                                historyDGV[0, 2].Value = historyDGV[0, 3].Value;
-                                historyDGV[0, 3].Value = getUSNumber("" + num_1) +
-                                    operator_lb.Text + getUSNumber("" + num_2);
-                            } 
-                            #endregion
+                                historyDGV[0, 0].Value = getUSNumber("" + num_1) +
+                                    pre_op + getUSNumber("" + num_2);
+                            }
                         }
+                        else
+                        {
+                            historyDGV[0, 0].Value = historyDGV[0, 1].Value;
+                            historyDGV[0, 1].Value = historyDGV[0, 2].Value;
+                            historyDGV[0, 2].Value = historyDGV[0, 3].Value;
+                            historyDGV[0, 3].Value = getUSNumber("" + num_1) +
+                                operator_lb.Text + getUSNumber("" + num_2);
+                        }
+                        #endregion
                     }
                 if (programmerTSMI.Checked) screenToPanel();
                 str = "" + result;
                 displayToScreen();
+                historyDGV.CurrentCell = null;
                 pre_oprt = index;
                 pre_bt = index;
                 operator_lb.Visible = true;
@@ -1576,7 +1774,7 @@ namespace Calculator
         private void sci_operation(int index)
         {
             invertFunction(false);
-            if (method_class.isNumber(scr_lb.Text))
+            if (misc.isNumber(scr_lb.Text))
             {
                 if (index == 12) operator_lb.Text = "+";
                 if (index == 13) operator_lb.Text = "-";
@@ -1596,18 +1794,18 @@ namespace Calculator
                                 //sci_expression += str_;
                                 expressionpow += str;
                                 if (pre_oprt == 30)
-                                    str = "" + method_class.power(expressionpow);
+                                    str = "" + misc.power(expressionpow);
                                 else
-                                    str = "" + method_class.power_inv(expressionpow);
+                                    str = "" + misc.power_inv(expressionpow);
                                 sci_expression += getUSNumber(str);
-                                str = Eval.JScriptEvaluate(sci_expression, vsa).ToString();
+                                str = misc.Evaluate(sci_expression).ToString();
                             }
                             else
                             {
                                 if (str[0] != '-') sci_expression += getUSNumber(str);
                                 else sci_expression += "(" + getUSNumber(str) + ")";
 
-                                str = Eval.JScriptEvaluate(sci_expression, vsa).ToString();
+                                str = misc.Evaluate(sci_expression).ToString();
                             }
                             sci_expression += operator_lb.Text;
                         }
@@ -1618,9 +1816,9 @@ namespace Calculator
                             {
                                 expressionpow += getUSNumber(str);
                                 if (pre_oprt == 30)
-                                    str = "" + method_class.power(expressionpow);
+                                    str = "" + misc.power(expressionpow);
                                 else
-                                    str = "" + method_class.power_inv(expressionpow);
+                                    str = "" + misc.power_inv(expressionpow);
                                 sci_expression += getUSNumber(str) + operator_lb.Text;
                             }
                             else 
@@ -1635,9 +1833,9 @@ namespace Calculator
                             {
                                 expressionpow += getUSNumber(str);
                                 if (index == 30)
-                                    expressionpow = method_class.power(expressionpow) + operator_lb.Text;
+                                    expressionpow = misc.power(expressionpow) + operator_lb.Text;
                                 else
-                                    expressionpow = method_class.power_inv(expressionpow) + operator_lb.Text;
+                                    expressionpow = misc.power_inv(expressionpow) + operator_lb.Text;
                             }
                         }
                     }
@@ -1667,7 +1865,7 @@ namespace Calculator
 
         long num1pro, num2pro = 0, resultpro = 0;
         /// <summary>
-        /// các toán tử +-*/ của form standard
+        /// các toán tử +-*/ của form programmer
         /// </summary>
         private void pro_operation(int index)
         {
@@ -1702,7 +1900,7 @@ namespace Calculator
         /// </summary>
         private void bitwiseoperators()
         {
-
+            // DO SOMETHING HERE
         }
         /// <summary>
         /// mở file help
@@ -1739,7 +1937,7 @@ namespace Calculator
             this.num0 = new System.Windows.Forms.Button();
             this.btdot = new System.Windows.Forms.Button();
             this.addbt = new System.Windows.Forms.Button();
-            this.devbt = new System.Windows.Forms.Button();
+            this.minusbt = new System.Windows.Forms.Button();
             this.mulbt = new System.Windows.Forms.Button();
             this.divbt = new System.Windows.Forms.Button();
             this.equal = new System.Windows.Forms.Button();
@@ -1754,7 +1952,7 @@ namespace Calculator
             this.sqrt_bt = new System.Windows.Forms.Button();
             this.clearbt = new System.Windows.Forms.Button();
             this.madd = new System.Windows.Forms.Button();
-            this.mmul = new System.Windows.Forms.Button();
+            this.mem_minus_bt = new System.Windows.Forms.Button();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.autocal_date = new System.Windows.Forms.CheckBox();
             this.calmethodCB = new System.Windows.Forms.ComboBox();
@@ -1834,7 +2032,6 @@ namespace Calculator
             this.octRB = new System.Windows.Forms.RadioButton();
             this.decRB = new System.Windows.Forms.RadioButton();
             this.hexRB = new System.Windows.Forms.RadioButton();
-            this.nonameTB2 = new System.Windows.Forms.TextBox();
             this.binaryPN = new System.Windows.Forms.Panel();
             this.btnF = new System.Windows.Forms.Button();
             this.btnB = new System.Windows.Forms.Button();
@@ -2026,17 +2223,17 @@ namespace Calculator
             this.addbt.UseVisualStyleBackColor = true;
             this.addbt.Click += new System.EventHandler(this.operatorBT_Click);
             // 
-            // devbt
+            // minusbt
             // 
-            this.devbt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.devbt.Location = new System.Drawing.Point(139, 209);
-            this.devbt.Name = "devbt";
-            this.devbt.Size = new System.Drawing.Size(36, 30);
-            this.devbt.TabIndex = 13;
-            this.devbt.TabStop = false;
-            this.devbt.Text = "-";
-            this.devbt.UseVisualStyleBackColor = true;
-            this.devbt.Click += new System.EventHandler(this.operatorBT_Click);
+            this.minusbt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.minusbt.Location = new System.Drawing.Point(139, 209);
+            this.minusbt.Name = "minusbt";
+            this.minusbt.Size = new System.Drawing.Size(36, 30);
+            this.minusbt.TabIndex = 13;
+            this.minusbt.TabStop = false;
+            this.minusbt.Text = "-";
+            this.minusbt.UseVisualStyleBackColor = true;
+            this.minusbt.Click += new System.EventHandler(this.operatorBT_Click);
             // 
             // mulbt
             // 
@@ -2207,17 +2404,17 @@ namespace Calculator
             this.madd.UseVisualStyleBackColor = true;
             this.madd.Click += new System.EventHandler(this.madd_Click);
             // 
-            // mmul
+            // mem_minus_bt
             // 
-            this.mmul.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.mmul.Location = new System.Drawing.Point(182, 65);
-            this.mmul.Name = "mmul";
-            this.mmul.Size = new System.Drawing.Size(36, 30);
-            this.mmul.TabIndex = 27;
-            this.mmul.TabStop = false;
-            this.mmul.Text = "M-";
-            this.mmul.UseVisualStyleBackColor = true;
-            this.mmul.Click += new System.EventHandler(this.mmul_Click);
+            this.mem_minus_bt.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.mem_minus_bt.Location = new System.Drawing.Point(182, 65);
+            this.mem_minus_bt.Name = "mem_minus_bt";
+            this.mem_minus_bt.Size = new System.Drawing.Size(36, 30);
+            this.mem_minus_bt.TabIndex = 27;
+            this.mem_minus_bt.TabStop = false;
+            this.mem_minus_bt.Text = "M-";
+            this.mem_minus_bt.UseVisualStyleBackColor = true;
+            this.mem_minus_bt.Click += new System.EventHandler(this.mmul_Click);
             // 
             // toolTip1
             // 
@@ -2357,6 +2554,7 @@ namespace Calculator
             this.periodsDateUD.Name = "periodsDateUD";
             this.periodsDateUD.Size = new System.Drawing.Size(60, 22);
             this.periodsDateUD.TabIndex = 205;
+            this.periodsDateUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsDateUD.ThousandsSeparator = true;
             this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
@@ -2576,6 +2774,7 @@ namespace Calculator
             this.periodsYearUD.Name = "periodsYearUD";
             this.periodsYearUD.Size = new System.Drawing.Size(44, 22);
             this.periodsYearUD.TabIndex = 203;
+            this.periodsYearUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsYearUD.ThousandsSeparator = true;
             this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
@@ -2592,6 +2791,7 @@ namespace Calculator
             this.periodsMonthUD.Name = "periodsMonthUD";
             this.periodsMonthUD.Size = new System.Drawing.Size(44, 22);
             this.periodsMonthUD.TabIndex = 204;
+            this.periodsMonthUD.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.periodsMonthUD.ThousandsSeparator = true;
             this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
             this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
@@ -2641,7 +2841,7 @@ namespace Calculator
             this.angleGB.Controls.Add(this.gra_rb);
             this.angleGB.Controls.Add(this.rad_rb);
             this.angleGB.Controls.Add(this.deg_rb);
-            this.angleGB.Location = new System.Drawing.Point(11, 312);
+            this.angleGB.Location = new System.Drawing.Point(9, 298);
             this.angleGB.Name = "angleGB";
             this.angleGB.Size = new System.Drawing.Size(208, 36);
             this.angleGB.TabIndex = 128;
@@ -2689,7 +2889,7 @@ namespace Calculator
             // 
             this.nonameTB.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.nonameTB.Enabled = false;
-            this.nonameTB.Location = new System.Drawing.Point(11, 354);
+            this.nonameTB.Location = new System.Drawing.Point(9, 340);
             this.nonameTB.Multiline = true;
             this.nonameTB.Name = "nonameTB";
             this.nonameTB.ReadOnly = true;
@@ -2700,7 +2900,7 @@ namespace Calculator
             // close_bracket
             // 
             this.close_bracket.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.close_bracket.Location = new System.Drawing.Point(182, 354);
+            this.close_bracket.Location = new System.Drawing.Point(52, 340);
             this.close_bracket.Name = "close_bracket";
             this.close_bracket.Size = new System.Drawing.Size(37, 30);
             this.close_bracket.TabIndex = 152;
@@ -2710,7 +2910,7 @@ namespace Calculator
             // open_bracket
             // 
             this.open_bracket.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.open_bracket.Location = new System.Drawing.Point(140, 354);
+            this.open_bracket.Location = new System.Drawing.Point(52, 340);
             this.open_bracket.Name = "open_bracket";
             this.open_bracket.Size = new System.Drawing.Size(37, 30);
             this.open_bracket.TabIndex = 153;
@@ -2720,7 +2920,7 @@ namespace Calculator
             // _10x_bt
             // 
             this._10x_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this._10x_bt.Location = new System.Drawing.Point(182, 496);
+            this._10x_bt.Location = new System.Drawing.Point(52, 340);
             this._10x_bt.Name = "_10x_bt";
             this._10x_bt.Size = new System.Drawing.Size(37, 30);
             this._10x_bt.TabIndex = 40;
@@ -2731,7 +2931,7 @@ namespace Calculator
             // nvx_bt
             // 
             this.nvx_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.nvx_bt.Location = new System.Drawing.Point(182, 426);
+            this.nvx_bt.Location = new System.Drawing.Point(52, 340);
             this.nvx_bt.Name = "nvx_bt";
             this.nvx_bt.Size = new System.Drawing.Size(37, 30);
             this.nvx_bt.TabIndex = 34;
@@ -2742,7 +2942,7 @@ namespace Calculator
             // xn_bt
             // 
             this.xn_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.xn_bt.Location = new System.Drawing.Point(140, 426);
+            this.xn_bt.Location = new System.Drawing.Point(52, 340);
             this.xn_bt.Name = "xn_bt";
             this.xn_bt.Size = new System.Drawing.Size(37, 30);
             this.xn_bt.TabIndex = 30;
@@ -2753,7 +2953,7 @@ namespace Calculator
             // log_bt
             // 
             this.log_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.log_bt.Location = new System.Drawing.Point(140, 496);
+            this.log_bt.Location = new System.Drawing.Point(52, 340);
             this.log_bt.Name = "log_bt";
             this.log_bt.Size = new System.Drawing.Size(37, 30);
             this.log_bt.TabIndex = 42;
@@ -2764,7 +2964,7 @@ namespace Calculator
             // _3vx_bt
             // 
             this._3vx_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this._3vx_bt.Location = new System.Drawing.Point(182, 462);
+            this._3vx_bt.Location = new System.Drawing.Point(52, 340);
             this._3vx_bt.Name = "_3vx_bt";
             this._3vx_bt.Size = new System.Drawing.Size(37, 30);
             this._3vx_bt.TabIndex = 41;
@@ -2775,7 +2975,7 @@ namespace Calculator
             // x3_bt
             // 
             this.x3_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.x3_bt.Location = new System.Drawing.Point(140, 462);
+            this.x3_bt.Location = new System.Drawing.Point(52, 340);
             this.x3_bt.Name = "x3_bt";
             this.x3_bt.Size = new System.Drawing.Size(37, 30);
             this.x3_bt.TabIndex = 39;
@@ -2786,7 +2986,7 @@ namespace Calculator
             // x2_bt
             // 
             this.x2_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.x2_bt.Location = new System.Drawing.Point(140, 390);
+            this.x2_bt.Location = new System.Drawing.Point(52, 340);
             this.x2_bt.Name = "x2_bt";
             this.x2_bt.Size = new System.Drawing.Size(37, 30);
             this.x2_bt.TabIndex = 38;
@@ -2798,7 +2998,7 @@ namespace Calculator
             // 
             this.pi_bt.Font = new System.Drawing.Font("Tempus Sans ITC", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pi_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.pi_bt.Location = new System.Drawing.Point(11, 460);
+            this.pi_bt.Location = new System.Drawing.Point(52, 340);
             this.pi_bt.Name = "pi_bt";
             this.pi_bt.Size = new System.Drawing.Size(37, 30);
             this.pi_bt.TabIndex = 144;
@@ -2809,7 +3009,7 @@ namespace Calculator
             // fe_bt
             // 
             this.fe_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.fe_bt.Location = new System.Drawing.Point(11, 496);
+            this.fe_bt.Location = new System.Drawing.Point(52, 340);
             this.fe_bt.Name = "fe_bt";
             this.fe_bt.Size = new System.Drawing.Size(37, 30);
             this.fe_bt.TabIndex = 43;
@@ -2820,7 +3020,7 @@ namespace Calculator
             // exp_bt
             // 
             this.exp_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.exp_bt.Location = new System.Drawing.Point(54, 496);
+            this.exp_bt.Location = new System.Drawing.Point(52, 340);
             this.exp_bt.Name = "exp_bt";
             this.exp_bt.Size = new System.Drawing.Size(37, 30);
             this.exp_bt.TabIndex = 33;
@@ -2832,7 +3032,7 @@ namespace Calculator
             // 
             this.modsciBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.modsciBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.modsciBT.Location = new System.Drawing.Point(97, 496);
+            this.modsciBT.Location = new System.Drawing.Point(52, 340);
             this.modsciBT.Name = "modsciBT";
             this.modsciBT.Size = new System.Drawing.Size(37, 30);
             this.modsciBT.TabIndex = 142;
@@ -2842,7 +3042,7 @@ namespace Calculator
             // ln_bt
             // 
             this.ln_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.ln_bt.Location = new System.Drawing.Point(97, 354);
+            this.ln_bt.Location = new System.Drawing.Point(52, 340);
             this.ln_bt.Name = "ln_bt";
             this.ln_bt.Size = new System.Drawing.Size(37, 30);
             this.ln_bt.TabIndex = 31;
@@ -2854,7 +3054,7 @@ namespace Calculator
             // 
             this.dms_bt.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dms_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.dms_bt.Location = new System.Drawing.Point(11, 426);
+            this.dms_bt.Location = new System.Drawing.Point(52, 340);
             this.dms_bt.Name = "dms_bt";
             this.dms_bt.Size = new System.Drawing.Size(37, 30);
             this.dms_bt.TabIndex = 135;
@@ -2866,7 +3066,7 @@ namespace Calculator
             // 
             this.tanh_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tanh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.tanh_bt.Location = new System.Drawing.Point(54, 462);
+            this.tanh_bt.Location = new System.Drawing.Point(52, 340);
             this.tanh_bt.Name = "tanh_bt";
             this.tanh_bt.Size = new System.Drawing.Size(37, 30);
             this.tanh_bt.TabIndex = 37;
@@ -2878,7 +3078,7 @@ namespace Calculator
             // 
             this.cosh_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cosh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.cosh_bt.Location = new System.Drawing.Point(54, 426);
+            this.cosh_bt.Location = new System.Drawing.Point(52, 340);
             this.cosh_bt.Name = "cosh_bt";
             this.cosh_bt.Size = new System.Drawing.Size(37, 30);
             this.cosh_bt.TabIndex = 36;
@@ -2889,7 +3089,7 @@ namespace Calculator
             // inv_bt
             // 
             this.inv_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.inv_bt.Location = new System.Drawing.Point(54, 354);
+            this.inv_bt.Location = new System.Drawing.Point(52, 340);
             this.inv_bt.Name = "inv_bt";
             this.inv_bt.Size = new System.Drawing.Size(37, 30);
             this.inv_bt.TabIndex = 131;
@@ -2900,7 +3100,7 @@ namespace Calculator
             // int_bt
             // 
             this.int_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.int_bt.Location = new System.Drawing.Point(11, 390);
+            this.int_bt.Location = new System.Drawing.Point(52, 340);
             this.int_bt.Name = "int_bt";
             this.int_bt.Size = new System.Drawing.Size(37, 30);
             this.int_bt.TabIndex = 130;
@@ -2912,7 +3112,7 @@ namespace Calculator
             // 
             this.tan_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tan_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.tan_bt.Location = new System.Drawing.Point(97, 462);
+            this.tan_bt.Location = new System.Drawing.Point(52, 340);
             this.tan_bt.Name = "tan_bt";
             this.tan_bt.Size = new System.Drawing.Size(37, 30);
             this.tan_bt.TabIndex = 30;
@@ -2924,7 +3124,7 @@ namespace Calculator
             // 
             this.sinh_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sinh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.sinh_bt.Location = new System.Drawing.Point(54, 390);
+            this.sinh_bt.Location = new System.Drawing.Point(52, 340);
             this.sinh_bt.Name = "sinh_bt";
             this.sinh_bt.Size = new System.Drawing.Size(37, 30);
             this.sinh_bt.TabIndex = 35;
@@ -2936,7 +3136,7 @@ namespace Calculator
             // 
             this.cos_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cos_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.cos_bt.Location = new System.Drawing.Point(97, 426);
+            this.cos_bt.Location = new System.Drawing.Point(52, 340);
             this.cos_bt.Name = "cos_bt";
             this.cos_bt.Size = new System.Drawing.Size(37, 30);
             this.cos_bt.TabIndex = 29;
@@ -2948,7 +3148,7 @@ namespace Calculator
             // 
             this.sin_bt.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sin_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.sin_bt.Location = new System.Drawing.Point(97, 390);
+            this.sin_bt.Location = new System.Drawing.Point(52, 340);
             this.sin_bt.Name = "sin_bt";
             this.sin_bt.Size = new System.Drawing.Size(37, 30);
             this.sin_bt.TabIndex = 28;
@@ -2959,7 +3159,7 @@ namespace Calculator
             // btFactorial
             // 
             this.btFactorial.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btFactorial.Location = new System.Drawing.Point(182, 390);
+            this.btFactorial.Location = new System.Drawing.Point(52, 340);
             this.btFactorial.Name = "btFactorial";
             this.btFactorial.Size = new System.Drawing.Size(37, 30);
             this.btFactorial.TabIndex = 32;
@@ -2988,7 +3188,7 @@ namespace Calculator
             this.historyPN.Controls.Add(this.upBT);
             this.historyPN.Controls.Add(this.clearHistoryBT);
             this.historyPN.Controls.Add(this.historyDGV);
-            this.historyPN.Location = new System.Drawing.Point(234, 324);
+            this.historyPN.Location = new System.Drawing.Point(232, 310);
             this.historyPN.Name = "historyPN";
             this.historyPN.Size = new System.Drawing.Size(206, 132);
             this.historyPN.TabIndex = 186;
@@ -3029,6 +3229,7 @@ namespace Calculator
             // 
             // historyDGV
             // 
+            this.historyDGV.AllowUserToAddRows = false;
             this.historyDGV.AllowUserToDeleteRows = false;
             this.historyDGV.AllowUserToResizeColumns = false;
             this.historyDGV.AllowUserToResizeRows = false;
@@ -3063,7 +3264,7 @@ namespace Calculator
             this.unknownPN.Controls.Add(this.qwordRB);
             this.unknownPN.Controls.Add(this.wordRB);
             this.unknownPN.Controls.Add(this.dwordRB);
-            this.unknownPN.Location = new System.Drawing.Point(456, 604);
+            this.unknownPN.Location = new System.Drawing.Point(95, 376);
             this.unknownPN.Name = "unknownPN";
             this.unknownPN.Size = new System.Drawing.Size(80, 102);
             this.unknownPN.TabIndex = 213;
@@ -3125,7 +3326,7 @@ namespace Calculator
             this.basePN.Controls.Add(this.octRB);
             this.basePN.Controls.Add(this.decRB);
             this.basePN.Controls.Add(this.hexRB);
-            this.basePN.Location = new System.Drawing.Point(456, 496);
+            this.basePN.Location = new System.Drawing.Point(9, 376);
             this.basePN.Name = "basePN";
             this.basePN.Size = new System.Drawing.Size(80, 102);
             this.basePN.TabIndex = 214;
@@ -3181,23 +3382,11 @@ namespace Calculator
             this.hexRB.UseVisualStyleBackColor = true;
             this.hexRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
             // 
-            // nonameTB2
-            // 
-            this.nonameTB2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.nonameTB2.Enabled = false;
-            this.nonameTB2.Location = new System.Drawing.Point(542, 496);
-            this.nonameTB2.Multiline = true;
-            this.nonameTB2.Name = "nonameTB2";
-            this.nonameTB2.ReadOnly = true;
-            this.nonameTB2.Size = new System.Drawing.Size(37, 30);
-            this.nonameTB2.TabIndex = 197;
-            this.nonameTB2.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-            // 
             // binaryPN
             // 
             this.binaryPN.BackColor = System.Drawing.Color.Transparent;
             this.binaryPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.binaryPN.Location = new System.Drawing.Point(11, 532);
+            this.binaryPN.Location = new System.Drawing.Point(182, 405);
             this.binaryPN.Name = "binaryPN";
             this.binaryPN.Size = new System.Drawing.Size(418, 73);
             this.binaryPN.TabIndex = 212;
@@ -3205,7 +3394,7 @@ namespace Calculator
             // btnF
             // 
             this.btnF.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnF.Location = new System.Drawing.Point(627, 676);
+            this.btnF.Location = new System.Drawing.Point(95, 340);
             this.btnF.Name = "btnF";
             this.btnF.Size = new System.Drawing.Size(37, 30);
             this.btnF.TabIndex = 208;
@@ -3216,7 +3405,7 @@ namespace Calculator
             // btnB
             // 
             this.btnB.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnB.Location = new System.Drawing.Point(627, 532);
+            this.btnB.Location = new System.Drawing.Point(95, 340);
             this.btnB.Name = "btnB";
             this.btnB.Size = new System.Drawing.Size(37, 30);
             this.btnB.TabIndex = 206;
@@ -3227,7 +3416,7 @@ namespace Calculator
             // btnD
             // 
             this.btnD.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnD.Location = new System.Drawing.Point(627, 604);
+            this.btnD.Location = new System.Drawing.Point(95, 340);
             this.btnD.Name = "btnD";
             this.btnD.Size = new System.Drawing.Size(37, 30);
             this.btnD.TabIndex = 207;
@@ -3239,7 +3428,7 @@ namespace Calculator
             // 
             this.XorBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.XorBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.XorBT.Location = new System.Drawing.Point(585, 604);
+            this.XorBT.Location = new System.Drawing.Point(95, 340);
             this.XorBT.Name = "XorBT";
             this.XorBT.Size = new System.Drawing.Size(37, 30);
             this.XorBT.TabIndex = 205;
@@ -3251,7 +3440,7 @@ namespace Calculator
             // 
             this.NotBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.NotBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.NotBT.Location = new System.Drawing.Point(542, 676);
+            this.NotBT.Location = new System.Drawing.Point(95, 340);
             this.NotBT.Name = "NotBT";
             this.NotBT.Size = new System.Drawing.Size(37, 30);
             this.NotBT.TabIndex = 203;
@@ -3263,7 +3452,7 @@ namespace Calculator
             // 
             this.AndBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AndBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.AndBT.Location = new System.Drawing.Point(585, 676);
+            this.AndBT.Location = new System.Drawing.Point(95, 340);
             this.AndBT.Name = "AndBT";
             this.AndBT.Size = new System.Drawing.Size(37, 30);
             this.AndBT.TabIndex = 204;
@@ -3274,7 +3463,7 @@ namespace Calculator
             // btnE
             // 
             this.btnE.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnE.Location = new System.Drawing.Point(627, 640);
+            this.btnE.Location = new System.Drawing.Point(95, 340);
             this.btnE.Name = "btnE";
             this.btnE.Size = new System.Drawing.Size(37, 30);
             this.btnE.TabIndex = 209;
@@ -3286,7 +3475,7 @@ namespace Calculator
             // 
             this.RshBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RshBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.RshBT.Location = new System.Drawing.Point(585, 640);
+            this.RshBT.Location = new System.Drawing.Point(95, 340);
             this.RshBT.Name = "RshBT";
             this.RshBT.Size = new System.Drawing.Size(37, 30);
             this.RshBT.TabIndex = 210;
@@ -3298,7 +3487,7 @@ namespace Calculator
             // 
             this.RoRBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RoRBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.RoRBT.Location = new System.Drawing.Point(585, 568);
+            this.RoRBT.Location = new System.Drawing.Point(95, 340);
             this.RoRBT.Name = "RoRBT";
             this.RoRBT.Size = new System.Drawing.Size(37, 30);
             this.RoRBT.TabIndex = 211;
@@ -3310,7 +3499,7 @@ namespace Calculator
             // 
             this.LshBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LshBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.LshBT.Location = new System.Drawing.Point(542, 640);
+            this.LshBT.Location = new System.Drawing.Point(95, 340);
             this.LshBT.Name = "LshBT";
             this.LshBT.Size = new System.Drawing.Size(37, 30);
             this.LshBT.TabIndex = 200;
@@ -3322,7 +3511,7 @@ namespace Calculator
             // 
             this.orBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.orBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.orBT.Location = new System.Drawing.Point(542, 604);
+            this.orBT.Location = new System.Drawing.Point(95, 340);
             this.orBT.Name = "orBT";
             this.orBT.Size = new System.Drawing.Size(37, 30);
             this.orBT.TabIndex = 199;
@@ -3334,7 +3523,7 @@ namespace Calculator
             // 
             this.RoLBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.RoLBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.RoLBT.Location = new System.Drawing.Point(542, 568);
+            this.RoLBT.Location = new System.Drawing.Point(95, 340);
             this.RoLBT.Name = "RoLBT";
             this.RoLBT.Size = new System.Drawing.Size(37, 30);
             this.RoLBT.TabIndex = 198;
@@ -3345,7 +3534,7 @@ namespace Calculator
             // btnA
             // 
             this.btnA.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnA.Location = new System.Drawing.Point(627, 496);
+            this.btnA.Location = new System.Drawing.Point(95, 340);
             this.btnA.Name = "btnA";
             this.btnA.Size = new System.Drawing.Size(37, 30);
             this.btnA.TabIndex = 201;
@@ -3356,7 +3545,7 @@ namespace Calculator
             // btnC
             // 
             this.btnC.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnC.Location = new System.Drawing.Point(627, 568);
+            this.btnC.Location = new System.Drawing.Point(95, 340);
             this.btnC.Name = "btnC";
             this.btnC.Size = new System.Drawing.Size(37, 30);
             this.btnC.TabIndex = 202;
@@ -3368,7 +3557,7 @@ namespace Calculator
             // 
             this.openproBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.openproBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.openproBT.Location = new System.Drawing.Point(542, 532);
+            this.openproBT.Location = new System.Drawing.Point(95, 340);
             this.openproBT.Name = "openproBT";
             this.openproBT.Size = new System.Drawing.Size(37, 30);
             this.openproBT.TabIndex = 199;
@@ -3379,7 +3568,7 @@ namespace Calculator
             // 
             this.modproBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.modproBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.modproBT.Location = new System.Drawing.Point(585, 496);
+            this.modproBT.Location = new System.Drawing.Point(95, 340);
             this.modproBT.Name = "modproBT";
             this.modproBT.Size = new System.Drawing.Size(37, 30);
             this.modproBT.TabIndex = 211;
@@ -3390,7 +3579,7 @@ namespace Calculator
             // 
             this.closeproBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.closeproBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.closeproBT.Location = new System.Drawing.Point(585, 532);
+            this.closeproBT.Location = new System.Drawing.Point(95, 340);
             this.closeproBT.Name = "closeproBT";
             this.closeproBT.Size = new System.Drawing.Size(37, 30);
             this.closeproBT.TabIndex = 205;
@@ -3400,7 +3589,7 @@ namespace Calculator
             // Expsta_bt
             // 
             this.Expsta_bt.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.Expsta_bt.Location = new System.Drawing.Point(397, 614);
+            this.Expsta_bt.Location = new System.Drawing.Point(137, 340);
             this.Expsta_bt.Name = "Expsta_bt";
             this.Expsta_bt.Size = new System.Drawing.Size(36, 30);
             this.Expsta_bt.TabIndex = 247;
@@ -3412,7 +3601,7 @@ namespace Calculator
             // 
             this.sigmax2BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmax2BT.Image = ((System.Drawing.Image)(resources.GetObject("sigmax2BT.Image")));
-            this.sigmax2BT.Location = new System.Drawing.Point(397, 686);
+            this.sigmax2BT.Location = new System.Drawing.Point(137, 340);
             this.sigmax2BT.Name = "sigmax2BT";
             this.sigmax2BT.Size = new System.Drawing.Size(36, 30);
             this.sigmax2BT.TabIndex = 245;
@@ -3425,7 +3614,7 @@ namespace Calculator
             this.sigman_1BT.Font = new System.Drawing.Font("Tahoma", 7.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigman_1BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigman_1BT.Image = ((System.Drawing.Image)(resources.GetObject("sigman_1BT.Image")));
-            this.sigman_1BT.Location = new System.Drawing.Point(397, 723);
+            this.sigman_1BT.Location = new System.Drawing.Point(137, 340);
             this.sigman_1BT.Name = "sigman_1BT";
             this.sigman_1BT.Size = new System.Drawing.Size(36, 30);
             this.sigman_1BT.TabIndex = 244;
@@ -3437,7 +3626,7 @@ namespace Calculator
             // 
             this.AddstaBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.AddstaBT.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.AddstaBT.Location = new System.Drawing.Point(397, 759);
+            this.AddstaBT.Location = new System.Drawing.Point(137, 340);
             this.AddstaBT.Name = "AddstaBT";
             this.AddstaBT.Size = new System.Drawing.Size(36, 30);
             this.AddstaBT.TabIndex = 243;
@@ -3450,7 +3639,7 @@ namespace Calculator
             // 
             this.xcross.ForeColor = System.Drawing.SystemColors.ControlText;
             this.xcross.Image = ((System.Drawing.Image)(resources.GetObject("xcross.Image")));
-            this.xcross.Location = new System.Drawing.Point(354, 650);
+            this.xcross.Location = new System.Drawing.Point(137, 340);
             this.xcross.Name = "xcross";
             this.xcross.Size = new System.Drawing.Size(36, 30);
             this.xcross.TabIndex = 242;
@@ -3462,7 +3651,7 @@ namespace Calculator
             // 
             this.sigmaxBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmaxBT.Image = ((System.Drawing.Image)(resources.GetObject("sigmaxBT.Image")));
-            this.sigmaxBT.Location = new System.Drawing.Point(354, 686);
+            this.sigmaxBT.Location = new System.Drawing.Point(137, 340);
             this.sigmaxBT.Name = "sigmaxBT";
             this.sigmaxBT.Size = new System.Drawing.Size(36, 30);
             this.sigmaxBT.TabIndex = 241;
@@ -3475,7 +3664,7 @@ namespace Calculator
             this.sigmanBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigmanBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmanBT.Image = ((System.Drawing.Image)(resources.GetObject("sigmanBT.Image")));
-            this.sigmanBT.Location = new System.Drawing.Point(354, 722);
+            this.sigmanBT.Location = new System.Drawing.Point(137, 340);
             this.sigmanBT.Name = "sigmanBT";
             this.sigmanBT.Size = new System.Drawing.Size(36, 30);
             this.sigmanBT.TabIndex = 240;
@@ -3488,7 +3677,7 @@ namespace Calculator
             this.CAD.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.CAD.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.CAD.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.CAD.Location = new System.Drawing.Point(269, 614);
+            this.CAD.Location = new System.Drawing.Point(137, 340);
             this.CAD.Name = "CAD";
             this.CAD.Size = new System.Drawing.Size(36, 30);
             this.CAD.TabIndex = 248;
@@ -3501,7 +3690,7 @@ namespace Calculator
             // 
             this.x2cross.ForeColor = System.Drawing.SystemColors.ControlText;
             this.x2cross.Image = ((System.Drawing.Image)(resources.GetObject("x2cross.Image")));
-            this.x2cross.Location = new System.Drawing.Point(397, 650);
+            this.x2cross.Location = new System.Drawing.Point(137, 340);
             this.x2cross.Name = "x2cross";
             this.x2cross.Size = new System.Drawing.Size(36, 30);
             this.x2cross.TabIndex = 246;
@@ -3515,7 +3704,7 @@ namespace Calculator
             this.statisticsPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.statisticsPN.Controls.Add(this.countlb);
             this.statisticsPN.Controls.Add(this.statisticsDGV);
-            this.statisticsPN.Location = new System.Drawing.Point(54, 615);
+            this.statisticsPN.Location = new System.Drawing.Point(444, 310);
             this.statisticsPN.Name = "statisticsPN";
             this.statisticsPN.Size = new System.Drawing.Size(206, 132);
             this.statisticsPN.TabIndex = 249;
@@ -3531,6 +3720,7 @@ namespace Calculator
             // 
             // statisticsDGV
             // 
+            this.statisticsDGV.AllowUserToAddRows = false;
             this.statisticsDGV.AllowUserToDeleteRows = false;
             this.statisticsDGV.AllowUserToResizeColumns = false;
             this.statisticsDGV.AllowUserToResizeRows = false;
@@ -3564,7 +3754,7 @@ namespace Calculator
             // clearsta
             // 
             this.clearsta.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.clearsta.Location = new System.Drawing.Point(312, 614);
+            this.clearsta.Location = new System.Drawing.Point(137, 340);
             this.clearsta.Name = "clearsta";
             this.clearsta.Size = new System.Drawing.Size(36, 30);
             this.clearsta.TabIndex = 20;
@@ -3591,7 +3781,6 @@ namespace Calculator
             this.Controls.Add(this.x2cross);
             this.Controls.Add(this.unknownPN);
             this.Controls.Add(this.basePN);
-            this.Controls.Add(this.nonameTB2);
             this.Controls.Add(this.binaryPN);
             this.Controls.Add(this.btnF);
             this.Controls.Add(this.btnB);
@@ -3643,13 +3832,13 @@ namespace Calculator
             this.Controls.Add(this.equal);
             this.Controls.Add(this.divbt);
             this.Controls.Add(this.mulbt);
-            this.Controls.Add(this.devbt);
+            this.Controls.Add(this.minusbt);
             this.Controls.Add(this.addbt);
             this.Controls.Add(this.btdot);
             this.Controls.Add(this.num0);
             this.Controls.Add(this.clearsta);
             this.Controls.Add(this.clearbt);
-            this.Controls.Add(this.mmul);
+            this.Controls.Add(this.mem_minus_bt);
             this.Controls.Add(this.memrecall);
             this.Controls.Add(this.doidau);
             this.Controls.Add(this.madd);
@@ -3667,8 +3856,8 @@ namespace Calculator
             this.Controls.Add(this.num4);
             this.Controls.Add(this.num1);
             this.Controls.Add(this.percent_bt);
-            this.Controls.Add(this.datecalcGB);
             this.Controls.Add(this.unitconvGB);
+            this.Controls.Add(this.datecalcGB);
             this.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -3710,7 +3899,7 @@ namespace Calculator
         /// <summary>
         /// khởi tạo menu chính cho chương trình
         /// </summary>
-        private void InitializeMenuAndContextMenu()
+        private void InitializeAllMenus()
         {
             this.menuStrip1 = new MainMenu();
             this.viewTSMI = new MenuItem("&View");
@@ -3728,7 +3917,7 @@ namespace Calculator
             this.editTSMI = new MenuItem("&Edit");
             this.copyTSMI = new MenuItem("&Copy");
             this.pasteTSMI = new MenuItem("&Paste");
-            this.toolStripSeparator3 = new MenuItem("-");
+            this.sepTSMI3 = new MenuItem("-");
             this.historyOptionTSMI = new MenuItem("His&tory");
             this.copyHistoryTSMI = new MenuItem("Copy history");
             this.clearHistoryTSMI = new MenuItem("Clear");
@@ -3740,12 +3929,14 @@ namespace Calculator
             this.toolStripSeparator4 = new MenuItem("-");
             this.aboutTSMI = new MenuItem("&About");
 
-            this.contextmenu1 = new ContextMenu();
-            this.copyCTMN = new MenuItem("Copy");
-            this.pasteCTMN = new MenuItem("Paste");
-            this.toolStripSeparator5 = new MenuItem("-");
-            this.showHistoryCTMN = new MenuItem("Show history");
-            this.clearHistoryCTMN = new MenuItem("Clear history");
+            this.contextMenu1 = new ContextMenu();
+            this.copyCTMN = new MenuItem("&Copy");
+            this.pasteCTMN = new MenuItem("&Paste");
+            this.sepCTMN = new MenuItem("-");
+            this.showHistoryCTMN = new MenuItem("&Show history");
+            this.hideHistoryCTMN = new MenuItem("&Hide history");
+            this.clearHistoryCTMN = new MenuItem("C&lear history");
+            this.clearDataSetCTMN = new MenuItem("C&lear Dataset");
             // 
             // menuStrip1
             // 
@@ -3776,25 +3967,28 @@ namespace Calculator
             this.standardTSMI.Checked = true;
             this.standardTSMI.Name = "standardTSMI";
             this.standardTSMI.Shortcut = Shortcut.Alt1;
+            this.standardTSMI.RadioCheck = true;
             this.standardTSMI.Click += new EventHandler(viewMode_Click);
             // 
             // scientificTSMI
             // 
             this.scientificTSMI.Name = "scientificTSMI";
             this.scientificTSMI.Shortcut = Shortcut.Alt2;
+            this.scientificTSMI.RadioCheck = true;
             this.scientificTSMI.Click += new EventHandler(scientificTSMI_Click);
             // 
             // programmerTSMI
             // 
             this.programmerTSMI.Name = "programmerTSMI";
             this.programmerTSMI.Shortcut = Shortcut.Alt3;
+            this.programmerTSMI.RadioCheck = true;
             this.programmerTSMI.Click += new EventHandler(programmerTSMI_Click);
             // 
             // statisticsTSMI
             // 
             this.statisticsTSMI.Name = "statisticsTSMI";
             this.statisticsTSMI.Shortcut = Shortcut.Alt4;
-            //this.statisticsTSMI.Enabled = false;
+            this.statisticsTSMI.RadioCheck = true;
             this.statisticsTSMI.Click += new EventHandler(statisticsTSMI_Click);
             // 
             // toolStripSeparator1
@@ -3823,18 +4017,21 @@ namespace Calculator
             this.basicTSMI.Checked = true;
             this.basicTSMI.Name = "basicTSMI";
             this.basicTSMI.Shortcut = Shortcut.CtrlF4;
+            this.basicTSMI.RadioCheck = true;
             this.basicTSMI.Click += new EventHandler(this.basicTSMI_Click);
             // 
             // unitConversionTSMI
             // 
             this.unitConversionTSMI.Name = "unitConversionTSMI";
             this.unitConversionTSMI.Shortcut = Shortcut.CtrlU;
+            this.unitConversionTSMI.RadioCheck = true;
             this.unitConversionTSMI.Click += new EventHandler(this.unitConversionTSMI_Click);
             // 
             // dateCalculationTSMI
             // 
             this.dateCalculationTSMI.Name = "dateCalculationTSMI";
             this.dateCalculationTSMI.Shortcut = Shortcut.CtrlE;
+            this.dateCalculationTSMI.RadioCheck = true;
             this.dateCalculationTSMI.Click += new EventHandler(this.dateCalculationTSMI_Click);
             // 
             // editTSMI
@@ -3842,7 +4039,7 @@ namespace Calculator
             this.editTSMI.MenuItems.AddRange(new MenuItem[] {
             this.copyTSMI,
             this.pasteTSMI,
-            this.toolStripSeparator3,
+            this.sepTSMI3,
             this.historyOptionTSMI,
             this.datasetTSMI});
             this.editTSMI.Name = "editTSMI";
@@ -3859,9 +4056,9 @@ namespace Calculator
             this.pasteTSMI.Shortcut = Shortcut.CtrlV;
             this.pasteTSMI.Click += new EventHandler(this.pasteTSMI_Click);
             // 
-            // toolStripSeparator3
+            // sepTSMI3
             // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.sepTSMI3.Name = "sepTSMI3";
             // 
             // historyOptionTSMI
             // 
@@ -3902,7 +4099,7 @@ namespace Calculator
             this.clearDatasetTSMI.Enabled = false;
             this.clearDatasetTSMI.Name = "clearDatasetTSMI";
             this.clearDatasetTSMI.Shortcut = Shortcut.CtrlShiftD;
-            this.clearDatasetTSMI.Click += new EventHandler(clearDatasetTSMI_Click);
+            this.clearDatasetTSMI.Click += new EventHandler(CAD_Click);
             // 
             // helpTSMI
             // 
@@ -3927,12 +4124,14 @@ namespace Calculator
             this.aboutTSMI.Name = "aboutTSMI";
             this.aboutTSMI.Click += new EventHandler(this.aboutTSMI_Click);
 
-            this.contextmenu1.MenuItems.AddRange(new MenuItem[]{
+            this.contextMenu1.MenuItems.AddRange(new MenuItem[]{
             copyCTMN,
             pasteCTMN,
-            toolStripSeparator5,
+            sepCTMN,
             showHistoryCTMN,
-            clearHistoryCTMN});
+            hideHistoryCTMN,
+            clearHistoryCTMN,
+            clearDataSetCTMN});
             //
             // copyCTMN
             //
@@ -3942,30 +4141,42 @@ namespace Calculator
             // pasteCTMN
             //
             this.pasteCTMN.Name = "pasteCTMN";
-            this.pasteCTMN.Enabled = method_class.isNumber(Clipboard.GetText());
+            this.pasteCTMN.Enabled = misc.isNumber(Clipboard.GetText().Trim());
             this.pasteCTMN.Click += new EventHandler(pasteTSMI_Click);
             //
-            // toolStripSeparator5
+            // sepCTMN
             //
-            this.toolStripSeparator5.Name = "copyCTMN";
+            this.sepCTMN.Name = "sepCTMN";
             //
             // showHistoryCTMN
             //
             this.showHistoryCTMN.Name = "showHistoryCTMN";
-            this.showHistoryCTMN.Checked = historyTSMI.Checked;
+            //this.showHistoryCTMN.Visible = true;
             this.showHistoryCTMN.Click += new EventHandler(historyTSMI_Click);
+            //
+            // hideHistoryCTMN
+            //
+            this.hideHistoryCTMN.Name = "hideHistoryCTMN";
+            this.hideHistoryCTMN.Visible = false;
+            this.hideHistoryCTMN.Click += new EventHandler(historyTSMI_Click);
+            //
+            // clearDataSetCTMN
+            //
+            this.clearDataSetCTMN.Name = "clearDataSetCTMN";
+            this.clearDataSetCTMN.Visible = false;
+            this.clearDataSetCTMN.Click += new EventHandler(CAD_Click);
             //
             // clearHistoryCTMN
             //
             this.clearHistoryCTMN.Name = "clearHistoryCTMN";
-            this.clearHistoryCTMN.Enabled = false;
+            this.clearHistoryCTMN.Visible = false;
             this.clearHistoryCTMN.Click += new EventHandler(clearHistoryBT_Click);
             // 
             // calc
             // 
             this.Menu = this.menuStrip1;
-            this.scr_lb.ContextMenu = contextmenu1;
-            this.screenPN.ContextMenu = contextmenu1;
+            this.scr_lb.ContextMenu = contextMenu1;
+            this.screenPN.ContextMenu = contextMenu1;
         }
         /// <summary>
         /// Hàm do người dùng viết để sắp xếp và thêm các nút lên form scientific
@@ -3994,11 +4205,11 @@ namespace Calculator
             this.percent_bt.Location = new Point(394, 137);
             this.invert_bt.Location = new Point(394, 173);
             this.equal.Location = new Point(394, 209);
-            this.mmul.Location = new Point(394, 65);
+            this.mem_minus_bt.Location = new Point(394, 65);
 
             this.divbt.Location = new Point(353, 137);
             this.mulbt.Location = new Point(353, 173);
-            this.devbt.Location = new Point(353, 209);
+            this.minusbt.Location = new Point(353, 209);
             this.addbt.Location = new Point(353, 246);
             this.doidau.Location = new Point(353, 101);
             this.madd.Location = new Point(353, 65);
@@ -4069,7 +4280,7 @@ namespace Calculator
             this.num0.Location = new Point(12, 246);
             this.btdot.Location = new Point(96, 246);
             this.addbt.Location = new Point(139, 246);
-            this.devbt.Location = new Point(139, 209);
+            this.minusbt.Location = new Point(139, 209);
             this.mulbt.Location = new Point(139, 173);
             this.divbt.Location = new Point(139, 137);
             this.equal.Location = new Point(182, 209);
@@ -4084,7 +4295,7 @@ namespace Calculator
             this.sqrt_bt.Location = new Point(182, 101);
             this.clearbt.Location = new Point(96, 101);
             this.madd.Location = new Point(139, 65);
-            this.mmul.Location = new Point(182, 65);
+            this.mem_minus_bt.Location = new Point(182, 65);
             this.mem_lb.Visible = (mem_num != 0);
 
             this.screenPN.Location = new Point(12, 17);
@@ -4123,11 +4334,11 @@ namespace Calculator
             this.addbt.GotFocus += new EventHandler(EnableKeyboard);
             this.mulbt.GotFocus += new EventHandler(EnableKeyboard);
             this.divbt.GotFocus += new EventHandler(EnableKeyboard);
-            this.devbt.GotFocus += new EventHandler(EnableKeyboard);
+            this.minusbt.GotFocus += new EventHandler(EnableKeyboard);
             this.equal.GotFocus += new EventHandler(EnableKeyboard);
             this.invert_bt.GotFocus += new EventHandler(EnableKeyboard);
             this.madd.GotFocus += new EventHandler(EnableKeyboard);
-            this.mmul.GotFocus += new EventHandler(EnableKeyboard);
+            this.mem_minus_bt.GotFocus += new EventHandler(EnableKeyboard);
             this.memrecall.GotFocus += new EventHandler(EnableKeyboard);
             this.percent_bt.GotFocus += new EventHandler(EnableKeyboard);
             this.sqrt_bt.GotFocus += new EventHandler(EnableKeyboard);
@@ -4141,7 +4352,7 @@ namespace Calculator
             this.dtP2.MouseDown += new MouseEventHandler(DisableKeyboard);
             this.periodsDateUD.MouseDown += new MouseEventHandler(DisableKeyboard);
             this.typeCB.GotFocus += new EventHandler(DisableKeyboard);
-            this.typeCB.MouseDown += new MouseEventHandler(DisableKeyboard);
+            //this.typeCB.MouseDown += new MouseEventHandler(DisableKeyboard);
 
             this.open_bracket.GotFocus += new EventHandler(EnableKeyboardAndChangeFocus);
             this.close_bracket.GotFocus += new EventHandler(EnableKeyboardAndChangeFocus);
@@ -4169,7 +4380,14 @@ namespace Calculator
             this.rad_rb.GotFocus += new System.EventHandler(EnableKeyboardAndChangeFocus);
             this.deg_rb.GotFocus += new System.EventHandler(EnableKeyboardAndChangeFocus);
 
+            this.result1.Enter += new EventHandler(DisableKeyboard);
+            this.result2.Enter += new EventHandler(DisableKeyboard);
             nextClipboardViewer = (IntPtr)SetClipboardViewer((int)this.Handle);
+            hideStdComponent(standardTSMI.Checked);
+            hideSciComponent(scientificTSMI.Checked);
+            hideProComponent(programmerTSMI.Checked);
+            hideStaComponent(statisticsTSMI.Checked);
+            historyPN.Visible = false;
         }
         /// <summary>
         /// khởi tạo mảng các combobox
@@ -4349,7 +4567,7 @@ namespace Calculator
             this.num4.Location = new Point(12, 304);
 
             this.equal.Location = new Point(182, 340);
-            this.devbt.Location = new Point(139, 340);
+            this.minusbt.Location = new Point(139, 340);
             this.num3.Location = new Point(96, 340);
             this.num2.Location = new Point(54, 340);
             this.num1.Location = new Point(12, 340);
@@ -4365,7 +4583,7 @@ namespace Calculator
             this.percent_bt.Location = new Point(182, 268);
 
             this.mstore.Location = new Point(54, 196);
-            this.mmul.Location = new Point(182, 196);
+            this.mem_minus_bt.Location = new Point(182, 196);
             this.memrecall.Location = new Point(96, 196);
             this.madd.Location = new Point(139, 196);
             this.memclear.Location = new Point(12, 196);
@@ -4384,6 +4602,7 @@ namespace Calculator
             this.Column1.Name = "Column1";
             this.Column1.ReadOnly = true;
             this.Column1.Width = 204;
+            //while (historyDGV.Rows.Count > 0) historyDGV.Rows.RemoveAt(0);
 
             this.upBT.Location = new Point(screenPN.Size.Width - 60, upBT.Location.Y);
             this.dnBT.Location = new Point(screenPN.Size.Width - 31, dnBT.Location.Y);
@@ -4430,11 +4649,11 @@ namespace Calculator
             this.percent_bt.Location = new Point(394, 268);
             this.invert_bt.Location = new Point(394, 304);
             this.equal.Location = new Point(394, 340);
-            this.mmul.Location = new Point(394, 196);
+            this.mem_minus_bt.Location = new Point(394, 196);
 
             this.divbt.Location = new Point(353, 268);
             this.mulbt.Location = new Point(353, 304);
-            this.devbt.Location = new Point(353, 340);
+            this.minusbt.Location = new Point(353, 340);
             this.addbt.Location = new Point(353, 377);
             this.doidau.Location = new Point(353, 232);
             this.madd.Location = new Point(353, 196);
@@ -4545,10 +4764,10 @@ namespace Calculator
             this.equal.Location = new Point(394, 293);
             this.divbt.Location = new Point(352, 221);
             this.mulbt.Location = new Point(352, 257);
-            this.devbt.Location = new Point(352, 293);
+            this.minusbt.Location = new Point(352, 293);
             this.addbt.Location = new Point(352, 329);
             this.clearbt.Location = new Point(309, 185);
-            this.mmul.Location = new Point(394, 149);
+            this.mem_minus_bt.Location = new Point(394, 149);
             this.memrecall.Location = new Point(267, 149);
             this.doidau.Location = new Point(352, 185);
             this.madd.Location = new Point(352, 149);
@@ -4565,7 +4784,7 @@ namespace Calculator
             this.basePN.Location = new Point(12, 149);
             this.open_bracket.Location = new Point(98, 185);
             this.close_bracket.Location = new Point(141, 185);
-            this.nonameTB2.Location = new Point(98, 149);
+            this.nonameTB.Location = new Point(98, 149);
             this.NotBT.Location = new Point(98, 329);
             this.unknownPN.Location = new Point(12, 257);
             this.AndBT.Location = new Point(141, 329);
@@ -4655,7 +4874,7 @@ namespace Calculator
             this.sigman_1BT.Location = new Point(182, 341);
             this.btdot.Location = new Point(96, 377);
             this.clearsta.Location = new Point(96, 232);
-            this.mmul.Location = new Point(182, 196);
+            this.mem_minus_bt.Location = new Point(182, 196);
             this.memrecall.Location = new Point(96, 196);
             this.fe_bt.Location = new Point(139, 232);
             this.madd.Location = new Point(139, 196);
@@ -4685,6 +4904,7 @@ namespace Calculator
             this.x2cross.Visible = true;
             this.statisticsPN.Visible = true;
 
+            while (statisticsDGV.Rows.Count > 0) statisticsDGV.Rows.RemoveAt(0);
             this.statisticsDGV.CurrentCell = null;
         }
 
@@ -4782,7 +5002,7 @@ namespace Calculator
         private Button num0;
         private Button btdot;
         private Button addbt;
-        private Button devbt;
+        private Button minusbt;
         private Button mulbt;
         private Button divbt;
         private Button equal;
@@ -4801,7 +5021,7 @@ namespace Calculator
         private Button sqrt_bt;
         private Button clearbt;
         private Button madd;
-        private Button mmul;
+        private Button mem_minus_bt;
         private ToolTip toolTip1;
 
         private GroupBox angleGB;
@@ -4888,7 +5108,7 @@ namespace Calculator
         private MenuItem editTSMI;
         private MenuItem copyTSMI;
         private MenuItem pasteTSMI;
-        private MenuItem toolStripSeparator3;
+        private MenuItem sepTSMI3;
         private MenuItem historyOptionTSMI;
         private MenuItem copyHistoryTSMI;
         private MenuItem clearHistoryTSMI;
@@ -4901,11 +5121,13 @@ namespace Calculator
         private MenuItem aboutTSMI;
         private MainMenu menuStrip1;
 
-        private ContextMenu contextmenu1;
+        private ContextMenu contextMenu1;
         private MenuItem copyCTMN;
         private MenuItem pasteCTMN;
-        private MenuItem toolStripSeparator5;
+        private MenuItem sepCTMN;
         private MenuItem showHistoryCTMN;
+        private MenuItem hideHistoryCTMN;
+        private MenuItem clearDataSetCTMN;
         private MenuItem clearHistoryCTMN;
 
         private Panel unknownPN;
@@ -4918,7 +5140,6 @@ namespace Calculator
         private RadioButton octRB;
         private RadioButton decRB;
         private RadioButton hexRB;
-        private TextBox nonameTB2;
         private Panel binaryPN;
         private Button btnF;
         private Button btnB;

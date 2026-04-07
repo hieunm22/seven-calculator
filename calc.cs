@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
-using Microsoft.JScript;
 using Microsoft.Win32;
 
 namespace Calculator
@@ -11,7 +10,7 @@ namespace Calculator
         public calc()
         {
             InitializeComponent();
-            InitializeMenuAndContextMenu();
+            InitializeAllMenus();
             InitComboBox();
             InitBitNumberArray(); 
             FocusedEvents();
@@ -22,7 +21,7 @@ namespace Calculator
         bool confirm_num = true, prcmdkey = true;
         int pre_bt = -1, pre_oprt = 0;
         double mem_num = 0;
-        MethodsClass method_class = new MethodsClass();
+        Miscellaneous misc = new Miscellaneous();
         #endregion
 
         /// <summary>
@@ -30,7 +29,11 @@ namespace Calculator
         /// </summary>
         private void calc_Load(object sender, EventArgs e)
         {
-            pasteTSMI.Enabled = method_class.isNumber(Clipboard.GetText());
+            if (WindowState != FormWindowState.Normal)
+            {
+                WindowState = FormWindowState.Normal;
+            }
+            pasteTSMI.Enabled = misc.isNumber(Clipboard.GetText().Trim());
             getThousandSym();
             loadInfoFromRegistry(sender, e);
             clearHistoryCTMN.Visible = historyTSMI.Checked;
@@ -99,8 +102,8 @@ namespace Calculator
 
         private void pi_bt_Click(object sender, System.EventArgs e)
         {
-            confirm_num = true; // 9,86960440108936
-            str = "3" + decimalSym + "141592653589793238462643";   // ...6433832795
+            confirm_num = true;
+            str = "3141592653589793238462643".Insert(1, decimalSym);
             scr_lb.Text = str;
             pre_bt = 3;
         }
@@ -235,25 +238,25 @@ namespace Calculator
         {
             digitGroupingTSMI.Checked = !digitGroupingTSMI.Checked;
             writeToRegistry(digitGroupingTSMI);
-            if (method_class.isNumber(toTB.Text) && unitConversionTSMI.Checked)
+            if (misc.isNumber(toTB.Text) && unitConversionTSMI.Checked)
             {
-                if (digitGroupingTSMI.Checked) toTB.Text = method_class.grouping(toTB.Text);
-                else toTB.Text = method_class.de_group(toTB.Text);
+                if (digitGroupingTSMI.Checked) toTB.Text = misc.grouping(toTB.Text);
+                else toTB.Text = misc.de_group(toTB.Text);
             } 
             if (!programmerTSMI.Checked)
             {
-                if (method_class.isNumber(str)) displayToScreen();
+                if (misc.isNumber(str)) displayToScreen();
             }
             else
             {
                 if (digitGroupingTSMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = method_class.grouping(str);
-                    if (octRB.Checked) scr_lb.Text = method_class.grouping(str, 3);
+                    if (decRB.Checked) scr_lb.Text = misc.grouping(str);
+                    if (octRB.Checked) scr_lb.Text = misc.grouping(str, 3);
                     if (binRB.Checked || hexRB.Checked)
-                        scr_lb.Text = method_class.grouping(str, 4);
+                        scr_lb.Text = misc.grouping(str, 4);
                 }
-                else scr_lb.Text = method_class.de_group(scr_lb.Text);
+                else scr_lb.Text = misc.de_group(scr_lb.Text);
             }
         }
 
@@ -281,11 +284,6 @@ namespace Calculator
         private void pasteTSMI_Click(object sender, EventArgs e)
         {
             pasteCommand();
-        }
-
-        private void clearDatasetTSMI_Click(object sender, EventArgs e)
-        {
-            // DO SOMETHING HERE
         }
 
         private void copyDatasetTSMI_Click(object sender, EventArgs e)
@@ -337,22 +335,22 @@ namespace Calculator
         private void calculate_bt_Click(object sender, EventArgs e)
         {
             DateTime dt = new DateTime();
-            int[] differ = method_class.differencesTimes(dtP1.Value, dtP2.Value);
+            int[] differ = misc.differencesTimes(dtP1.Value, dtP2.Value);
             int d1 = dtP1.Value.Year, d2 = dtP2.Value.Year;
             if (d1 > d2 || (d1 == d2 && dtP1.Value.DayOfYear > dtP2.Value.DayOfYear))
             {
-                differ = method_class.differencesTimes(dtP2.Value, dtP1.Value);
+                differ = misc.differencesTimes(dtP2.Value, dtP1.Value);
             }
 
             if (calmethodCB.SelectedIndex == 0)
             {
-                double diff = method_class.differenceBW2Dates(dtP1.Value, dtP2.Value);
+                double diff = misc.differenceBW2Dates(dtP1.Value, dtP2.Value);
                 if (diff == 1)
                     result2.Text = "1 day";
                 else
                 {
                     if (diff > 1)
-                        result2.Text = method_class.grouping("" + method_class.differenceBW2Dates(dtP1.Value, dtP2.Value)) + " days";
+                        result2.Text = misc.grouping(misc.differenceBW2Dates(dtP1.Value, dtP2.Value)) + " days";
                     else
                     {
                         result1.Text = "Same date";
@@ -406,7 +404,6 @@ namespace Calculator
                     dt = dt.AddDays(-(double)periodsDateUD.Value);
                 } 
                 result2.Text = dt.ToString((string)reg.GetValue("sLongDate"));
-                // dt.DayOfWeek + ", " + monthname[dt.Month - 1] + " " + dt.Day + ", " + dt.Year;
             }
         }
 
@@ -570,23 +567,23 @@ namespace Calculator
         private string getToTBText(string fromstr)
         {
             string ret_string = "";
-            if (method_class.isNumber(fromstr))
+            if (misc.isNumber(fromstr))
             {
                 double db = double.Parse(fromstr);
                 int type = typeCB.SelectedIndex;
                 if (typeCB.SelectedIndex != 6)
-                    db *= method_class.getRate(type, fcb[type].SelectedIndex, tcb[type].SelectedIndex);
+                    db *= misc.getRate(type, fcb[type].SelectedIndex, tcb[type].SelectedIndex);
                 else
-                    db = method_class.getTemperature(fcb[type].SelectedIndex, tcb[type].SelectedIndex, db);
+                    db = misc.getTemperature(fcb[type].SelectedIndex, tcb[type].SelectedIndex, db);
 
                 if (digitGroupingTSMI.Checked)
-                    if (("" + db).IndexOf("E") <= 0) ret_string = method_class.grouping("" + db);
+                    if (("" + db).IndexOf("E") <= 0) ret_string = misc.grouping("" + db);
                     else ret_string = "" + db;
                 else
-                    ret_string = method_class.de_group("" + db);
+                    ret_string = misc.de_group("" + db);
 
                 if (double.Parse(fromTB.Text) < 0 && typeCB.SelectedIndex != 6)
-                    ret_string = "The input number must be so1 positive";
+                    ret_string = "The input number must be a positive";
             }
             else ret_string = "Invalid input number. Please try again";
             if ((fromstr == "Enter value" && fromTB.ForeColor == SystemColors.GrayText) || fromstr == "")
@@ -634,15 +631,14 @@ namespace Calculator
         private void historyDGV_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             prcmdkey = true;
-            object obj = historyDGV[0, e.RowIndex].Value;
+            string expression = (string)historyDGV[0, e.RowIndex].Value;
             int count = historyDGV.Rows.Count;
             clearHistoryBT.Enabled = (count > 1 || (count == 1 && historyDGV[0, 0].Value != null));
-            copyHistoryTSMI.Enabled = (obj != null);
-            copyCTMN.Enabled = copyHistoryTSMI.Enabled;
-            str = "" + Eval.JScriptEvaluate(obj, vsa);
+            copyHistoryTSMI.Enabled = (expression != null);
+            str = "" + misc.Evaluate(expression);
             if (str == "") str = "0";
-            upBT.Enabled = (e.RowIndex >= 1 && obj != null);
-            dnBT.Enabled = (e.RowIndex < historyDGV.Rows.Count - 1 && obj != null);
+            upBT.Enabled = (e.RowIndex >= 1 && expression != null);
+            dnBT.Enabled = (e.RowIndex < historyDGV.Rows.Count - 1 && expression != null);
             displayToScreen();
         }
 
@@ -661,7 +657,7 @@ namespace Calculator
             } 
             if (count == 1 && historyDGV[0, 0].Value != null)
             {
-                historyDGV[0, 0].Value = null;
+                historyDGV.Rows.RemoveAt(0);
             } 
             historyDGV.CurrentCell = null;
             clearHistoryBT.Enabled = false;
@@ -742,8 +738,8 @@ namespace Calculator
             if (octRB.Checked)
             {
                 octnum = str;
-                binnum = ConvertNumber.other_to_dec(octnum, 1);
-                decnum = ConvertNumber.bin_to_other(binnum, 2);
+                decnum = ConvertNumber.other_to_dec(str, 2);
+                binnum = ConvertNumber.dec_to_other(decnum, 1);
                 hexnum = ConvertNumber.dec_to_other(decnum, 4);
             }
             if (decRB.Checked)
@@ -898,9 +894,17 @@ namespace Calculator
         #region statistics mode
         private void CAD_Click(object sender, EventArgs e)
         {
-            while (statisticsDGV.Rows.Count > 1) statisticsDGV.Rows.RemoveAt(0);
-            statisticsDGV[0, 0].Value = null;
+            clear_statistics();
+        }
+
+        private void clear_statistics()
+        {
+            while (statisticsDGV.Rows.Count > 0) statisticsDGV.Rows.RemoveAt(0);
+            //statisticsDGV[0, 0].Value = null;
             countlb.Text = "Count = 0";
+            clearDataSetCTMN.Enabled = false;
+            clearDatasetTSMI.Enabled = false;
+            copyDatasetTSMI.Enabled = false;
         }
 
         private void AddstaBT_Click(object sender, EventArgs e)
@@ -910,6 +914,7 @@ namespace Calculator
 
         private void sigman_1BT_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count <= 1) return;
             double result = sum(true) - sum(false) * sum(false) / statisticsDGV.Rows.Count;
             result /= (statisticsDGV.Rows.Count - 1);
             result = Math.Sqrt(result);
@@ -919,6 +924,7 @@ namespace Calculator
 
         private void sigmanBT_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count == 0) return;
             double result = sum(true) - sum(false) * sum(false) / statisticsDGV.Rows.Count; 
             result /= statisticsDGV.Rows.Count;
             result = Math.Sqrt(result);
@@ -929,38 +935,40 @@ namespace Calculator
         private double sum(bool isx2)
         {
             double sum = 0;
-            if (statisticsDGV[0, 0].Value != null)
+            if (statisticsDGV.Rows.Count == 0) return 0;
+            for (int i = 0; i < statisticsDGV.Rows.Count; i++)
             {
-                for (int i = 0; i < statisticsDGV.Rows.Count; i++)
-                {
-                    double number = double.Parse("" + statisticsDGV[0, i].Value);
-                    if (isx2) sum += number * number;
-                    else sum += number;
-                }
+                double number = double.Parse("" + statisticsDGV[0, i].Value);
+                if (isx2) sum += number * number;
+                else sum += number;
             }
             return sum;
         }
 
         private void sigmax2BT_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count == 0) return;
             str = "" + sum(true);
             displayToScreen();
         }
 
         private void sigmaxBT_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count == 0) return;
             str = "" + sum(false);
             displayToScreen();
         } 
 
         private void x2cross_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count == 0) return;
             str = "" + (sum(true) / statisticsDGV.Rows.Count);
             displayToScreen();
         }
 
         private void xcross_Click(object sender, EventArgs e)
         {
+            if (statisticsDGV.Rows.Count == 0) return;
             str = "" + (sum(false) / statisticsDGV.Rows.Count);
             displayToScreen();
         }
@@ -1005,10 +1013,5 @@ namespace Calculator
             copyDatasetTSMI.Enabled = (count > 1 || (count == 1 && statisticsDGV[0, 0].Value != null));
         }
         #endregion
-
-        private void showhistoryctmn_Click(object sender, EventArgs e)
-        {
-
-        }
     }
 }
