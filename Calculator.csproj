@@ -141,10 +141,18 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sharith\MathUtils\PositiveRange.cs" />
-    <Compile Include="Sharith\MathUtils\XMath.cs" />
-    <Compile Include="Sharith\Primes\IPrimeCollection.cs" />
-    <Compile Include="Sharith\Primes\IPrimeSieve.cs" />
-    <Compile Include="Sharith\Primes\PrimeSieve.cs" />
+    <Compile Include="Sharith\MathUtils\XMath.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sharith\Primes\IPrimeCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sharith\Primes\IPrimeSieve.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Sharith\Primes\PrimeSieve.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <EmbeddedResource Include="ExtraForms\About.resx">
       <DependentUpon>About.cs</DependentUpon>
       <SubType>Designer</SubType>

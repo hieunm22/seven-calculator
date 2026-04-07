@@ -5,27 +5,33 @@ namespace Calculator
 {
     public partial class Preferences : Form
     {
-        public Preferences(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict)
+        public Preferences(int _Speed, bool _Animate, bool _FastFact, bool _IsSign, bool _ReadDict, bool _FastInput)
         {
             InitializeComponent();
-            LoadSettings(_Speed, _Animate, _Fast, _IsSign, _ReadDict);
+            LoadSettings(_Speed, _Animate, _FastFact, _IsSign, _ReadDict, _FastInput);
         }
 
-        private void LoadSettings(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict)
+        private void LoadSettings(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict, bool _FastInput)
         {
             transfer = _Speed;
             animateCB.Checked = ani = _Animate;
             fastFactCB.Checked = f3 = _Fast;
             usedSignChkB.Checked = sign = _IsSign;
             readDictChkB.Checked = readDict = _ReadDict;
+            fastInputCkB.Checked = fastInput = _FastInput;
             collapsedSpdNUD.Value = (decimal)_Speed;
         }
-
-        public delegate void PreferencesChanged(int spd, bool animate, bool fast, bool sign, bool readdict, bool restart);
+        /// <summary>
+        /// thay đổi cấu hình trên form
+        /// </summary>
+        public delegate void PreferencesChanged(int spd, bool animate, bool fast, bool sign, bool readdict, bool fastinput, bool restart);
+        /// <summary>
+        /// sự kiện thay đổi cấu hình trên form
+        /// </summary>
         public event PreferencesChanged DoCheck;
 
         int transfer;
-        bool mod = false, ani, f3, sign, readDict, readDictChanged;
+        bool mod = false, ani, f3, sign, readDict, fastInput, readDictChanged;
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (mod)
@@ -35,7 +41,7 @@ namespace Calculator
                 {
                     dr = MessageBox.Show("This setting requires application restart to take effect.\r\nDo you want to restart now?", "Calculator", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 }
-                if (DoCheck != null) DoCheck((int)collapsedSpdNUD.Value, usedSignChkB.Checked, fastFactCB.Checked, animateCB.Checked, readDictChkB.Checked, dr == DialogResult.Yes);
+                if (DoCheck != null) DoCheck((int)collapsedSpdNUD.Value, usedSignChkB.Checked, fastFactCB.Checked, animateCB.Checked, readDictChkB.Checked, fastInputCkB.Checked, dr == DialogResult.Yes);
             }
             this.Close();
         }
@@ -67,6 +73,12 @@ namespace Calculator
         {
             collapsedSpdNUD.Enabled = spdLB.Enabled = animateCB.Checked;
             mod |= ani != animateCB.Checked;
+        }
+
+        private void fastInputCkB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mod && fastInputCkB.Checked == sign) { mod = false; return; }
+            mod |= fastInput != fastInputCkB.Checked;
         }
 
         private void readDictChkB_CheckedChanged(object sender, EventArgs e)

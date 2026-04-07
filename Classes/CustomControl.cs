@@ -64,6 +64,19 @@ namespace Calculator
             set { base.ContextMenuStrip = value; }
         }
 
+        internal bool IsCancelEdit;
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            IsCancelEdit = keyData == Keys.Escape;
+            if (IsCancelEdit)
+            {
+                base.CancelEdit();
+                return base.EndEdit();
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         protected override bool ProcessDataGridViewKey(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Return)

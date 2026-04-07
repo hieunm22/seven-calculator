@@ -12,8 +12,8 @@ namespace Sharith.Math.Primes
     using System.Collections.Generic;
     using System.IO;
     using System.Threading;
-    using Sharith.Math.MathUtils;
     using Calculator;
+    using Sharith.Math.MathUtils;
     using XMath = Sharith.Math.MathUtils.XMath;
 
     /// <summary>
@@ -24,7 +24,7 @@ namespace Sharith.Math.Primes
     /// </summary>
     public class PrimeSieve : IPrimeSieve
     {
-        readonly int[] primes;
+        readonly long[] primes;
         PositiveRange sieveRange;
         PositiveRange primeRange;
         int numberOfPrimes;
@@ -36,13 +36,21 @@ namespace Sharith.Math.Primes
         /// The upper bound of the sieveRange to be sieved, this means,
         /// the sieveRange [1,n] is searched for prime numbers.
         /// </param>
-        public PrimeSieve(int upTo)
+        public PrimeSieve(long upTo)
         {
-            primes = new int[GetPiHighBound(upTo)];
-            sieveRange = new PositiveRange(1, upTo);
+            try
+            {
+                long size = GetPiHighBound(upTo);
+                primes = new long[GetPiHighBound(upTo)];
+                sieveRange = new PositiveRange(1, upTo);
 
-            numberOfPrimes = MakePrimeList(upTo);
-            primeRange = new PositiveRange(1, numberOfPrimes);
+                numberOfPrimes = MakePrimeList(upTo);
+                primeRange = new PositiveRange(1, numberOfPrimes);
+            }
+            catch (OutOfMemoryException)
+            {
+                throw new OutOfMemoryException("Value is too large to calculate");
+            }
         }
 
         /// <summary>
@@ -109,13 +117,13 @@ namespace Sharith.Math.Primes
         /// </summary>
         /// <param name="n">Upper bound of the sieve.</param>
         /// <returns>Number of primes found.</returns>
-        private int MakePrimeList(int n)
+        private int MakePrimeList(long n)
         {
             bool[] composite = new bool[n / 3];
 
             SieveOfEratosthenes(composite);
 
-            int[] primes = this.primes;     // -- on stack for eff.
+            long[] primes = this.primes;     // -- on stack for eff.
             bool toggle = false;
             int p = 5, i = 0, j = 2;
 
@@ -153,7 +161,7 @@ namespace Sharith.Math.Primes
         /// </summary>
         /// <param name="n">The index of the prime number.</param>
         /// <returns>The n-th prime number.</returns>
-        public int GetNthPrime(int n)
+        public long GetNthPrime(int n)
         {
             // Handle potential under- or overflow
             primeRange.ContainsOrFail(n);
@@ -178,7 +186,7 @@ namespace Sharith.Math.Primes
         /// </summary>
         /// <param name="cand">The number to be checked.</param>
         /// <returns>Next prime > n.</returns>
-        public int NextPrime(int n)
+        public long NextPrime(int n)
         {
             sieveRange.ContainsOrFail(n);
             // The candidate is interpreted as an one point interval!
@@ -200,7 +208,7 @@ namespace Sharith.Math.Primes
         /// <param name="low">The lower bound of the collection interval.</param>
         /// <param name="high">The higher bound of the collection interval.</param>
         /// <returns>The collection of the prime numbers between low and high.</returns>
-        public IPrimeCollection GetPrimeCollection(int low, int high)
+        public IPrimeCollection GetPrimeCollection(long low, long high)
         {
             return new PrimeCollection(this, new PositiveRange(low, high));
         }
@@ -233,7 +241,7 @@ namespace Sharith.Math.Primes
         /// <param name="high">The upper bound of the collection.</param>
         /// <returns>The Product of the prime numbers between low and high.
         /// </returns>
-        public BigNumber GetPrimorial(int low, int high)
+        public BigNumber GetPrimorial(long low, long high)
         {
             return GetPrimorial(new PositiveRange(low, high));
         }
@@ -246,7 +254,8 @@ namespace Sharith.Math.Primes
         /// </returns>
         public BigNumber GetPrimorial(PositiveRange range)
         {
-            int start, size;
+            int start; 
+            long size;
             var pc = new PrimeCollection(this, range);
             if (pc.GetSliceParameters(out start, out size))
             {
@@ -272,7 +281,8 @@ namespace Sharith.Math.Primes
 
             var range = new PositiveRange(low, high);
             var pc = new PrimeCollection(this, range, increment);
-            int start, size;
+            int start; 
+            long size;
             if (pc.GetSliceParameters(out start, out size))
             {
                 return 1;
@@ -293,7 +303,8 @@ namespace Sharith.Math.Primes
             private readonly PrimeSieve sieve;
             private readonly PositiveRange enumRange;
             private readonly PositiveRange primeRange;
-            private readonly int start, end, nextPrime;
+            private readonly int start, end;
+            private readonly long nextPrime;
             private readonly bool isPrime;
             private int state, next, current;
             private int increment;
@@ -323,7 +334,6 @@ namespace Sharith.Math.Primes
             public PrimeCollection(PrimeSieve sieve, PositiveRange enumRange)
             {
                 sieve.sieveRange.ContainsOrFail(enumRange);
-
                 this.sieve = sieve;
                 this.enumRange = enumRange;
 
@@ -413,7 +423,7 @@ namespace Sharith.Math.Primes
             /// Computes the smallest prime >= n.
             /// </summary>
             /// <returns>Next prime >= n.</returns>
-            public int NextPrime()
+            public long NextPrime()
             {
                 return nextPrime;
             }
@@ -424,7 +434,7 @@ namespace Sharith.Math.Primes
             /// </summary>
             /// <returns>An enumerator of the current prime number collection.
             /// </returns>
-            IEnumerator<int> IEnumerable<int>.GetEnumerator()
+            IEnumerator<long> IEnumerable<long>.GetEnumerator()
             {
                 PrimeCollection result = this;
 
@@ -450,7 +460,7 @@ namespace Sharith.Math.Primes
             /// collection.</returns>
             IEnumerator IEnumerable.GetEnumerator()
             {
-                IEnumerable<int> enumerable = this;
+                IEnumerable<long> enumerable = this;
                 return enumerable.GetEnumerator();
             }
 
@@ -467,7 +477,7 @@ namespace Sharith.Math.Primes
             /// The next prime number in the collection.
             /// </summary>
             /// <returns> The current prime number in the collection.</returns>
-            int IEnumerator<int>.Current
+            long IEnumerator<long>.Current
             {
                 get { return sieve.primes[current]; }
             }
@@ -522,9 +532,9 @@ namespace Sharith.Math.Primes
             /// <param name="low">Lower bound for the index.</param>
             /// <param name="high">Upper bound for the index.</param>
             /// <returns>The index of the prime number.</returns>
-            private int IndexOf(int value, int low, int high)
+            private int IndexOf(long value, int low, int high)
             {
-                int[] data = sieve.primes;
+                long[] data = sieve.primes;
 
                 while (low < high)
                 {
@@ -558,20 +568,20 @@ namespace Sharith.Math.Primes
             /// </summary>
             /// <returns>An array of prime numbers representing the collection.
             /// </returns>
-            public int[] ToArray()
+            public long[] ToArray()
             {
-                int[] primeList;
-                int primeCard = primeRange.Size();
+                long[] primeList;
+                long primeCard = primeRange.Size();
 
                 if (increment == 1)
                 {
-                    primeList = new int[primeCard];
+                    primeList = new long[primeCard];
                     System.Array.Copy(sieve.primes, start, primeList, 0, primeCard);
                 }
                 else
                 {
-                    int size = (primeCard + 1) / increment;
-                    primeList = new int[size];
+                    long size = (primeCard + 1) / increment;
+                    primeList = new long[size];
                     int j = 0, i;
                     for (i = start; j < size; i += increment)
                     {
@@ -592,7 +602,7 @@ namespace Sharith.Math.Primes
             /// <param name="begin">start of the prime range.</param>
             /// <param name="size">Size of the prime range.</param>
             /// <returns>Prime range is empty.</returns>
-            public bool GetSliceParameters(out int begin, out int size)
+            public bool GetSliceParameters(out int begin, out long size)
             {
                 bool empty = 0 == primeRange.Max; // If the primeRange is empty...
                 begin = empty ? 0 : start;
@@ -605,7 +615,7 @@ namespace Sharith.Math.Primes
             /// </summary>
             /// <value>The number of primes in the current collection.
             /// </value>
-            public int NumberOfPrimes
+            public long NumberOfPrimes
             {
                 get
                 {
@@ -663,8 +673,8 @@ namespace Sharith.Math.Primes
                     (double)primeRange.Size() / (double)enumRange.Size());
 
                 int primeOrdinal = start;
-                int primeLow = sieve.primes[start];
-                int lim = (primeLow / 100) * 100;
+                long primeLow = sieve.primes[start];
+                long lim = (primeLow / 100) * 100;
 
                 foreach (int prime in this)
                 {

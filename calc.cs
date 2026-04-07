@@ -15,7 +15,7 @@ namespace Calculator
         #region bien toan cuc
 
         string screenStr = "0", mainExp = "", curOperand = "0";
-        bool confirmNumber = true, prcmdkey = true, propertiesChange = false, expAdded = false, isInPaste = false;
+        bool confirmNumber = true, prcmdkey = true, propertiesChange = false, expAdded = false;
         int pre_bt = -1;
         object[] initConfigValue, currentConfig;
         string[] resultCollection = new string[100];
@@ -57,9 +57,9 @@ namespace Calculator
         #region Nhap so va cac phep tinh
         private void numberinput_Click(object sender, EventArgs e)
         {
-            if (pex == null)
+            var btn = sender as Button;
+            if (pex == null && btn.Enabled)
             {
-                var btn = sender as Button;
                 if (programmerMI.Checked) numinput_pro(btn);
                 else numinput(btn);
             }
@@ -154,7 +154,6 @@ namespace Calculator
         {
             if (pex == null)
             {
-                confirmNumber = true;
                 if (standardMI.Checked)       // standard.checked
                 {
                     #region standard operation
@@ -206,6 +205,7 @@ namespace Calculator
 
                     mainExp = "";
                     isFuncClicked = false;
+                    confirmNumber = true;
                     #endregion
                 }
                 if (scientificMI.Checked)     // scientific.checked
@@ -257,6 +257,7 @@ namespace Calculator
                     curOperand = screenStr;
                     bracketTime_lb.Text = "";
                     isFuncClicked = false;
+                    confirmNumber = true;
 
                     #endregion
                 }
@@ -276,6 +277,7 @@ namespace Calculator
                     mainExp = "";
                     curOperand = decRB.Value;
                     bracketTime_lb.Text = "";
+                    confirmNumber = true;
                     #endregion
                 }
 
@@ -496,13 +498,9 @@ namespace Calculator
         //
         private void open_bracket_Click(object sender, EventArgs e)
         {
-            if (prePriority[openBrkLevel].Index < 0 && expAdded)
-            {
-                equal_Click(null, null);
-            }
             if (pex == null && openBrkLevel < maxBracketLevel)
             {
-                screenStr = "0";
+                //screenStr = "0";
                 DisplayToScreen();
                 if (openBrkLevel < maxBracketLevel)
                 {
@@ -512,7 +510,7 @@ namespace Calculator
                 if (expAdded)
                 {
                     mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length) + "(";
-                    bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - curOperand.Length) + "(";
+                    //bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - curOperand.Length) + "(";
                 }
                 else
                 {
@@ -523,6 +521,8 @@ namespace Calculator
 
                 if (scientificMI.Checked) { isFuncClicked = false; expressionTB.Text = mainExp; }
 
+                expAdded = false;
+                curOperand = screenStr;
                 confirmNumber = true;
                 pre_bt = 152;
             }
@@ -602,28 +602,28 @@ namespace Calculator
         //
         private void standardMI_Click(object sender, EventArgs e)
         {
-            if (!standardMI.Checked) { stdLoad(false); clear_num(true); }
+            if (!standardMI.Checked) stdLoad(false);
         }
         //
         // menu scientific
         //
         private void scientificMI_Click(object sender, EventArgs e)
         {
-            if (!scientificMI.Checked) { sciLoad(false); clear_num(true); }
+            if (!scientificMI.Checked) sciLoad(false);
         }
         //
         // menu programmer
         //
         private void programmerMI_Click(object sender, EventArgs e)
         {
-            if (!programmerMI.Checked) { proLoad(false); clear_num(true); }
+            if (!programmerMI.Checked) proLoad(false);
         }
         //
         // menu statistics
         //
         private void statisticsMI_Click(object sender, EventArgs e)
         {
-            if (!statisticsMI.Checked) { staLoad(false); clear_num(true); }
+            if (!statisticsMI.Checked) staLoad(false);
         }
         //
         // menu digit grouping
@@ -751,7 +751,6 @@ namespace Calculator
         //
         private void pasteCTMN_Click(object sender, EventArgs e)
         {
-            isInPaste = true;
             string data = Clipboard.GetText().ToUpper();
             data = data.Replace(" ", "").Replace("\r", "").Replace("\n", "=").Trim();
             if (data.Length > 200) data = data.Substring(0, 200);
@@ -816,7 +815,6 @@ namespace Calculator
                 }
                 ProcessCmdKey(ref msg, keyData[i]);
             }
-            isInPaste = false;
             if (programmerMI.Checked) ScreenToPanel();
             else DisplayToScreen();
         }
@@ -932,7 +930,8 @@ namespace Calculator
         {
             try
             {
-                System.Diagnostics.Process.Start("shortcuts-key.pdf");
+                //System.Diagnostics.Process.Start("shortcuts-key.pdf");
+                System.Diagnostics.Process.Start("http://www.shortcutmania.com/Windows-7-Calculator-Keyboard-Shortcuts.htm");
             }
             catch { }
         }
@@ -942,20 +941,21 @@ namespace Calculator
         private void preferrencesMI_Click(object sender, EventArgs e)
         {
             Preferences pre = new Preferences((int)currentConfig[8],
-                (int)currentConfig[9] == 1, (int)currentConfig[10] == 1, (int)currentConfig[11] == 1, (int)currentConfig[12] == 1);
+                (int)currentConfig[9] == 1, (int)currentConfig[10] == 1, (int)currentConfig[11] == 1, (int)currentConfig[12] == 1, (int)currentConfig[13] == 1);
             pre.DoCheck += new Preferences.PreferencesChanged(pre_DoCheck);
             pre.ShowDialog();
         }
         //
         // sự kiện kick nút ok trên form preferrences
         //
-        private void pre_DoCheck(int spd, bool sign, bool fast, bool animate, bool readdict, bool restartRequired)
+        private void pre_DoCheck(int spd, bool sign, bool fastfact, bool animate, bool readdict, bool fastinput, bool restartRequired)
         {
             currentConfig[8] = spd;
             currentConfig[9] = animate ? 1 : 0;
-            currentConfig[10] = fast ? 1 : 0;
+            currentConfig[10] = fastfact ? 1 : 0;
             currentConfig[11] = sign ? 1 : 0;
             currentConfig[12] = readdict ? 1 : 0;
+            currentConfig[13] = fastinput ? 1 : 0;
 
             if (!currentConfig.Equals(initConfigValue)) propertiesChange = true;
 
@@ -1007,21 +1007,21 @@ namespace Calculator
                     if (differ[0] != 1) text = differ[0] + " years";
                     else text = "1 year";
                 }
-                if (differ[0] != 0 && differ[1] != 0)
+                if (differ[1] != 0)
                 {
-                    text += ", ";
+                    if (differ[0] != 0) text += ", ";
                     if (differ[1] != 1) text += differ[1] + " months";
                     else text += "1 month";
                 }
-                if ((differ[0] != 0 || differ[1] != 0) && differ[2] != 0)
+                if (differ[2] != 0)
                 {
-                    text += ", ";
+                    if (differ[0] != 0 || differ[1] != 0) text += ", ";
                     if (differ[2] != 1) text += differ[2] + " weeks";
                     else text += "1 week";
                 }
-                if ((differ[0] != 0 || differ[1] != 0 || differ[2] != 0) && differ[3] != 0)
+                if (differ[3] != 0)
                 {
-                    text += ", ";
+                    if (differ[0] != 0 || differ[1] != 0 || differ[2] != 0) text += ", ";
                     if (differ[3] != 1) text += differ[3] + " days";
                     else text += "1 day";
                 }
@@ -1421,7 +1421,7 @@ namespace Calculator
             dgv.ReadOnly = true;
 
             ChangeDGVHeight(dgv);
-            if (dgv == staDGV)
+            if (dgv == staDGV && !dgv.IsCancelEdit)
             {
                 addStaWithFrequence(true);
             }
@@ -1433,8 +1433,8 @@ namespace Calculator
         private void ChangeDGVHeight(IDataGridView dgv)
         {
             int maxCharPerLine = 0;
-            if (standardMI.Checked) maxCharPerLine = 26;
-            if (scientificMI.Checked) maxCharPerLine = 53;
+            if (standardMI.Checked || statisticsMI.Checked) maxCharPerLine = 26;
+            if (scientificMI.Checked || programmerMI.Checked) maxCharPerLine = 53;
 
             string group = dgv[0, dgv.CurrentCell.RowIndex].Value.ToString();
             int len = group.Length;
@@ -1573,9 +1573,10 @@ namespace Calculator
             while (open >= 4)
             {
                 //if (open < 4) break;
-                int close = Misc.GetCloseBracketIndex(expression, open);
+                string subExp = "";
+                int close = Misc.GetCloseBracketIndex(expression, open, ref subExp);
                 searchIndex = close + 1;
-                string subExp = expression.Substring(open + 1, close - open - 1);
+                //string subExp = expression.Substring(open + 1, close - open - 1);
                 parser.EvaluateSci(subExp);
                 // neu co 1 ket qua >= 100000 (1e5) thi return true luon
                 if (showPrg)
@@ -1609,7 +1610,7 @@ namespace Calculator
         /// éo biết gọi là gì, đặt tạm thế
         /// </summary>
         int SizeBin = 64;
-        string binnum64 = "0".PadLeft(64, '0');
+        string binnum64 = new string('0', 64);
         /// <summary>
         /// dựa trên sự thay đổi của số trên panel nhị phân mà trả về kết quả hiển thị trên màn hình chính
         /// </summary>
@@ -1832,8 +1833,15 @@ namespace Calculator
         {
             if (pex == null)
             {
-                if (Form.ModifierKeys == Keys.None) addStaWithFrequence(false);
-                if (Form.ModifierKeys == Keys.Control) AddStaFQ(1);
+                // ctrl enter và tick chọn (nhập frequency cho từng số)            hoặc enter và untick chọn (nhập frequency cho từng số)
+                if ((Form.ModifierKeys != Keys.None && (int)currentConfig[13] != 1) || (Form.ModifierKeys == Keys.None && (int)currentConfig[13] == 1))
+                {
+                    addStaWithFrequence(false);
+                }
+                else
+                {
+                    AddStaFQ(1);
+                }
             }
         }
         /// <summary>
@@ -1983,6 +1991,12 @@ namespace Calculator
             prcmdkey = false;
             dgv_OnBeginEdit(sender);
             //statisticsOptionEnabled();
+        }
+
+        private void staDGV_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            screenStr = staDGV[e.ColumnIndex, e.RowIndex].Value.ToString();
+            DisplayToScreen();
         }
 
         private void staDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)

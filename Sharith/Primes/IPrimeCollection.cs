@@ -37,12 +37,12 @@ namespace Sharith.Math.Primes
      /// author Peter Luschny
      ///
      /// </summary>
-    public interface IPrimeCollection : IEnumerator<int>, IEnumerable<int> 
+    public interface IPrimeCollection : IEnumerator<long>, IEnumerable<long> 
     {
         /// <summary>
         /// Gets the number of primes in the enumeration.
         /// </summary>
-        int NumberOfPrimes { get; }
+        long NumberOfPrimes { get; }
  
         /// <summary>
         /// Gets the intervall proceeded by the sieve.
@@ -59,7 +59,7 @@ namespace Sharith.Math.Primes
         /// as an array.
         /// </summary>
         /// <returns>An array of the primes in the SieveRange.</returns>
-        int[] ToArray();
+        long[] ToArray();
  
         /// <summary>
         /// Writes the prime number enumeration (somewhat formatted)

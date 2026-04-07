@@ -24,13 +24,12 @@ namespace Sharith.Math.MathUtils
         /// <param name="low"> The lower bound (Min) of the range.</param>
         /// <param name="high"> The upper bound (Max) of the range.</param>
         /// throws IllegalArgumentException
-        public PositiveRange(int low, int high)
+        public PositiveRange(long low, long high)
         {
             if (low < 0 || low > high)
             {
                 throw new ArgumentOutOfRangeException(
-                String.Format("[{0},{1}]", low, high),
-                "The order 0 <= low <= high is false.");
+                String.Format("[{0},{1}]", low, high), "The order 0 <= low <= high is false.");
             }
             
             this.Min = low;
@@ -40,12 +39,12 @@ namespace Sharith.Math.MathUtils
         /// <summary>
         /// Gets the lower bound (Min) of the interval.
         /// </summary>
-        public int Min { get; private set; } // C#3.0 
+        public long Min { get; private set; } // C#3.0 
  
         /// <summary>
         /// Gets upper bound (Max) of the interval.
         /// </summary>
-        public int Max { get; private set; } // C#3.0
+        public long Max { get; private set; } // C#3.0
  
         /// <summary>
         /// Represents the range as a string, formatted as "[Min,Max]".
@@ -53,7 +52,7 @@ namespace Sharith.Math.MathUtils
         /// <returns>a string representation of the range.</returns>
         public override string ToString()
         {
-            return String.Format("[{0},{1}]", this.Min, this.Max);
+            return String.Format("[{0}, {1}]", this.Min, this.Max);
         }
  
         /// <summary>
@@ -126,7 +125,7 @@ namespace Sharith.Math.MathUtils
         /// The Size of the range.
         /// </summary>
         /// <returns>The size of the range.</returns>
-        public int Size()
+        public long Size()
         {
             return this.Max - this.Min + 1;
         }
@@ -270,7 +269,7 @@ namespace Sharith.Math.MathUtils
             }
  
             // If one is null, but not both, return false.
-            if (((object)a == null) || ((object)b == null))
+            if ((object)a == null || (object)b == null)
             {
                 return false;
             }
@@ -284,7 +283,8 @@ namespace Sharith.Math.MathUtils
         /// <returns>Returns a hash code for this.</returns>
         public override int GetHashCode()
         {
-            return 29 * this.Min + this.Max;
+            //return 29 * this.Min + this.Max;
+            return base.GetHashCode();
         }
     }
 } 

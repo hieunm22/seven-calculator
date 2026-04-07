@@ -18,9 +18,9 @@ namespace Sharith.Math.MathUtils
         /// </summary>
         /// <param name="w"></param>
         /// <returns>Number of bits.</returns>
-        public static int BitCount(int w)
+        public static long BitCount(long w)
         {
-            w -= (int)((0xaaaaaaaa & w) >> 1);
+            w -= (long)((0xaaaaaaaa & w) >> 1);
             w = (w & 0x33333333) + ((w >> 2) & 0x33333333);
             w = w + (w >> 4) & 0x0f0f0f0f;
             w += w >> 8;
@@ -34,7 +34,7 @@ namespace Sharith.Math.MathUtils
         /// </summary>
         /// <param name="w"></param>
         /// <returns>bit length</returns>
-        public static int BitLength(int w)
+        private static int BitLength(long w)
         {
             return (w < 1 << 15
             ? (w < 1 << 7 ? (w < 1 << 3 ? (w < 1 << 1 ? (w < 1 << 0 ? (w < 0 ? 32 : 0) : 1)
@@ -55,7 +55,7 @@ namespace Sharith.Math.MathUtils
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static int FloorLog2(int n)
+        public static int FloorLog2(long n)
         {
             if (n <= 0)
             {
@@ -69,13 +69,13 @@ namespace Sharith.Math.MathUtils
         /// </summary>
         /// <param name="n"></param>
         /// <returns></returns>
-        public static int FloorSqrt(int n)
+        public static long FloorSqrt(long n)
         {
             if (n < 0)
             {
-                throw new System.ArgumentOutOfRangeException("n >= 0 required");
+                throw new ArgumentOutOfRangeException("n >= 0 required");
             }
-            return (int)Math.Floor(Math.Sqrt(n));
+            return (long)Math.Floor(Math.Sqrt(n));
         }
 
         /// <summary>
@@ -95,7 +95,7 @@ namespace Sharith.Math.MathUtils
         479001600, 6227020800, 87178291200, 1307674368000, 20922789888000, 
         355687428096000, 6402373705728000, 121645100408832000, 2432902008176640000 };
 
-        public static BigNumber Factorial(int n)
+        public static BigNumber Factorial(long n)
         {
             if (n > 20)
             {
@@ -112,14 +112,14 @@ namespace Sharith.Math.MathUtils
         const int PARALLEL_THRESHOLD = 1024;
 
         // <returns>a[start]*a[start+1]*...*a[start+length-1]</returns>
-        public static BigNumber Product(int[] a, int start, int length)
+        public static BigNumber Product(long[] a, int start, long length)
         {
             if (length == 0) return 1;
 
-            int len = (length + 1) / 2;
+            long len = (length + 1) / 2;
             long[] b = new long[len];
 
-            int i, j, k;
+            long i, j, k;
 
             for (k = 0, i = start, j = start + length - 1; i < j; i++, k++, j--)
             {
@@ -143,11 +143,11 @@ namespace Sharith.Math.MathUtils
             return RecProduct(b, 0, k - 1);
         }
 
-        public static BigNumber Product(int[] a, int start, int length, int increment)
+        public static BigNumber Product(long[] a, int start, long length, int increment)
         {
             if (length == 0) return 1;
 
-            int len = (1 + (length + 1) / 2) / increment;
+            long len = (1 + (length + 1) / 2) / increment;
             long[] b = new long[len];
 
             int i, k = 0;
@@ -174,7 +174,7 @@ namespace Sharith.Math.MathUtils
             return RecProduct(b, 0, len - 1);
         }
 
-        public static BigNumber RecProduct(long[] s, int n, int m)
+        public static BigNumber RecProduct(long[] s, long n, long m)
         {
             if (n > m)
             {
@@ -185,7 +185,7 @@ namespace Sharith.Math.MathUtils
                 return s[n].ToString();
             }
 
-            int k = (n + m) >> 1;
+            long k = (n + m) >> 1;
             return RecProduct(s, n, k) * RecProduct(s, k + 1, m);
         }
     } 

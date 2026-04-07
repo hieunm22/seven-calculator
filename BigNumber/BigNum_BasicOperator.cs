@@ -939,8 +939,8 @@ namespace Calculator
             }
             else			           /* ratio not 1, do the real division */
             {
-                nexp += (icompare == 1).GetHashCode();                          /* to adjust the final exponent */
-                M_div_worka.exponent += (1 + (icompare != 1).GetHashCode());	/* multiply numerator by 10 */
+                nexp += (icompare == 1) ? 1 : 0;                          /* to adjust the final exponent */
+                M_div_worka.exponent += (1 + (icompare != 1 ? 1 : 0));	/* multiply numerator by 10 */
 
                 indexr = 0;
                 m = 0;

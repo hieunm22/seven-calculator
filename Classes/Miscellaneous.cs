@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
@@ -7,15 +8,28 @@ namespace Calculator
     /// <summary>
     /// tổng hợp các method
     /// </summary>
-    public static class Misc
+    public class Misc
     {
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         public static extern bool ReleaseCapture();
 
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         /// <summary>
-        /// chia các hàng đơn vị của một số thực thành từng nhóm 3 số
+        /// Software\SevenCalculator
+        /// </summary>
+        private const string RegistryPath = "Software\\SevenCalculator";
+        /// <summary>
+        /// UnitConversion > DateCalculation > Preferences > FactorialDictionary
+        /// </summary>
+        private static readonly string[] KeysName = new string[] {
+            "UnitConversion",
+            "DateCalculation",
+            "Preferences",
+            "FactorialDictionary",
+        };
+        /// <summary>
+        /// chia hàng đơn vị của một số thực thành từng nhóm 3 số
         /// </summary>
         /// <param name="obj">chuỗi cần chia</param>
         /// <returns>1000000000 thành 1.000.000.000</returns>
@@ -28,7 +42,7 @@ namespace Calculator
             if (comma > 0) output = output.Substring(0, comma);	//cắt phần lẻ trước khi chia
 
             if (output[0] == '-') output = output.Substring(1);	// bỏ dấu âm ở đầu nếu có
-            output = Group(output, 3, GroupSeparator);
+            output = Group(output, GroupSeparator, 3);
             if (comma > 0)  //thêm phần lẻ vào chuỗi đã được nhóm
             {
                 output += obj.ToString().Substring(comma);
@@ -41,17 +55,24 @@ namespace Calculator
         /// chia các hàng đơn vị của 1 số nguyên thành từng nhóm
         /// </summary>
         /// <param name="input">chuỗi cần chia</param>
-        /// <param name="num">số kí tự của từng nhóm</param>
         /// <param name="sep">ký tự phân cách từng nhóm</param>
-        public static string Group(object input, int num, string sep)
+        /// <param name="num">số kí tự của từng nhóm</param>
+        public static string Group(object input, string sep, int num)
         {
             string outp = input.ToString();
-            int bit = outp.Length - num;
+            #region cach cu
             // them ky tu phan cach nhom vao giua nhom 3 so o xau ket qua
-            while (bit > 0)
+            //int bit = outp.Length - num;
+            //while (bit > 0)
+            //{
+            //    outp = outp.Insert(bit, sep);
+            //    bit -= num;
+            //} 
+            #endregion
+            // them ky tu phan cach nhom vao giua nhom 3 so o xau ket qua
+            for (int i = outp.Length - num; i > 0; i -= num)
             {
-                outp = outp.Insert(bit, sep);
-                bit -= num;
+                outp = outp.Insert(i, sep);
             }
             return outp;
         }
@@ -135,7 +156,7 @@ namespace Calculator
         static string RemoveBracket(string expression)
         {
             // "((-7))" -> xoa bot 1 capacity dau ngoac -> (-7)
-            //Regex reg = new Regex(@"\(\(   (.*)   \)\)");    // ((mot_bieu_thuc))
+            //Regex reg = new Regex(@"\(\(   (.*)   \)\)");         // ((mot_bieu_thuc))
             Regex reg = new Regex(@"\(\(([^\(\)]+)\)\)(\^|!?)");    // ((mot_bieu_thuc))
             expression = expression.Replace(DecimalSeparator, ",");
             Match m = reg.Match(expression);
@@ -207,8 +228,8 @@ namespace Calculator
         {
             DateTime dtp1_Temp;
             if (dtp1 > dtp2) { dtp1_Temp = dtp1; dtp1 = dtp2; dtp2 = dtp1_Temp; }
-            int[] differ = new int[4];
             dtp1_Temp = dtp1;
+            int[] differ = new int[4];
             // differ[0] - Year
             differ[0] = dtp2.Year - dtp1_Temp.Year;
             dtp1_Temp = dtp1.AddYears(differ[0]);
@@ -217,9 +238,9 @@ namespace Calculator
             // differ[1] - Month
             dtp1_Temp = dtp1.AddYears(differ[0]);
             differ[1] = dtp2.Month - dtp1_Temp.Month;
-            if (DateTime.IsLeapYear(dtp1.Year) && DateTime.IsLeapYear(dtp2.Year))   // chưa rõ là && hay ||
+            if (DateTime.IsLeapYear(dtp1.Year) && DateTime.IsLeapYear(dtp2.Year))
             {
-                if (dtp1/*_Temp*/.Day > dtp2.Day) differ[1]--;
+                if (dtp1.Day > dtp2.Day) differ[1]--;
             }
             else
             {
@@ -233,7 +254,7 @@ namespace Calculator
             // neu diff3 < 0 thi moi +365/366, khong thi thoi
             if (diff3 < 0)
             {
-                // năm nhuận + 366, năm thường +365
+                // năm nhuận +366, năm thường +365
                 diff3 += DateTime.IsLeapYear(dtp1_Temp.Year) ? 366 : 365;
             }
             // differ[2]
@@ -327,10 +348,10 @@ namespace Calculator
         {
             object[] result = new object[optionName.Length];
             RegistryKey reg = Registry.CurrentUser;
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath, true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath);
                 for (int i = 0; i < 4; i++)
                 {
                     reg.SetValue(optionName[i], 0, RegistryValueKind.DWord);
@@ -348,10 +369,10 @@ namespace Calculator
                 result[4] = GetValueFromValueKey(optionName[4], reg);
             }
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[0], true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\UnitConversion");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath + "\\" + KeysName[0]);
                 reg.SetValue(optionName[5], 0, RegistryValueKind.DWord);
                 result[5] = 0;
             }
@@ -360,10 +381,10 @@ namespace Calculator
                 result[5] = GetValueFromValueKey(optionName[5], reg, 0, 11, 0);
             }
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[1], true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\DateCalculation");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath + "\\" + KeysName[1]);
                 reg.SetValue(optionName[6], 0, RegistryValueKind.DWord);
                 reg.SetValue(optionName[7], 0, RegistryValueKind.DWord);
                 result[6] = 0;
@@ -375,20 +396,22 @@ namespace Calculator
                 result[7] = GetValueFromValueKey(optionName[7], reg, 0, 2, 0);
             }
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[2], true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\OtherOptions");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath + "\\" + KeysName[2]);
                 reg.SetValue(optionName[08], 10, RegistryValueKind.DWord);
                 reg.SetValue(optionName[09], 1, RegistryValueKind.DWord);
                 reg.SetValue(optionName[10], 0, RegistryValueKind.DWord);
                 reg.SetValue(optionName[11], 1, RegistryValueKind.DWord);
                 reg.SetValue(optionName[12], 1, RegistryValueKind.DWord);
+                reg.SetValue(optionName[13], 1, RegistryValueKind.DWord);
                 result[08] = 10;
                 result[09] = 1;
                 result[10] = 0;
                 result[11] = 1;
                 result[12] = 1;
+                result[13] = 0;
             }
             else
             {
@@ -397,6 +420,7 @@ namespace Calculator
                 result[10] = GetValueFromValueKey(optionName[10], reg, 0, 1, 0);
                 result[11] = GetValueFromValueKey(optionName[11], reg, 0, 1, 1);
                 result[12] = GetValueFromValueKey(optionName[12], reg, 0, 1, 1);
+                result[13] = GetValueFromValueKey(optionName[13], reg, 0, 1, 0);
             }
             reg.Close();
 
@@ -444,30 +468,41 @@ namespace Calculator
         /// <param name="config">list giá trị được ghi</param>
         public static void SaveToRegistryBeforeExit(string[] optName, object[] config)
         {
-            var reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator", true);
+            var reg = Registry.CurrentUser.OpenSubKey(RegistryPath, true);
             if (reg == null) return;
+            // xoá những key thừa
+            string[] subKeyList = reg.GetSubKeyNames();
+            for (int i = 0; i < subKeyList.Length; i++)
+            {
+                if (Array.IndexOf(KeysName, subKeyList[i]) < 0)
+                {
+                    reg.DeleteSubKey(subKeyList[i], false);
+                }
+            }
+
             reg.SetValue(optName[0], config[0], RegistryValueKind.DWord);
             reg.SetValue(optName[1], config[1], RegistryValueKind.DWord);
             reg.SetValue(optName[2], config[2], RegistryValueKind.DWord);
             reg.SetValue(optName[3], config[3], RegistryValueKind.DWord);
             reg.SetValue(optName[4], config[4], RegistryValueKind.String);
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\UnitConversion", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[0], true);
             if (reg == null) return;
             reg.SetValue(optName[5], config[5], RegistryValueKind.DWord);
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\DateCalculation", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[1], true);
             if (reg == null) return;
             reg.SetValue(optName[6], config[6], RegistryValueKind.DWord);
             reg.SetValue(optName[7], config[7], RegistryValueKind.DWord);
 
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\OtherOptions", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[2], true);
             if (reg == null) return;
             reg.SetValue(optName[08], config[08], RegistryValueKind.DWord);
             reg.SetValue(optName[09], config[09], RegistryValueKind.DWord);
             reg.SetValue(optName[10], config[10], RegistryValueKind.DWord);
             reg.SetValue(optName[11], config[11], RegistryValueKind.DWord);
             reg.SetValue(optName[12], config[12], RegistryValueKind.DWord);
+            reg.SetValue(optName[13], config[13], RegistryValueKind.DWord);
         }
         /// <summary>
         /// số lần mở ngoặc mà chưa đóng ngặc
@@ -482,22 +517,12 @@ namespace Calculator
             return matches;
         }
 
-        public static int GetCloseBracketIndex(string exp, int openIndex)
+        public static int GetCloseBracketIndex(string exp, int openIndex, ref string sub)
         {
-            int openLevel = 0;
-            do
-            {
-                openIndex = exp.IndexOfAny(new char[] { '(', ')' }, openIndex + 1);
-                if (exp[openIndex] == '(')
-                {
-                    openLevel++;
-                }
-                else if (exp[openIndex] == ')')
-                {
-                    openLevel--;
-                }
-            } while (openLevel >= 0);
-            return openIndex;
+            var regEx = new Regex(@"\(([^\(\)]+)\)(\^|!?)", RegexOptions.IgnoreCase);
+            var m = regEx.Match(exp, openIndex);
+            sub = m.Groups[1].Value;
+            return openIndex + sub.Length + 1;
         }
         /// <summary>
         /// nạp giá trị giai thừa số lớn đã tính được trước đó vào biến
@@ -525,10 +550,10 @@ namespace Calculator
             #endregion
 
             RegistryKey reg = Registry.CurrentUser;
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\FactorialDictionary", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[3], true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\FactorialDictionary");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath + "\\" + KeysName[3]);
             }
 
             string[] namelist = reg.GetValueNames();
@@ -555,10 +580,10 @@ namespace Calculator
         public static void SaveDictionary(int initDictLength, string[] fact_Value, string[] factResult)
         {
             RegistryKey reg = Registry.CurrentUser;
-            reg = Registry.CurrentUser.OpenSubKey("Software\\SevenCalculator\\FactorialDictionary", true);
+            reg = Registry.CurrentUser.OpenSubKey(RegistryPath + "\\" + KeysName[3], true);
             if (reg == null)    // create and assign default value
             {
-                reg = Registry.CurrentUser.CreateSubKey("Software\\SevenCalculator\\FactorialDictionary");
+                reg = Registry.CurrentUser.CreateSubKey(RegistryPath + "\\" + KeysName[3]);
             }
             for (int i = initDictLength; i < fact_Value.Length; i++)
             {
@@ -717,7 +742,7 @@ namespace Calculator
 
         public override string ToString()
         {
-            return string.Format("{0}/{1}/{2}", Day, Month, Year);
+            return string.Format("{0}/{1}/{2} ({3})", Day, Month, Year, YearName);
         }
     }
 
@@ -857,8 +882,8 @@ namespace Calculator
             int dd = dt.Day, mm = dt.Month, yyyy = dt.Year;
             if (yyyy < 1200 || 2199 < yyyy)
             {
-                //throw new Exception("Current year must not exceed the year 2199!");
-                return new LunarDate(0, 0, 0, 0, 0);
+                throw new Exception("Current year must not exceed the year 2199!");
+                //return new LunarDate(0, 0, 0, 0, 0);
             }
             LunarDate[] ly = getYearInfo(yyyy);
             int jd = jdn(dd, mm, yyyy);

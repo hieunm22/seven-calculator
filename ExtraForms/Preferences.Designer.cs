@@ -30,6 +30,8 @@ namespace Calculator
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Preferences));
             this.spdLB = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
@@ -37,6 +39,8 @@ namespace Calculator
             this.usedSignChkB = new System.Windows.Forms.CheckBox();
             this.animateCB = new System.Windows.Forms.CheckBox();
             this.readDictChkB = new System.Windows.Forms.CheckBox();
+            this.fastInputCkB = new System.Windows.Forms.CheckBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.collapsedSpdNUD = new Calculator.INumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.collapsedSpdNUD)).BeginInit();
             this.SuspendLayout();
@@ -56,10 +60,10 @@ namespace Calculator
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnOK.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnOK.Location = new System.Drawing.Point(78, 156);
+            this.btnOK.Location = new System.Drawing.Point(78, 179);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(87, 25);
-            this.btnOK.TabIndex = 5;
+            this.btnOK.TabIndex = 7;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
@@ -68,10 +72,10 @@ namespace Calculator
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCancel.Location = new System.Drawing.Point(198, 156);
+            this.btnCancel.Location = new System.Drawing.Point(198, 179);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(87, 25);
-            this.btnCancel.TabIndex = 6;
+            this.btnCancel.TabIndex = 8;
             this.btnCancel.Text = "C&ancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -82,9 +86,11 @@ namespace Calculator
             this.fastFactCB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.fastFactCB.Location = new System.Drawing.Point(24, 69);
             this.fastFactCB.Name = "fastFactCB";
-            this.fastFactCB.Size = new System.Drawing.Size(99, 17);
+            this.fastFactCB.Size = new System.Drawing.Size(98, 17);
             this.fastFactCB.TabIndex = 3;
             this.fastFactCB.Text = "&Fast factorial";
+            this.toolTip1.SetToolTip(this.fastFactCB, "Using an approximate method to calculate a big number, \r\nso that accuracy of the " +
+        "result is less than normal method");
             this.fastFactCB.UseVisualStyleBackColor = true;
             this.fastFactCB.CheckedChanged += new System.EventHandler(this.fastFactCB_CheckedChanged);
             // 
@@ -99,6 +105,7 @@ namespace Calculator
             this.usedSignChkB.Size = new System.Drawing.Size(287, 17);
             this.usedSignChkB.TabIndex = 4;
             this.usedSignChkB.Text = "U&se signed-integer calculation in programmer";
+            this.toolTip1.SetToolTip(this.usedSignChkB, resources.GetString("usedSignChkB.ToolTip"));
             this.usedSignChkB.UseVisualStyleBackColor = true;
             this.usedSignChkB.CheckedChanged += new System.EventHandler(this.usedSignChkB_CheckedChanged);
             // 
@@ -113,6 +120,7 @@ namespace Calculator
             this.animateCB.Size = new System.Drawing.Size(132, 17);
             this.animateCB.TabIndex = 2;
             this.animateCB.Text = "Animate &resization";
+            this.toolTip1.SetToolTip(this.animateCB, "Animate resization when change form in View menu");
             this.animateCB.UseVisualStyleBackColor = true;
             this.animateCB.CheckedChanged += new System.EventHandler(this.animateCB_CheckedChanged);
             // 
@@ -126,9 +134,24 @@ namespace Calculator
             this.readDictChkB.Name = "readDictChkB";
             this.readDictChkB.Size = new System.Drawing.Size(289, 30);
             this.readDictChkB.TabIndex = 5;
-            this.readDictChkB.Text = "Re&ad and write factorial result from dictionary\r\n(restart application required)";
+            this.readDictChkB.Text = "R&ead and write factorial result from dictionary\r\n(restart application required)";
+            this.toolTip1.SetToolTip(this.readDictChkB, resources.GetString("readDictChkB.ToolTip"));
             this.readDictChkB.UseVisualStyleBackColor = true;
             this.readDictChkB.CheckedChanged += new System.EventHandler(this.readDictChkB_CheckedChanged);
+            // 
+            // fastInputCkB
+            // 
+            this.fastInputCkB.AutoSize = true;
+            this.fastInputCkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.fastInputCkB.Location = new System.Drawing.Point(24, 151);
+            this.fastInputCkB.Name = "fastInputCkB";
+            this.fastInputCkB.Size = new System.Drawing.Size(212, 17);
+            this.fastInputCkB.TabIndex = 6;
+            this.fastInputCkB.Text = "En&ter frequence foreach number";
+            this.toolTip1.SetToolTip(this.fastInputCkB, "Press Enter to input a number with custom frequency.\r\nUse Ctrl-Enter instead to i" +
+        "nput number with default \r\nfrequency 1 when checked");
+            this.fastInputCkB.UseVisualStyleBackColor = true;
+            this.fastInputCkB.CheckedChanged += new System.EventHandler(this.fastInputCkB_CheckedChanged);
             // 
             // collapsedSpdNUD
             // 
@@ -160,9 +183,10 @@ namespace Calculator
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(362, 194);
+            this.ClientSize = new System.Drawing.Size(362, 221);
             this.Controls.Add(this.animateCB);
             this.Controls.Add(this.readDictChkB);
+            this.Controls.Add(this.fastInputCkB);
             this.Controls.Add(this.usedSignChkB);
             this.Controls.Add(this.collapsedSpdNUD);
             this.Controls.Add(this.fastFactCB);
@@ -195,5 +219,7 @@ namespace Calculator
         private CheckBox usedSignChkB;
         private CheckBox animateCB;
         private CheckBox readDictChkB;
+        private CheckBox fastInputCkB;
+        private ToolTip toolTip1;
     }
 }

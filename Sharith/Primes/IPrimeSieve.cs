@@ -30,7 +30,7 @@ namespace Sharith.Math.Primes
         /// </summary>
         /// <param name="n">The index of the prime number.</param>
         /// <returns>The n-th prime number.</returns>
-        int GetNthPrime(int n);
+        long GetNthPrime(int n);
  
         /// <summary>
         /// Returns the default PrimeCollection of the full sieve.
@@ -52,7 +52,7 @@ namespace Sharith.Math.Primes
         /// <param name="high">The high limit of the enumeration interval.</param>
         /// <returns>The enumeration of the prime numbers between
         /// low and high.</returns>
-        IPrimeCollection GetPrimeCollection(int low, int high);
+        IPrimeCollection GetPrimeCollection(long low, long high);
  
         /// <summary>
         /// Gives the PrimeCollection of a subrange of the sieve.
