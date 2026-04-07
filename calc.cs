@@ -13,10 +13,11 @@ namespace Calculator
         }
 
         #region bien toan cuc
+
         string str = "0", sci_exp = "", configPath;
         bool confirm_num = true, prcmdkey = true, propertiesChange, sciexpAdd;
         int pre_bt = -1, pre_oprt;
-        int[] configValue;
+        object[] initConfigValue, currentConfig;
         string[] resultCollection = new string[100];
         BigNumber mem_num = 0;
         Parser parser = new Parser();
@@ -115,6 +116,7 @@ namespace Calculator
         private void memclear_Click(object sender, EventArgs e)
         {
             mem_num = 0;
+            initConfigValue[4] = mem_num.StrValue;
             mem_lb.Visible = false;
             propertiesChange = confirm_num = true;
         }
@@ -122,8 +124,12 @@ namespace Calculator
         private void recallMemory()
         {
             str = mem_num.StrValue;
-            if (!programmerMI.Checked) DisplayToScreen();
-            else ScreenToPanel();
+
+            if (!programmerMI.Checked) 
+                DisplayToScreen();
+            else
+                ScreenToPanel();
+
             prevFunc = str;
             sciexpAdd = false;
             pre_bt = 25;
@@ -174,12 +180,12 @@ namespace Calculator
                     #region đưa lên grid
                     hisDGV.AllowCellStateChanged = false;
                     hisDGV.Rows.Add();
-                    hisDGV.Rows[hisDGV.Rows.Count - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
-                    hisDGV[0, hisDGV.Rows.Count - 1].Value = Misc.StandardExpression(sci_exp);
-                    hisDGV.CurrentCell = hisDGV[0, hisDGV.Rows.Count - 1];
+                    hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
+                    hisDGV[0, hisDGV.RowCount - 1].Value = Misc.StandardExpression(sci_exp);
+                    hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
                     rowIndex = hisDGV.CurrentCell.RowIndex;
                     hisDGV.AllowCellStateChanged = true;
-                    countLB.Text = string.Format("Current row is {0}/{0}", hisDGV.RowCount);
+                    countLB.Text = string.Format("Index = {0}/{0}", hisDGV.RowCount);
                     #endregion
 
                     sci_exp = "";
@@ -219,21 +225,21 @@ namespace Calculator
                     try { resultCollection[hisDGV.RowCount - 1] = str; }
                     catch
                     {
-                        MessageBox.Show("There are too many rows in the panel. Try to clear rows to continue.", "Message",
-                            MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("There are too many operations in the panel. Clear the operations and try again",
+                            "Calculator", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                         return;
                     }
-                    hisDGV.Rows[hisDGV.Rows.Count - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
-                    hisDGV.Rows[hisDGV.Rows.Count - 1].DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopRight;
-                    //hisDGV[0, hisDGV.Rows.Count - 1].Value = StandardExpression(sci_exp);
-                    hisDGV[0, hisDGV.Rows.Count - 1].Value = Misc.StandardExpression(sci_exp);
-                    string content = hisDGV[0, hisDGV.Rows.Count - 1].Value.ToString();
-                    hisDGV.CurrentCell = hisDGV[0, hisDGV.Rows.Count - 1];
+                    hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
+                    hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopRight;
+                    //hisDGV[0, hisDGV.RowCount - 1].Value = StandardExpression(sci_exp);
+                    hisDGV[0, hisDGV.RowCount - 1].Value = Misc.StandardExpression(sci_exp);
+                    string content = hisDGV[0, hisDGV.RowCount - 1].Value.ToString();
+                    hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
                     hisDGV.AllowCellDoubleClick = true;
                     hisDGV.AllowCellStateChanged = true;
                     rowIndex = hisDGV.CurrentCell.RowIndex;
                     ChangeDGVHeight(hisDGV);
-                    countLB.Text = string.Format("Current row is {0}/{0}", hisDGV.RowCount);
+                    countLB.Text = string.Format("Index = {0}/{0}", hisDGV.RowCount);
                     #endregion
 
                     sci_exp = power_Func = mulDivFunc = "";
@@ -280,7 +286,7 @@ namespace Calculator
                             goto jump;
                         }
                     }
-                    if (pre_oprt == 211) resultpro = num1pro - num2pro * (num1pro / num2pro).Floor();               // mod
+                    if (pre_oprt == 211) resultpro = num1pro - num2pro * (num1pro / num2pro).Floor();             // mod
                     if (pre_oprt == 199) resultpro = long.Parse(num1pro.StrValue) | long.Parse(num2pro.StrValue); // or
                     if (pre_oprt == 204) resultpro = long.Parse(num1pro.StrValue) & long.Parse(num2pro.StrValue); // and
                     if (pre_oprt == 205) resultpro = long.Parse(num1pro.StrValue) ^ long.Parse(num2pro.StrValue); // xor
@@ -408,48 +414,48 @@ namespace Calculator
             if (pex != null) inv_ChkBox.Checked = false;
             if (inv_ChkBox.Checked && pex == null)
             {
-                sin_bt.Font = new Font("Tahoma", 8.25F);
+                sin_bt.Font = new Font("Segoe UI", 7.25F);
                 sin_bt.Text = "asin";
-                cos_bt.Font = new Font("Tahoma", 7.5F);
+                cos_bt.Font = new Font("Segoe UI", 7.5F);
                 cos_bt.Text = "acos";
-                tan_bt.Font = new Font("Tahoma", 7.5F);
+                tan_bt.Font = new Font("Segoe UI", 7.5F);
                 tan_bt.Text = "atan";
-                sinh_bt.Font = new Font("Tahoma", 6.75F);
+                sinh_bt.Font = new Font("Segoe UI", 6.75F);
                 sinh_bt.Text = "asinh";
-                cosh_bt.Font = new Font("Tahoma", 6F);
+                cosh_bt.Font = new Font("Segoe UI", 6F);
                 cosh_bt.Text = "acosh";
                 toolTip2.SetToolTip(cosh_bt, cosh_bt.Text); // chữ quá bé, dùng tootltip để hiện rõ hơn
-                tanh_bt.Font = new Font("Tahoma", 6F);
+                tanh_bt.Font = new Font("Segoe UI", 6F);
                 tanh_bt.Text = "atanh";
                 toolTip2.SetToolTip(tanh_bt, tanh_bt.Text); // chữ quá bé, dùng tootltip để hiện rõ hơn
                 ln_bt.Text = "eⁿ";
-                int_bt.Font = new Font("Tahoma", 8.25F);
+                int_bt.Font = new Font("Segoe UI", 8.25F);
                 int_bt.Text = "Frac";
-                int_bt.Font = new Font("Tahoma", 7.5F);
+                int_bt.Font = new Font("Segoe UI", 7.5F);
                 dms_bt.Text = "deg";
                 pi_bt.Text = "2*π";
                 pi_bt.Font = new Font("Tempus Sans ITC", 9F);
             }
             if (!inv_ChkBox.Checked && pex == null)
             {
-                sin_bt.Font = new Font("Tahoma", 8.25F);
+                sin_bt.Font = new Font("Segoe UI", 8.25F);
                 sin_bt.Text = "sin";
-                cos_bt.Font = new Font("Tahoma", 8.25F);
+                cos_bt.Font = new Font("Segoe UI", 8.25F);
                 cos_bt.Text = "cos";
-                tan_bt.Font = new Font("Tahoma", 8.25F);
+                tan_bt.Font = new Font("Segoe UI", 8.25F);
                 tan_bt.Text = "tan";
-                sinh_bt.Font = new Font("Tahoma", 8.25F);
+                sinh_bt.Font = new Font("Segoe UI", 7.25F);
                 sinh_bt.Text = "sinh";
-                cosh_bt.Font = new Font("Tahoma", 7.5F);
+                cosh_bt.Font = new Font("Segoe UI", 7.5F);
                 cosh_bt.Text = "cosh";
                 toolTip2.SetToolTip(cosh_bt, "");
-                tanh_bt.Font = new Font("Tahoma", 7.5F);
+                tanh_bt.Font = new Font("Segoe UI", 7.5F);
                 tanh_bt.Text = "tanh";
                 toolTip2.SetToolTip(tanh_bt, "");
                 ln_bt.Text = "ln";
-                int_bt.Font = new Font("Tahoma", 8.25F);
+                int_bt.Font = new Font("Segoe UI", 8.25F);
                 int_bt.Text = "Int";
-                int_bt.Font = new Font("Tahoma", 8.25F);
+                int_bt.Font = new Font("Segoe UI", 8.25F);
                 dms_bt.Text = "dms";
                 pi_bt.Text = "π";
                 pi_bt.Font = new Font("Tempus Sans ITC", 12F);
@@ -518,7 +524,7 @@ namespace Calculator
         //
         private void open_bracket_Click(object sender, EventArgs e)
         {
-            if (pex == null)
+            if (pex == null && openBRK < 20)
             {
                 str = "0";
                 DisplayToScreen();
@@ -549,7 +555,7 @@ namespace Calculator
         //
         private void close_bracket_Click(object sender, EventArgs e)
         {
-            if (pex == null)
+            if (pex == null && openBRK - closeBRK > 0)
             {
                 mulDivFunc = "";
                 power_Func = "";
@@ -563,7 +569,7 @@ namespace Calculator
                     bracketTime_lb.Text = "";
                     if (openBRK < closeBRK) { pre_bt = 152; return; }
                 }
-                //------------------------------------------
+                //--------------------------------------------------------------
                 if (pre_bt != 152)
                 {
                     if (!sciexpAdd)
@@ -640,6 +646,8 @@ namespace Calculator
         private void digitLoad(bool isLoaded)
         {
             digitGroupingMI.Checked = !digitGroupingMI.Checked;
+            currentConfig[1] = digitGroupingMI.Checked ? 1 : 0;
+
             if (!isLoaded) propertiesChange = true;
             if (Misc.IsNumber(toTB.Text) && unitConversionMI.Checked)
             {
@@ -681,9 +689,10 @@ namespace Calculator
 
         private void basicMI_Click(object sender, EventArgs e)
         {
-            int his = historyMI.Checked && historyMI.Enabled ? 105 : 0;
+            int his = historyMI.Checked && historyMI.Enabled ? 104 : 0;
             if (!basicMI.Checked)
             {
+                currentConfig[2] = 0;
                 basicMI.Checked = true;
                 unitConversionMI.Checked = false;
                 dateCalculationMI.Checked = false;
@@ -717,7 +726,7 @@ namespace Calculator
                 if (statisticsMI.Checked)
                 {
                     statisticsMode();
-                    FormSizeChanged(new Size(216, 415), false);
+                    FormSizeChanged(new Size(216, 414), false);
                 }
                 DisplayToScreen();
                 scr_lb.Focus();
@@ -942,22 +951,33 @@ namespace Calculator
 
         private void preferrencesMI_Click(object sender, EventArgs e)
         {
-            Preferences pre = new Preferences(configValue[8], configValue[9] == 1, configValue[10] == 1, configValue[11] == 1);
+            Preferences pre = new Preferences((int)currentConfig[8],
+                (int)currentConfig[9] == 1, (int)currentConfig[10] == 1, (int)currentConfig[11] == 1);
             pre.DoCheck += new Preferences.ICheckChanged(pre_DoCheck);
-            pre.ShowDialog(this);
+            pre.ShowDialog();
         }
 
         private void pre_DoCheck(int spd, bool sign, bool fast, bool animate)
         {
-            configContent = configContent.Replace(string.Format("CollapseSpeed={0};", configValue[8]), string.Format("CollapseSpeed={0};", spd)); 
-            configContent = configContent.Replace(string.Format("SignInteger={0};", configValue[11]), string.Format("SignInteger={0};", sign ? 1 : 0));
-            configContent = configContent.Replace(string.Format("FastFactorial={0};", configValue[10] == 1 ? 1 : 0), string.Format("FastFactorial={0};", fast ? 1 : 0));
-            configContent = configContent.Replace(string.Format("Animate={0};", configValue[9]), string.Format("Animate={0};", animate ? 1 : 0));
+            string newContent = configContent;
+
+            currentConfig[8] = spd;
+            currentConfig[9] = animate ? 1 : 0;
+            currentConfig[10] = fast ? 1 : 0;
+            currentConfig[11] = sign ? 1 : 0;
+
+            for (int i = 0; i < initConfigValue.Length; i++)
+            {
+                newContent = newContent.Replace(string.Format("{0}={1};", optionName[i], initConfigValue[i]), 
+                    string.Format("{0}={1};", optionName[i], currentConfig[i]));
+            }
+
+            if (configContent != newContent)
+            {
+                propertiesChange = true;
+            }
+            initConfigValue[4] = "9";
             
-            configValue[08] = spd;
-            configValue[09] = animate.GetHashCode();
-            configValue[10] = fast.GetHashCode();
-            configValue[11] = sign.GetHashCode();
             if (programmerMI.Checked) PanelToScreen(true);
         }
         #endregion
@@ -1040,12 +1060,13 @@ namespace Calculator
         private void cal_method_SelectedIndexChanged(object sender, EventArgs e)
         {
             int index = ((ComboBox)sender).SelectedIndex;
+            currentConfig[7] = index;
             calMethod_SIC(false, index);
         }
 
         private void calMethod_SIC(bool isLoad, int selectIndex)
         {
-            if (isLoad) autocal_date.Checked = (configValue[6] == 1);
+            if (isLoad) autocal_date.Checked = ((int)initConfigValue[6] == 1);
             else propertiesChange = true;
 
             DateCalculationControlVisible(selectIndex);
@@ -1073,6 +1094,7 @@ namespace Calculator
 
         private void autocal_cb_CheckedChanged(object sender, EventArgs e)
         {
+            currentConfig[6] = autocal_date.Checked ? 1 : 0;
             if (result1.Text == "") dtP_ValueChanged(null, null);
             propertiesChange = true;
         }
@@ -1159,6 +1181,7 @@ namespace Calculator
         private void typeUnitCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             //if (typeFECB.SelectedIndex < 0) MessageBox.Show("Lỗi âm");
+            currentConfig[5] = typeUnitCB.SelectedIndex;
             propertiesChange = invert_unit.Enabled = true;
             toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
             assignDefaultIndex(typeUnitCB.SelectedIndex);
@@ -1266,7 +1289,7 @@ namespace Calculator
             ProcessCmdKey(ref msg, keys);
         }
 
-        private void angelRB_CheckedChanged(object sender, EventArgs e)
+        private void angelPN_CheckedChanged(object sender, EventArgs e)
         {
             var rb = sender as RadioButton;
             int tab = rb.TabIndex - 114;
@@ -1420,7 +1443,7 @@ namespace Calculator
         {
             try
             {
-                countLB.Text = string.Format("Current row is {0}/{1}", rowindex + 1, hisDGV.RowCount);
+                countLB.Text = string.Format("Index = {0}/{1}", rowindex + 1, hisDGV.RowCount);
                 string expression = hisDGV[0, rowindex].Value.ToString();
                 var regEx = new System.Text.RegularExpressions.Regex(@"\(");
                 int matches = regEx.Matches(expression).Count;
@@ -1488,50 +1511,18 @@ namespace Calculator
             //return pex;
         }
         //
-        // nut up
+        // nut up/down
         //
-        private void upBT_Click(object sender, EventArgs e)
+        private void directionBT_Click(object sender, MouseEventArgs e)
         {
-            if (hisDGV.CurrentCell != null && (standardMI.Checked || scientificMI.Checked))
-            {
-                if (hisDGV.CurrentCell.RowIndex >= 1)
-                {
-                    rowIndex = hisDGV.CurrentRow.Index - 1; // rowIndex--;
-                    hisDGV[0, hisDGV.CurrentRow.Index - 1].Selected = true;
-                    evaluateExpression(rowIndex, false);
-                }
-            }
-            if (staDGV.CurrentCell != null && statisticsMI.Checked)
-            {
-                if (staDGV.CurrentCell.RowIndex >= 1)
-                {
-                    staDGV[0, staDGV.CurrentRow.Index - 1].Selected = true;
-                    rowIndex = staDGV.CurrentRow.Index;// rowIndex--;
-                }
-            }
+            var btn = sender as Button;
+            ProcessUpOrDown(e.Delta / 120);
         }
-        //
-        // nut down
-        //
-        private void dnBT_Click(object sender, EventArgs e)
+
+        private void directionBT_Click(object sender, EventArgs e)
         {
-            if (hisDGV.CurrentCell != null && (standardMI.Checked || scientificMI.Checked))
-            {
-                if (hisDGV.CurrentCell.RowIndex <= hisDGV.Rows.Count - 2)
-                {
-                    hisDGV[0, hisDGV.CurrentCell.RowIndex + 1].Selected = true;
-                    rowIndex = hisDGV.CurrentRow.Index;// rowIndex++;
-                    evaluateExpression(rowIndex, false);
-                }
-            }
-            if (staDGV.CurrentCell != null && statisticsMI.Checked)
-            {
-                if (staDGV.CurrentCell.RowIndex <= staDGV.RowCount - 2)
-                {
-                    staDGV[0, staDGV.CurrentCell.RowIndex + 1].Selected = true;
-                    rowIndex = staDGV.CurrentRow.Index;// rowIndex++;
-                }
-            }
+            var btn = sender as Button;
+            ProcessUpOrDown(btn.TabIndex - 2);
         }
         #endregion
 
@@ -1558,9 +1549,9 @@ namespace Calculator
                 }
             }
             binRB.Value = Binary.standardString(binnum64);
-            decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, configValue[11] == 1);
-            octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, configValue[11] == 1);
-            hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, configValue[11] == 1);
+            decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
+            octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
+            hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
             if (binRB.Checked) str = binRB.Value;
             if (octRB.Checked) str = octRB.Value;
             if (decRB.Checked) str = decRB.Value;
@@ -1570,7 +1561,7 @@ namespace Calculator
             DisplayToScreen();
         }
         /// <summary>
-        /// sự kiện scr_lb control changed thông qua thao tác nhập số
+        /// sự kiện scr_lb text changed thông qua thao tác nhập số
         /// </summary>
         private void ScreenToPanel()
         {
@@ -1579,32 +1570,32 @@ namespace Calculator
                 if (binRB.Checked)
                 {
                     binRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, configValue[11] == 1);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, configValue[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, configValue[11] == 1);
+                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
+                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
+                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
                 }
                 if (octRB.Checked)
                 {
                     octRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(octRB.Value, 08, SizeBin, configValue[11] == 1);
-                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, configValue[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, configValue[11] == 1);
+                    decRB.Value = Binary.other_to_dec(octRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
+                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
+                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
                 }
                 if (decRB.Checked)
                 {
                     BigNumber dec_Temp = str;
-                    //if (dec_Temp < 0) dec_Temp += BigNumber.Two__.Pow(SizeBin - 1);
-                    binRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 02, SizeBin, configValue[11] == 1);
-                    octRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 08, SizeBin, configValue[11] == 1);
-                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, configValue[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 16, SizeBin, configValue[11] == 1);
+                    //if (dec_Temp < 0) dec_Temp += BigNumber.Two.Pow(SizeBin - 1);
+                    binRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 02, SizeBin, (int)currentConfig[11] == 1);
+                    octRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 08, SizeBin, (int)currentConfig[11] == 1);
+                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
+                    hexRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 16, SizeBin, (int)currentConfig[11] == 1);
                 }
                 if (hexRB.Checked)
                 {
                     hexRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(hexRB.Value, 16, SizeBin, configValue[11] == 1);
-                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, configValue[11] == 1);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, configValue[11] == 1);
+                    decRB.Value = Binary.other_to_dec(hexRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
+                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
+                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
                 }
                 // đưa lên panel
                 binnum64 = binRB.Value.PadLeft(64, '0');
@@ -1626,8 +1617,13 @@ namespace Calculator
         /// </summary>
         private void baseRB_CheckedChanged(object sender, EventArgs e)
         {
-            var rb = sender as RadioButton;
-            if (rb.Checked) { baseRBCheckedChanged(); PanelToScreen(true); }
+            var rb = sender as IRadioButton;
+            if (rb.Checked)
+            {
+                baseRBCheckedChanged();
+                str = rb.Value;
+                DisplayToScreen();
+            }
             confirm_num = true;
         }
 
@@ -1702,13 +1698,14 @@ namespace Calculator
         /// </summary>
         private void notBT_Click(object sender, EventArgs e)
         {
+            int notGroup = 0;
             for (int i = 0; i < 16; i++)
             {
                 if (bin_digit[i].Visible)
                 {
-                    int notEachGroup = int.Parse(bin_digit[i].Text);
-                    notEachGroup = 1111 - notEachGroup;
-                    bin_digit[i].Text = notEachGroup.ToString().PadLeft(4, '0');
+                    notGroup = int.Parse(bin_digit[i].Text);
+                    notGroup = 1111 - notGroup;
+                    bin_digit[i].Text = notGroup.ToString().PadLeft(4, '0');
                 }
                 else break;
             }
@@ -1719,7 +1716,7 @@ namespace Calculator
         //
         private void rotateBT_Click(object sender, EventArgs e)
         {
-            if (sender == RoLBT) binnum64 = binnum64.Substring(1, 63) + binnum64[0].ToString();
+            if (sender == RoLBT) binnum64 = binnum64.Substring(1) + binnum64[0].ToString();
             if (sender == RoRBT) binnum64 = binnum64[63].ToString() + binnum64.Substring(0, 63);
             for (int i = 0; i < 16; i++)
             {
@@ -1824,7 +1821,7 @@ namespace Calculator
         private void AddstaBT_Click(object sender, EventArgs e)
         {
             staDGV.Rows.Add();
-            staDGV.Rows[staDGV.Rows.Count - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
+            staDGV.Rows[staDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
             staDGV[0, staDGV.RowCount - 1].Value = str;
             staDGV[0, staDGV.RowCount - 1].Selected = true;
             staDGV.CurrentCell = staDGV[0, staDGV.RowCount - 1];
@@ -1923,7 +1920,7 @@ namespace Calculator
         //
         private void xcross_Click(object sender, EventArgs e)
         {
-            if (staDGV.Rows.Count == 0) return;
+            if (staDGV.RowCount == 0) return;
             str = (sum(false) / staDGV.RowCount).ToString();
             DisplayToScreen();
         }
@@ -1961,29 +1958,6 @@ namespace Calculator
             rowIndex = e.RowIndex;
             dgv_OnBeginEdit(sender);
             //statisticsOptionEnabled();
-        }
-        #endregion
-
-        #region cac su kien keo theo
-        private void screenPN_SizeChanged(object sender, EventArgs e)
-        {
-            scr_lb.Size = new Size(scientificMI.Checked || programmerMI.Checked ? 370 : 175, 45);
-            expressionTB.Size = new Size(scr_lb.Size.Width - 5, 13);
-        }
-
-        private void unitconvGB_SizeChanged(object sender, EventArgs e)
-        {
-            VhPN.Size = morgagePN.Size = feMPG_PN.Size = datecalcGB.Size = unitconvGB.Size;
-        }
-
-        private void unitconvGB_LocationChanged(object sender, EventArgs e)
-        {
-            VhPN.Location = morgagePN.Location = feMPG_PN.Location = datecalcGB.Location = unitconvGB.Location;
-        }
-
-        private void screenPN_BackColorChanged(object sender, EventArgs e)
-        {
-            gridPanel.BackColor = hisDGV.BackgroundColor = staDGV.BackgroundColor = expressionTB.BackColor = gridPanel.BackColor = screenPN.BackColor;
         }
         #endregion
 
@@ -2140,6 +2114,29 @@ namespace Calculator
                     VhLB5.Text = "Periodic payment";    //5
                     break;
             }
+        }
+        #endregion
+
+        #region cac su kien keo theo
+        private void screenPN_SizeChanged(object sender, EventArgs e)
+        {
+            scr_lb.Size = new Size(scientificMI.Checked || programmerMI.Checked ? 370 : 175, 45);
+            expressionTB.Size = new Size(scr_lb.Size.Width - 5, 13);
+        }
+
+        private void unitconvGB_SizeChanged(object sender, EventArgs e)
+        {
+            VhPN.Size = morgagePN.Size = feMPG_PN.Size = datecalcGB.Size = unitconvGB.Size;
+        }
+
+        private void unitconvGB_LocationChanged(object sender, EventArgs e)
+        {
+            VhPN.Location = morgagePN.Location = feMPG_PN.Location = datecalcGB.Location = unitconvGB.Location;
+        }
+
+        private void screenPN_BackColorChanged(object sender, EventArgs e)
+        {
+            gridPanel.BackColor = hisDGV.BackgroundColor = staDGV.BackgroundColor = expressionTB.BackColor = gridPanel.BackColor = screenPN.BackColor;
         }
         #endregion
     }

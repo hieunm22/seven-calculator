@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
+            this.spdLB = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.fastFactCB = new System.Windows.Forms.CheckBox();
@@ -38,15 +38,15 @@
             ((System.ComponentModel.ISupportInitialize)(this.collapsedSpdNUD)).BeginInit();
             this.SuspendLayout();
             // 
-            // label1
+            // spdLB
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(21, 14);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(85, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Collapsed speed";
-            this.label1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
+            this.spdLB.AutoSize = true;
+            this.spdLB.Location = new System.Drawing.Point(21, 14);
+            this.spdLB.Name = "spdLB";
+            this.spdLB.Size = new System.Drawing.Size(85, 13);
+            this.spdLB.TabIndex = 0;
+            this.spdLB.Text = "Collapsed speed";
+            this.spdLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             // 
             // btnOK
             // 
@@ -102,7 +102,7 @@
             0,
             0,
             0});
-            this.collapsedSpdNUD.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            this.collapsedSpdNUD.ValueChanged += new System.EventHandler(this.collapsedSpdNUD_ValueChanged);
             // 
             // usedSignChkB
             // 
@@ -136,14 +136,14 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(342, 166);
+            this.ClientSize = new System.Drawing.Size(342, 157);
             this.Controls.Add(this.animateCB);
             this.Controls.Add(this.usedSignChkB);
             this.Controls.Add(this.collapsedSpdNUD);
             this.Controls.Add(this.fastFactCB);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.spdLB);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -162,7 +162,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label spdLB;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.CheckBox fastFactCB;

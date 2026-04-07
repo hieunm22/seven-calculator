@@ -65,9 +65,9 @@ namespace Calculator
             {
                 src_Temp = src - src.signum * BN_DoublePI * (src / BN_DoublePI).Floor();
             }
-            // epsilon = | |src| / (pi/2) |, neu epsilon lam tron den 10 chu so ma ra so nguyen thi tra ve exception
             // neu src_Temp la boi cua pi/2
             var epsilon = src_Temp.Abs() / BN_PI * 2;   //3.2637657012293963088473017370737
+            // epsilon = | |src| / (pi/2) |, neu epsilon lam tron den 10 chu so ma ra so nguyen thi tra ve exception
             if (IsInteger(epsilon.Round(10))) throw new Exception("Invalid parameter for this function");
 
             return Sinx(src_Temp) / Cosx(src_Temp);
@@ -86,7 +86,7 @@ namespace Calculator
         private BigNumber ArcSinx(BigNumber src)
         {
             //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
-            if (src.Abs() > One__)
+            if (src.Abs() > One)
             {
                 throw new Exception("Invalid argument in arcsin/arccos function");
             }
@@ -156,9 +156,9 @@ namespace Calculator
             BigNumber x = inp_num;
             x = 2 * x + 1;
             x = (2 * BN_PI).LogE() + (x / 2).LogE() * x - x - (1 - 7 / (30 * x * x)) / (6 * x);
-            x = x / 2 / Ten__.LogE();
+            x = x / 2 / Ten.LogE();
             BigNumber ex = x.Floor();
-            x = Ten__.Pow(x - ex);
+            x = Ten.Pow(x - ex);
 
             try { x.exponent = int.Parse(ex.IntString) + 1; }
             catch { throw new Exception("Exponent is too overflow"); }

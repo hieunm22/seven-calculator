@@ -88,21 +88,6 @@ namespace Calculator
             }
             return base.ProcessDialogKey(keyData);
         }
-        /// <summary>
-        /// sự kiện lăn chuột
-        /// </summary>
-        protected override void OnMouseWheel(MouseEventArgs e)
-        {
-            if (e.Delta > 0)
-            {
-                if (!IsCurrentCellInEditMode) ProcessUpKey(Keys.None);
-            }
-            else
-            {
-                if (!IsCurrentCellInEditMode) ProcessDownKey(Keys.None);
-            }
-            base.OnMouseWheel(e);
-        }
     }
     /// <summary>
     /// Lớp IPanel
@@ -130,11 +115,6 @@ namespace Calculator
                 gr.DrawRectangle(new Pen(Color.FromArgb(134, 150, 170), 1.0f), 0, 0, Size.Width - 1, Size.Height - 1);
             }
             base.OnPaint(e);
-        }
-
-        public override string ToString()
-        {
-            return string.Format("Calculator.IPanel, Name = {0}", Name);
         }
     }
     /// <summary>
@@ -179,7 +159,6 @@ namespace Calculator
             set { allowTextChanged = value; }
         }
 
-        public Point MouseLocation { get; set; }
         [DefaultValue(false)]
         public bool NumberModeOnly { get; set; }
         //
@@ -211,14 +190,6 @@ namespace Calculator
                 this.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
             }
             base.OnLostFocus(e);
-        }
-        //
-        // mouse move
-        //
-        protected override void OnMouseMove(MouseEventArgs e)
-        {
-            MouseLocation = new Point(e.X, e.Y);
-            base.OnMouseMove(e);
         }
         //
         // keypress
@@ -258,6 +229,7 @@ namespace Calculator
             get { return base.ContextMenu; }
             set { base.ContextMenu = value; }
         }
+
         [Browsable(false)]
         public override ContextMenuStrip ContextMenuStrip
         {
@@ -270,13 +242,13 @@ namespace Calculator
     {
         protected override void OnMouseWheel(MouseEventArgs e)
         {
-            if (e.Delta > 0)
+            if (e.Delta > 0 && Value < Maximum)
             {
-                if (Value < Maximum) Value++;
+                Value++;
             }
-            else if (e.Delta < 0)
+            if (e.Delta < 0 && Value > Minimum)
             {
-                if (Value > Minimum) Value--;
+                Value--;
             }
         }
     }

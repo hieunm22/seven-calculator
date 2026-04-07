@@ -2,11 +2,9 @@ namespace Calculator
 {
     public partial class BigNumber
     {
-        static readonly public BigNumber One__ = "1";
-        static readonly public BigNumber Two__ = "2";
-        static readonly public BigNumber Three = "3";
-        static readonly public BigNumber Five_ = "5";
-        static readonly public BigNumber Ten__ = "10";
+        static readonly public BigNumber One = "1";
+        static readonly public BigNumber Two = "2";
+        static readonly public BigNumber Ten = "10";
 
         private const double PiHalf = 1.570796326794896619231321691639751442098584699687;
         //pi=3.1415926535897932384626433832795028841971 = 40 chu so sau dau phay + so 3 la 41

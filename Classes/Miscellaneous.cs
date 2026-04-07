@@ -242,10 +242,10 @@ namespace Calculator
                 // năm nhuận + 366, năm thường +365
                 diff3 += (isBis(dtp1_Temp.Year) ? 366 : 365);
             }
-            differ[3] = diff3 % 7;
-
-            // differ[2], từ 3 mới suy ra 2 - week
+            // differ[2]
             differ[2] = diff3 / 7;
+            // differ[3]
+            differ[3] = diff3 % 7;
             return differ;
         }
 
@@ -260,20 +260,42 @@ namespace Calculator
         /// </summary>
         public static double getRate(int type, int from, int to)
         {
-            if (type == 0) rates = new double[] { Math.PI / 180, Math.PI / 200, 1 };
-            if (type == 1) rates = new double[] { 4046.8564224, 1e4,
-                1e-4, 0.09290304, 6.4516E-4, 1e6, 1, 2589988.110336, 1e-6, 0.83612736 };
-            if (type == 2) rates = new double[] { 1055.05585, 4.1868, 1.60217653e-19, 1.3558179483314, 1, 4186.8, 1e3 };
-            if (type == 3) rates = new double[] { 1e-10, 0.01, 20.1168, 1.8288, 0.3048,
+            switch (type)
+            {
+                case 0:
+                    rates = new double[] { Math.PI / 180, Math.PI / 200, 1 };
+                    break;
+                case 1:
+                    rates = new double[] { 4046.8564224, 1e4, 1e-4, 0.09290304, 6.4516E-4, 1e6, 1, 2589988.110336, 1e-6, 0.83612736 };
+                    break;
+                case 2:
+                    rates = new double[] { 1055.05585, 4.1868, 1.60217653e-19, 1.3558179483314, 1, 4186.8, 1e3 };
+                    break;
+                case 3:
+                    rates = new double[] { 1e-10, 0.01, 20.1168, 1.8288, 0.3048,
                 0.1016, 0.0254, 1e3, 0.201168, 1, 1e-6,1609.344, 1e-3, 1e-9,1852, 0.0042175176, 5.0292, 0.2286, 0.9144};
-            if (type == 4) rates = new double[] { 17.58426666666667, 0.0225969658055233, 745.6998715822702, 1000.0, 1 };
-            if (type == 5) rates = new double[] { 101325.0, 1e5, 1e3, 133.322368, 1, 6894.75729 };
-            if (type == 7) rates = new double[] { 8.64e4, 3.6e3, 1e-6, 1e-3, 60.0, 1, 6.048e5 };
-            if (type == 8) rates = new double[] { 0.01, 0.3048, 0.2777777777777778, 0.5144444444444444, 340.2933, 1, 0.44704 };
-            if (type == 9) rates = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1, 0.764554857984, 2.84130625e-5, 2.95735295625e-5,
-                4.54609e-3, 3.785411784e-3, 1e-3, 5.6826125e-4, 4.73176473e-4, 1.1365225e-3, 9.46352946e-4 };
-            if (type == 10) rates = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1, 1016.0469088, 1e-6,
-                0.028349523125, 0.45359237, 907.18474, /*1 / 0.157473044418 =*/6.35029318, 1e3 };
+                    break;
+                case 4:
+                    rates = new double[] { 17.58426666666667, 0.0225969658055233, 745.6998715822702, 1000.0, 1 };
+                    break;
+                case 5:
+                    rates = new double[] { 101325.0, 1e5, 1e3, 133.322368, 1, 6894.75729 };
+                    break;
+                case 7:
+                    rates = new double[] { 8.64e4, 3.6e3, 1e-6, 1e-3, 60.0, 1, 6.048e5 };
+                    break;
+                case 8:
+                    rates = new double[] { 0.01, 0.3048, 0.2777777777777778, 0.5144444444444444, 340.2933, 1, 0.44704 };
+                    break;
+                case 9:
+                    rates = new double[] { 1e-6, 2.8316846592e-2, 1.6387064e-5, 1, 0.764554857984, 2.84130625e-5,
+                        2.95735295625e-5, 4.54609e-3, 3.785411784e-3, 1e-3, 5.6826125e-4, 4.73176473e-4, 1.1365225e-3, 9.46352946e-4 };
+                    break;
+                case 10:
+                    rates = new double[] { 2e-4, 1e-5, 1e-4, 1e-2, 1e-3, 0.1, 1, 1016.0469088, 1e-6,
+                        0.028349523125, 0.45359237, 907.18474, /*1 / 0.157473044418 =*/6.35029318, 1e3 };
+                    break;
+            }
             double rateResult = 1;
             if (from >= 0 && to >= 0) rateResult = rates[from] / rates[to];
             return rateResult;
@@ -314,42 +336,6 @@ namespace Calculator
     class Binary
     {
         /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu decimalNumber hay không
-        /// </summary>
-        public static bool CheckIsBin(string str)
-        {
-            Regex reg = new Regex("^[0-1]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu oct hay không
-        /// </summary>
-        public static bool CheckIsOct(string str)
-        {
-            Regex reg = new Regex("^[0-7]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu dec hay không
-        /// </summary>
-        public static bool CheckIsDec(string str)
-        {
-            Regex reg = new Regex("^[0-9]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu hex hay không
-        /// </summary>
-        public static bool CheckIsHex(string str)
-        {
-            Regex reg = new Regex("^[0-9,A-F,a-f]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
         /// đổi 1 số từ hệ 10 sang các hệ khác
         /// </summary>
         public static string dec_to_other(string decimalNumber, /*int from, */int dest, int size, bool isSign)
@@ -357,7 +343,7 @@ namespace Calculator
             // from nguon, dest dest
             if (decimalNumber == "0") return "0";
             BigNumber realNumber = decimalNumber;
-            if (realNumber < 0) realNumber += BigNumber.Two__.Pow(size);
+            if (realNumber < 0) realNumber += BigNumber.Two.Pow(size);
 
             //byte remainder;
 
@@ -434,8 +420,8 @@ namespace Calculator
             BigNumber ketqua = result;
             if (Size == memberChar.Length && memberChar[0] == '1' )
             {
-                if (result > 0 && isSign) ketqua -= BigNumber.Two__.Pow(Size);
-                if (result < 0 && !isSign) ketqua += BigNumber.Two__.Pow(Size);
+                if (result > 0 && isSign) ketqua -= BigNumber.Two.Pow(Size);
+                if (result < 0 && !isSign) ketqua += BigNumber.Two.Pow(Size);
             }
             return ketqua.StrValue;
         }

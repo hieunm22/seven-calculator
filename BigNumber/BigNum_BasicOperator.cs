@@ -482,10 +482,7 @@ namespace Calculator
             while (true)
             {
                 i0 = i - 4 * RDFT_LOOP_DIV;
-                if (i0 < 4)
-                {
-                    i0 = 4;
-                }
+                if (i0 < 4) i0 = 4;
                 for (j = i - 4; j >= i0; j -= 4)
                 {
                     k = n - j;
@@ -510,10 +507,9 @@ namespace Calculator
                     wdr += ss * wki;
                     wdi += ss * (0.5 - wkr);
                 }
-                if (i0 == 4)
-                {
-                    break;
-                }
+
+                if (i0 == 4) break;
+
                 wkr = 0.5 * Math.Sin(ec * i0);
                 wki = 0.5 * Math.Cos(ec * i0);
                 wdr = 0.5 - (wkr * w1r - wki * w1i);
@@ -551,10 +547,9 @@ namespace Calculator
             while (true)
             {
                 i0 = i - 4 * RDFT_LOOP_DIV;
-                if (i0 < 4)
-                {
-                    i0 = 4;
-                }
+                
+                if (i0 < 4) i0 = 4;
+                
                 for (j = i - 4; j >= i0; j -= 4)
                 {
                     k = n - j;
@@ -579,10 +574,9 @@ namespace Calculator
                     wdr += ss * wki;
                     wdi += ss * (0.5 - wkr);
                 }
-                if (i0 == 4)
-                {
-                    break;
-                }
+
+                if (i0 == 4) break;
+
                 wkr = 0.5 * Math.Sin(ec * i0);
                 wki = 0.5 * Math.Cos(ec * i0);
                 wdr = 0.5 - (wkr * w1r - wki * w1i);
@@ -1227,7 +1221,6 @@ namespace Calculator
 
             var big = new BigNumber();
             var small = new BigNumber();
-
 
             if (ChangeOrderFlag == 1)		 // |a| > |b|  (do A-B)
             {

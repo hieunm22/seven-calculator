@@ -24,7 +24,7 @@ namespace Calculator
 
             if (mexp == 0)
             {
-                Copy(One__, dst);
+                Copy(One, dst);
                 return;
             }
             else
@@ -53,11 +53,25 @@ namespace Calculator
 
             local_precision = places + 8;
 
-            Copy(One__, B);
+            Copy(One, B);
             Copy(src, C);
 
-            while (true)
+            ii = nexp & 1;
+            nexp = nexp >> 1;
+
+            if (ii != 0)                       /* exponent -was- odd */
             {
+                Mul(B, C, A);
+                Round(A, B, local_precision);
+            }
+
+            while (ii == 0 || nexp != 0)
+            {
+                //if (ii != 0 && nexp == 0) break;
+
+                Mul(C, C, A);
+                Round(A, C, local_precision);
+
                 ii = nexp & 1;
                 nexp = nexp >> 1;
 
@@ -65,12 +79,7 @@ namespace Calculator
                 {
                     Mul(B, C, A);
                     Round(A, B, local_precision);
-
-                    if (nexp == 0) break;
                 }
-
-                Mul(C, C, A);
-                Round(A, C, local_precision);
             }
 
             if (signflag > 0)
@@ -92,7 +101,7 @@ namespace Calculator
 
             if (yy.signum == 0)
             {
-                Copy(One__, rr);
+                Copy(One, rr);
                 return;
             }
 
@@ -225,7 +234,7 @@ namespace Calculator
 
         static public void Reciprocal(BigNumber src, BigNumber dst, int places)
         {
-            Div(One__, src, dst, places);
+            Div(One, src, dst, places);
         }
 
         static private void Exp(BigNumber src, BigNumber dst, int places)
@@ -235,7 +244,7 @@ namespace Calculator
 
             if (src.signum == 0)
             {
-                Copy(One__, dst);
+                Copy(One, dst);
                 return;
             }
 
@@ -282,7 +291,7 @@ namespace Calculator
                 //if (--ii == 0) break;
             } while (--ii != 0);
 
-            IntPow(dplaces, Two__, nn, A);
+            IntPow(dplaces, Two, nn, A);
             Mul(A, B, C);
             Round(C, dst, places);
         }
@@ -332,7 +341,7 @@ namespace Calculator
             tolerance = -(places + 4);
             prev_exp = 0;
 
-            Add(One__, xx, rr);
+            Add(One, xx, rr);
             Copy(xx, term);
 
             m1 = 2L;
@@ -370,7 +379,7 @@ namespace Calculator
             {
                 if (dst.signum < 0)
                 {
-                    Neg(One__, dst);
+                    Neg(One, dst);
                 }
                 else
                 {
@@ -389,7 +398,7 @@ namespace Calculator
 
                 Normalize(mtmp);
 
-                Add(mtmp, One__, dst);
+                Add(mtmp, One, dst);
                 dst.signum = -1;
             }
             else
@@ -414,7 +423,7 @@ namespace Calculator
                 if (dst.signum < 0)
                     SetZero(dst);
                 else
-                    Copy(One__, dst);
+                    Copy(One, dst);
 
                 return;
             }
@@ -432,7 +441,7 @@ namespace Calculator
                 mtmp.dataLength = mtmp.exponent;
                 Normalize(mtmp);
 
-                Add(mtmp, One__, dst);
+                Add(mtmp, One, dst);
             }
         }
 
@@ -476,7 +485,7 @@ namespace Calculator
             dplaces = places + 16;
             bflag = false;
 
-            Neg(Ten__, last_x);
+            Neg(Ten, last_x);
 
             ii = 0;
 
@@ -485,7 +494,7 @@ namespace Calculator
                 Mul(tmpN, guess, tmp9);
                 Mul(tmp9, guess, tmp8);
                 Round(tmp8, tmp7, dplaces);
-                Sub(Three, tmp7, tmp9);
+                Sub(3, tmp7, tmp9);
                 Mul(tmp9, guess, tmp8);
                 Mul(tmp8, 0.5, tmp9);
 
@@ -616,7 +625,7 @@ namespace Calculator
                 Add(tmp1, nn, tmp2);
 
                 Div(tmp3, tmp2, tmp1, local_precision);
-                Mul(Two__, tmp1, tmp0);
+                Mul(Two, tmp1, tmp0);
                 Sub(guess, tmp0, tmp3);
 
                 if (ii != 0)
@@ -656,7 +665,7 @@ namespace Calculator
                 Neg(tmpX, tmp0);
                 Exp(tmp0, tmp1, (places + 8));
                 Mul(tmp1, nn, tmp2);
-                Sub(tmp2, One__, tmp1);
+                Sub(tmp2, One, tmp1);
 
                 M_log_near_1(tmp1, tmp0, (places - 104));
 
@@ -748,7 +757,7 @@ namespace Calculator
 
                 /* end AGM */
 
-                Mul(Two__, pow_2, tmp2);
+                Mul(Two, pow_2, tmp2);
                 Copy(tmp2, pow_2);
 
                 Mul(tmpC2, pow_2, tmp1);
@@ -759,7 +768,7 @@ namespace Calculator
                 Round(tmp3, sum, dplaces);
             }
 
-            Sub(One__, tmp3, tmp4);
+            Sub(One, tmp3, tmp4);
             Reciprocal(tmp4, rr, places);
         }
 
@@ -792,7 +801,7 @@ namespace Calculator
             tolerance = xx.exponent - (places + 6);
             dplaces = (places + 12) - xx.exponent;
 
-            Add(xx, Two__, tmp0);
+            Add(xx, Two, tmp0);
             Div(xx, tmp0, tmpS, (dplaces + 6));
             Copy(tmpS, term);
             Mul(tmpS, tmpS, tmp0);
@@ -816,7 +825,7 @@ namespace Calculator
                 m1 += 2;
             }
 
-            Mul(Two__, tmpS, tmp0);
+            Mul(Two, tmpS, tmp0);
             Round(tmp0, rr, places);
         }
 
@@ -839,20 +848,20 @@ namespace Calculator
 
                 dplaces += 6 + (int)Math.Log10(places);
 
-                Copy(One__, tmp7);
+                Copy(One, tmp7);
                 tmp7.exponent = -places;
 
-                LogAGMRFunc(One__, tmp7, tmp8, dplaces);
+                LogAGMRFunc(One, tmp7, tmp8, dplaces);
 
                 Mul(tmp7, "0.5", tmp6);
 
-                LogAGMRFunc(One__, tmp6, tmp9, dplaces);
+                LogAGMRFunc(One, tmp6, tmp9, dplaces);
 
                 Sub(tmp9, tmp8, BN_lc_log2);
 
                 tmp7.exponent -= 1;
 
-                LogAGMRFunc(One__, tmp7, tmp9, dplaces);
+                LogAGMRFunc(One, tmp7, tmp9, dplaces);
 
                 Sub(tmp9, tmp8, BN_lc_log10);
                 Reciprocal(BN_lc_log10R, BN_lc_log10, dplaces);
@@ -891,7 +900,7 @@ namespace Calculator
 
             if (mexp == 0 || mexp == 1)
             {
-                Sub(src, One__, tmp0);
+                Sub(src, One, tmp0);
 
                 if (tmp0.signum == 0)    /* is input exactly 1 ?? */
                 {                           /* if so, result is 0    */
@@ -945,8 +954,7 @@ namespace Calculator
 
         static public void Round(BigNumber src, BigNumber dst, int places)
         {
-            BigNumber t0_5 = "0";
-            Copy(Five_, t0_5);
+            BigNumber t0_5 = 5;
             int ii = places + 1;
 
             if (src.dataLength <= ii)
@@ -1131,7 +1139,7 @@ namespace Calculator
 
         }
         /// <summary>
-        /// expand mantissa array with given length and copy old configContent
+        /// expand mantissa array with given length and copy old content
         /// throws: ArgumentOutOfRangeException
         /// </summary>
         static public void Expand(BigNumber atm, int newLength)
@@ -1345,7 +1353,7 @@ namespace Calculator
             int i, index, first, max_i, num_digits, dec_places;
             byte numdiv = 0, numrem = 0;
 
-            BigNumber ctmp = new BigNumber();
+            var ctmp = new BigNumber();
             String res = "";
 
             dec_places = digits;
@@ -1422,7 +1430,7 @@ namespace Calculator
                 if (first != 0)
                 {
                     first = 0;
-                    res += Misc.DecimalSeparator[0];
+                    res += Misc.DecimalSeparator;
                 }
 
                 res += (char)('0' + numrem);
@@ -1435,7 +1443,7 @@ namespace Calculator
 
             if (i >= 0)
                 res += "e+" + i;
-            else if (i < 0)
+            else
                 res += "e" + i;
 
             return res;
