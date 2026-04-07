@@ -70,6 +70,7 @@ namespace Calculator
                 Parent.Focus();
                 MouseDownEvent(sender, e);
             }
+            txtField.Focus();
         }
         /// <summary>
         /// lay font cua textbox
@@ -90,7 +91,7 @@ namespace Calculator
 
         public bool TBFocus()
         {
-            return txtField.Focus() || txtField.Focus();
+            return txtField.Focus();//|| txtField.Focus();
         }
 
         public override string ToString()

@@ -52,7 +52,7 @@ namespace Sharith.Math.MathUtils
         /// <returns>a string representation of the range.</returns>
         public override string ToString()
         {
-            return String.Format("[{0}, {1}]", this.Min, this.Max);
+            return string.Format("[{0}, {1}]", this.Min, this.Max);
         }
  
         /// <summary>
@@ -227,54 +227,6 @@ namespace Sharith.Math.MathUtils
         public static bool operator !=(PositiveRange a, PositiveRange b)
         {
             return !(a == b);
-        }
- 
-        /// <summary>
-        /// Compares two ranges with respect to inclusion. The results is true
-        /// if and only if the right hand side contains the left hand side.
-        /// </summary>
-        /// <param name="a"> a positive range.</param>
-        /// <param name="b"> a positive range.</param>
-        /// <returns> True if b contains a.</returns>
-        public static bool operator <=(PositiveRange a, PositiveRange b)
-        {
-            // If both are null, or both are same instance, return true.
-            if (System.Object.ReferenceEquals(a, b))
-            {
-                return true;
-            }
- 
-            // If one is null, but not both, return false.
-            if (((object)a == null) || ((object)b == null))
-            {
-                return false;
-            }
- 
-            return b.Contains(a);
-        }
- 
-        /// <summary>
-        /// Compares two ranges with respect to inclusion. The results is true
-        /// if and only if the left hand side contains the right hand side.
-        /// </summary>
-        /// <param name="a"> a positive range.</param>
-        /// <param name="b"> a positive range.</param>
-        /// <returns> True if a contains b.</returns>
-        public static bool operator >=(PositiveRange a, PositiveRange b)
-        {
-            // If both are null, or both are same instance, return true.
-            if (System.Object.ReferenceEquals(a, b))
-            {
-                return true;
-            }
- 
-            // If one is null, but not both, return false.
-            if ((object)a == null || (object)b == null)
-            {
-                return false;
-            }
- 
-            return a.Contains(b);
         }
  
         /// <summary>

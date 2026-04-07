@@ -345,7 +345,7 @@ before performing any bitwise operation.";
                     break;
                 //------------------------------------------------------
                 case "CAD":
-                    description = @"Deletes all number from the <b>statistics box</b>.";
+                    description = @"Deletes all number from the <b>statistics grid</b>.";
                     hotkey = "D";
                     break;
                 case "Add":
@@ -359,11 +359,11 @@ If you want to enter a number with frequence is 1, press <b>Ctrl-Enter</b>";
             {
                 #region select by name
                 case "xcross":
-                    description = @"Calculates the mean of the values displayed in the <b>statistics box</b>.";
+                    description = @"Calculates the mean of the values displayed in the <b>statistics grid</b>.";
                     hotkey = "A";
                     break;
                 case "x2cross":
-                    description = @"Calculates the mean of the squares displayed in the <b>statistics box</b>.";
+                    description = @"Calculates the mean of the squares displayed in the <b>statistics grid</b>.";
                     hotkey = "Ctrl-A";
                     break;
                 case "sigman_1BT":
@@ -375,11 +375,11 @@ If you want to enter a number with frequence is 1, press <b>Ctrl-Enter</b>";
                     hotkey = "T";
                     break;
                 case "sigmax2BT":
-                    description = @"Calculates the sum of the squares displayed in the <b>statistics box</b>.";
+                    description = @"Calculates the sum of the squares displayed in the <b>statistics grid</b>.";
                     hotkey = "Ctrl-S";
                     break;
                 case "sigmaxBT":
-                    description = @"Calculates the sum of the values displayed in the <b>statistics box</b>.";
+                    description = @"Calculates the sum of the values displayed in the <b>statistics grid</b>.";
                     hotkey = "S";
                     break;
                 case "bracketTime_lb":
@@ -470,8 +470,7 @@ The maximum number of levels is 25.";
                 int close = html.IndexOf("</b>");
                 html = html.Remove(close, 4);
                 // dem so ky tu xuong dong tu dau tien den chuoi <b> duoc tim thay
-                var regex = new System.Text.RegularExpressions.Regex(Environment.NewLine);
-                int count = regex.Matches(html.Substring(0, close)).Count;
+                int count = System.Text.RegularExpressions.Regex.Matches(html.Substring(0, close), Environment.NewLine).Count;
                 rtbInfo.SelectionStart = open - count;
                 rtbInfo.SelectionLength = close - open;
                 rtbInfo.SelectionFont = new Font(rtbInfo.Font, rtbInfo.SelectionFont.Style | FontStyle.Bold);

@@ -2,7 +2,7 @@ namespace Calculator
 {
     public partial class BigNumber
     {
-        //static readonly public BigNumber One = 1;
+        static readonly public BigNumber One = 1;
         static readonly public BigNumber Two = 2;
         static readonly public BigNumber Ten = 10;
 

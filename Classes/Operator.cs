@@ -68,7 +68,7 @@
 
         public override string ToString()
         {
-            return string.Format("Index = {0}, PText = \"{1}\"", Index, PText);
+            return string.Format("Value = {0}, PText = \"{1}\"", Index, PText);
         }
     }
 }

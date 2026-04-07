@@ -45,8 +45,8 @@ namespace Calculator
         {
             if (e.Button == MouseButtons.Left)
             {
-                Misc.ReleaseCapture();
-                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
+                Common.ReleaseCapture();
+                Common.SendMessage(Handle, 0xA1, 0x2, 1);
             }
         }
 
@@ -55,16 +55,16 @@ namespace Calculator
             timer1.Start();
         }
 
-        string str = "";
+        string str = ".";
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (str != "......")
+            if (str != ".".PadLeft(9, '.'))
             {
                 str += ".";
             }
             else
             {
-                str = "";
+                str = ".";
             }
             lbTitle.Text = string.Format("Cancel this operation request now: {0}", str);
         }

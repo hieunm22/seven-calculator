@@ -987,7 +987,7 @@ namespace Calculator
 
                     /*
                      *    Compare our q-hat (index) against the desired number.
-                     *    Index is is either correct, 1 too large, or 2 too large
+                     *    Value is is either correct, 1 too large, or 2 too large
                      *    per Theorem B on pg 272 of Art of Compter Programming,
                      *    Volume 2, 3rd Edition.
                      *
@@ -1062,23 +1062,24 @@ namespace Calculator
             }
             //if (c1 >= 0) res = c1 - (|c1| / c2).Floor() * c2;
             //else res = c1 + (|c1| / c2).Floor() * c2;
-            BigNumber sig = new BigNumber();
+            BigNumber sign = new BigNumber();
             BigNumber div = new BigNumber();
             BigNumber divRound = new BigNumber();
             BigNumber mul = new BigNumber();
 
             #region code cu ok
-            Copy(c2, sig);              // c2 = sign
-            sig.signum = c1.signum;     // c1, NOT c2
+            Copy(c2, sign);             // c2 = sign
+            sign.signum = c1.signum;    // c1, NOT c2
             Div(c1, c2, div);           // div = c1 / c2
-            //Round(div, div, 32);        // sau phep nhan chia phai lam tron
+            //Round(div, div, 32);      // sau phep nhan chia phai lam tron
             Floor(divRound, div.Abs()); // divRound = |div|.floor() = |c1 / c2|.floor()
-            Mul(sig, divRound, mul);    // mul = sig * divRound = sig * |c1 / c2|.floor()
+            Mul(sign, divRound, mul);   // mul = sign * divRound = sign * |c1 / c2|.floor()
             //Approximate(mul);
-            //Round(mul, mul, 32);        // sau phep nhan chia phai lam tron
-            Sub(c1, mul, res);          // res = c1 - mul = c1 - sig * |c1 / c2|.floor()
+            //Round(mul, mul, 32);      // sau phep nhan chia phai lam tron
+            Sub(c1, mul, res);          // res = c1 - mul = c1 - sign * |c1 / c2|.floor()
             if (Compare(res.Abs(), c2.Abs()) > 0)
             {
+                // recursion
                 DivGetRemainder(res, c2, res);
             }
             #endregion
@@ -1100,7 +1101,7 @@ namespace Calculator
             //    Mul(divRound, c2, mul);
             //    Add(c1, mul, res);
             //}
-            //while (Compare(res, c2.Abs()) > 0)
+            //if (Compare(res, c2.Abs()) > 0)
             //{
             //    Copy(res, c1);
             //    goto jump;
@@ -1426,17 +1427,17 @@ namespace Calculator
                 value = com[0];
             }
 
-            value = value.Replace(Misc.GroupSeparator, Misc.DecimalSeparator);
+            value = value.Replace(Common.GroupSeparator, Common.DecimalSeparator);
 
-            int j = value.IndexOf(Misc.DecimalSeparator);
+            int j = value.IndexOf(Common.DecimalSeparator);
             if (j == -1)
             {
-                value = value + Misc.DecimalSeparator;
-                j = value.Length - 1;   //j = value.IndexOf(Misc.DecimalSeparator);
+                value = value + Common.DecimalSeparator;
+                j = value.Length - 1;   //j = value.IndexOf(Common.DecimalSeparator);
             }
 
-            exponent += j;          // atm.stringvalue.length
-            value = value.Remove(value.IndexOf(Misc.DecimalSeparator), 1);
+            exponent += j;              // atm.stringvalue.length
+            value = value.Remove(value.IndexOf(Common.DecimalSeparator), 1);
 
             int i = value.Length;
             atm.dataLength = i;

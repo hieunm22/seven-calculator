@@ -30,7 +30,6 @@
         {
             this.lbl = new System.Windows.Forms.Label();
             this.txtField = new Calculator.ITextBox();
-            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lbl
@@ -47,35 +46,26 @@
             // txtField
             // 
             this.txtField.AllowTextChanged = true;
-            this.txtField.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtField.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
             this.txtField.ForeColor = System.Drawing.SystemColors.GrayText;
             this.txtField.Location = new System.Drawing.Point(165, 0);
             this.txtField.MaxLength = 20;
             this.txtField.Name = "txtField";
             this.txtField.NumberModeOnly = true;
             this.txtField.Size = new System.Drawing.Size(168, 23);
+            this.txtField.SuggestText = "Enter value";
+            this.txtField.SuggestType = Calculator.SuggestType.WatermarkText;
             this.txtField.TabIndex = 3;
             this.txtField.Text = "Enter value";
             this.txtField.TextChanged += new System.EventHandler(this.txtField_TextChanged);
             this.txtField.GotFocus += new System.EventHandler(this.txtField_GotFocus);
             this.txtField.LostFocus += new System.EventHandler(this.txtField_LostFocus);
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(84, 100);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(1, 1);
-            this.button1.TabIndex = 1;
-            this.button1.TabStop = false;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            // 
             // TextField
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Transparent;
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.txtField);
             this.Controls.Add(this.lbl);
             this.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -91,6 +81,5 @@
 
         private ITextBox txtField;
         private System.Windows.Forms.Label lbl;
-        private System.Windows.Forms.Button button1;
     }
 }

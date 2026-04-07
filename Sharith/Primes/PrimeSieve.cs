@@ -157,18 +157,6 @@ namespace Sharith.Math.Primes
         }
 
         /// <summary>
-        /// Get the n-th prime number.
-        /// </summary>
-        /// <param name="n">The index of the prime number.</param>
-        /// <returns>The n-th prime number.</returns>
-        public long GetNthPrime(int n)
-        {
-            // Handle potential under- or overflow
-            primeRange.ContainsOrFail(n);
-            return primes[n - 1];
-        }
-
-        /// <summary>
         /// Checks if a given number is prime.
         /// </summary>
         /// <param name="cand">The number to be checked.</param>
@@ -194,15 +182,6 @@ namespace Sharith.Math.Primes
         }
 
         /// <summary>
-        /// The default collection from the full sieve.
-        /// </summary>
-        /// <returns>The prime number collection.</returns>
-        public IPrimeCollection GetPrimeCollection()
-        {
-            return new PrimeCollection(this);
-        }
-
-        /// <summary>
         /// Gives the collection of the prime numbers in the given intervall.
         /// </summary>
         /// <param name="low">The lower bound of the collection interval.</param>
@@ -222,16 +201,6 @@ namespace Sharith.Math.Primes
         public IPrimeCollection GetPrimeCollectionEveryOther(int low, int high)
         {
             return new PrimeCollection(this, new PositiveRange(low, high), 2);
-        }
-
-        /// <summary>
-        /// Gives the collection of the prime numbers in the given range.
-        /// </summary>
-        /// <param name="range">The range of the collection.</param>
-        /// <returns>The prime number collection.</returns>
-        public IPrimeCollection GetPrimeCollection(PositiveRange range)
-        {
-            return new PrimeCollection(this, range);
         }
 
         /// <summary>
@@ -564,39 +533,6 @@ namespace Sharith.Math.Primes
             }
 
             /// <summary>
-            /// Gives the prime numbers in the collection as an array.
-            /// </summary>
-            /// <returns>An array of prime numbers representing the collection.
-            /// </returns>
-            public long[] ToArray()
-            {
-                long[] primeList;
-                long primeCard = primeRange.Size();
-
-                if (increment == 1)
-                {
-                    primeList = new long[primeCard];
-                    System.Array.Copy(sieve.primes, start, primeList, 0, primeCard);
-                }
-                else
-                {
-                    long size = (primeCard + 1) / increment;
-                    primeList = new long[size];
-                    int j = 0, i;
-                    for (i = start; j < size; i += increment)
-                    {
-                        primeList[j++] = sieve.primes[i];
-                    }
-                    if (i == size)
-                    {
-                        primeList[j] = sieve.primes[i];
-                    }
-                }
-
-                return primeList;
-            }
-
-            /// <summary>
             /// Gives the start and size of the prime range.
             /// </summary>
             /// <param name="begin">start of the prime range.</param>
@@ -622,76 +558,6 @@ namespace Sharith.Math.Primes
                     if (end == -1) return 0;  // If primeRange is empty...
                     return primeRange.Size();
                 }
-            }
-
-            /// <summary>
-            /// Gives the sieve range of the current collection.
-            /// </summary>
-            /// <value>Interval that was sieved.</value>
-            public PositiveRange SieveRange
-            {
-                get { return (PositiveRange)enumRange.Clone(); }
-            }
-
-            /// <summary>
-            /// Gets the range of the indices of the prime numbers
-            /// in the collection.
-            /// </summary>
-            /// <value>Range of indices.</value>
-            public PositiveRange PrimeRange
-            {
-                get { return (PositiveRange)primeRange.Clone(); }
-            }
-
-            /// <summary>
-            /// Writes the primes collection to a file.
-            /// </summary>
-            /// <param name="fileName">Name of the file to write to.
-            /// </param>
-            /// <returns>The full name of the file.</returns>
-            public string ToFile(string fileName)
-            {
-                FileInfo file = new FileInfo(@fileName);
-                StreamWriter primeReport = file.AppendText();
-                WritePrimes(primeReport);
-                primeReport.Close();
-                return file.FullName;
-            }
-
-            /// <summary>
-            /// Writes the primes collection to a stream.
-            /// </summary>
-            /// <param name="file">The name of the file where the collection
-            /// is to be stored.</param>
-            private void WritePrimes(StreamWriter file)
-            {
-                file.WriteLine("SieveRange   {0} : {1}",
-                    enumRange.ToString(), enumRange.Size());
-                file.WriteLine("PrimeRange   {0} : {1}",
-                    primeRange.ToString(), primeRange.Size());
-                file.WriteLine("PrimeDensity {0:F3}",
-                    (double)primeRange.Size() / (double)enumRange.Size());
-
-                int primeOrdinal = start;
-                long primeLow = sieve.primes[start];
-                long lim = (primeLow / 100) * 100;
-
-                foreach (int prime in this)
-                {
-                    primeOrdinal++;
-                    if (prime >= lim)
-                    {
-                        lim += 100;
-                        file.Write(file.NewLine);
-                        file.Write("<");
-                        file.Write(primeOrdinal);
-                        file.Write(".> ");
-                    }
-                    file.Write(prime);
-                    file.Write(" ");
-                }
-                file.Write(file.NewLine);
-                file.Write(file.NewLine);
             }
         } // endOfPrimeCollection
     }

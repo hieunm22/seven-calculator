@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace Calculator
@@ -12,11 +15,11 @@ namespace Calculator
         /// </summary>
         private IContainer components = null;
 
-        #region constants
+        #region constants, readonly
         /// <summary>
         /// số lần mở ngoặc tối đa
         /// </summary>
-        private const int maxBracketLevel = 25;
+        private const int MAX_BRACKET_LEVEL = 25;
         /// <summary>
         /// list options name
         /// </summary>
@@ -24,19 +27,23 @@ namespace Calculator
 
             #region init item members
             "CalculatorType",
-            "DigitGrouping",
+            "UseSep",
             "ExtraFunction",
-            "History",
+            "ShowHistory",
             "MemoryNumber",
-            "TypeUnitCB",
+            "ShowPreview",
+            // --------------------------
+            "TypeUnit",
             "AutoCalculate",
-            "Method",
+            "DateMethod",
+            // --------------------------
             "CollapseSpeed",
-            "Animate",
             "FastFactorial",
             "SignInteger",
             "ReadDictionary",
+            "StoreHistory",
             "FastInput",
+            "CountMethod",
             #endregion
 
         };
@@ -62,6 +69,27 @@ namespace Calculator
             "Square millimeter",
             "Square yard"},
             new string[]{
+            "Bit (b)",
+            "Byte (B)",
+            "Exabit (Eb)",
+            "Exabyte (EB)",
+            "Gigabit (Gb)",
+            "Gigabyte (GB)",
+            "Kilobit (Kb)",
+            "Kilobyte (KB)",
+            "Megabit (Mb)",
+            "Megabyte (MB)",
+            "Nibble",
+            "Petabit (Pb)",
+            "Petabyte (PB)",
+            "Terabit (Tb)",
+            "Terabyte (TB)",
+            "Yottabit (Yb)",
+            "Yottabyte (YB)",
+            "Zettabit (Zb)",
+            "Zettabyte (ZB)",
+            },
+            new string[]{
             "British Thermal Unit",
             "Calorie",
             "Electron-volts",
@@ -78,6 +106,7 @@ namespace Calculator
             "Hand",
             "Inch",
             "Kilometers",
+            "Light year",
             "Link",
             "Meter",
             "Microns",
@@ -212,6 +241,40 @@ namespace Calculator
             #endregion
 
         };
+        /// <summary>
+        /// độ rộng form standard/statistic không có extra function = 220
+        /// </summary>
+        private const int APP_W1 = 220;
+        /// <summary>
+        /// độ rộng form scientific/programmer không có extra function = 413
+        /// </summary>
+        private const int APP_W2 = 413;
+        /// <summary>
+        /// độ rộng form standard/statistic có extra function = 591
+        /// </summary>
+        private const int APP_W3 = 591;
+        /// <summary>
+        /// độ rộng form scientific/programmer có extra function = 784
+        /// </summary>
+        private const int APP_W4 = 784;
+
+        /// <summary>
+        /// chiều cao form standard/scientific không có history = 310
+        /// </summary>
+        private const int APP_H1 = 310;
+        /// <summary>
+        /// chiều cao form programmer không có preview = 374
+        /// </summary>
+        private const int APP_H2 = 374;
+        /// <summary>
+        /// chiều cao form standard/scientific có history = 414
+        /// </summary>
+        private const int APP_H3 = 414;
+        /// <summary>
+        /// chiều cao form programmer có preview = 455
+        /// </summary>
+        private const int APP_H4 = 455;
+
         #endregion
 
         #region ham main
@@ -245,19 +308,21 @@ namespace Calculator
         /// </summary>
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            int key_hc = keyData.GetHashCode(); // key_hc = key hashcode
             // control W
-            if (key_hc == 131159) this.Close();
-            if ((key_hc == 131139 || key_hc == 131158) && !prcmdkey)
+            if (keyData == (Keys.Control | Keys.W)) this.Close(); //131159
+            // control c hoac control v khi dang edit textbox
+            if ((keyData == (Keys.Control | Keys.C) 
+                || keyData == (Keys.Control | Keys.V) 
+                || keyData == (Keys.Shift | Keys.Insert)) && !prcmdkey)  // 131139 131158
             {
                 return false;
             }
 
-            if (key_hc == 27)    // esc
+            if (keyData == Keys.Escape && prcmdkey)    // esc
             {
                 //pex = null;
-                if (hisDGV.IsCurrentCellInEditMode) cancelEditHisMI_Click(null, null);
-                else if (staDGV.IsCurrentCellInEditMode) cancelEditDSMI_Click(null, null);
+                if (hisDGV.IsCurrentCellInEditMode) cancelEditHisMI_Click(cancelEditDSMI, null);
+                else if (staDGV.IsCurrentCellInEditMode) cancelEditDSMI_Click(cancelEditDSMI, null);
                 else clear_num(true);
                 return base.ProcessCmdKey(ref msg, keyData);
             }
@@ -265,63 +330,71 @@ namespace Calculator
             if (prcmdkey/* && pex == null*/)
             {
                 //if (key_hc != 65585) co = null;
-                switch (key_hc)
+                switch (keyData)
                 {
                     #region xu ly phim nhap vao
                     //cac phim so tu 0 den 9
-                    case 96: case 48:
+                    case Keys.NumPad0: case Keys.D0:
                         if (programmerMI.Checked) numinput_pro(num0BT);
                         else numinput(num0BT);
                         break;
-                    case 97: case 49:
+                    case Keys.NumPad1: case Keys.D1:
                         if (programmerMI.Checked) numinput_pro(num1BT);
                         else numinput(num1BT);
                         break;
-                    case 98: case 50:
+                    case Keys.NumPad2: case Keys.D2:
                         if (programmerMI.Checked) numinput_pro(num2BT);
                         else numinput(num2BT);
                         break;
-                    case 99: case 51:
+                    case Keys.NumPad3: case Keys.D3:
                         if (programmerMI.Checked) numinput_pro(num3BT);
                         else numinput(num3BT);
                         break;
-                    case 100: case 52:
+                    case Keys.NumPad4: case Keys.D4:
                         if (programmerMI.Checked) numinput_pro(num4BT);
                         else numinput(num4BT);
                         break;
-                    case 101: case 53:
+                    case Keys.NumPad5: case Keys.D5:
                         if (programmerMI.Checked) numinput_pro(num5BT);
                         else numinput(num5BT);
                         break;
-                    case 102: case 54:
+                    case Keys.NumPad6: case Keys.D6:
                         if (programmerMI.Checked) numinput_pro(num6BT);
                         else numinput(num6BT);
                         break;
-                    case 103: case 55:
+                    case Keys.NumPad7: case Keys.D7:
                         if (programmerMI.Checked) numinput_pro(num7BT);
                         else numinput(num7BT);
                         break;
-                    case 104: case 56:
+                    case Keys.NumPad8: case Keys.D8:
                         if (programmerMI.Checked) numinput_pro(num8BT);
                         else numinput(num8BT);
                         break;
-                    case 105: case 57:
+                    case Keys.NumPad9: case Keys.D9:
                         if (programmerMI.Checked) numinput_pro(num9BT);
                         else numinput(num9BT);
                         break;
-                    case 13:    // enter
+                    case Keys.Enter:    // enter
                         if (statisticsMI.Checked) AddstaBT_Click(AddstaBT, null);
                         else equal_Click(equalBT, null);
                         // return true de tranh nham voi phim AcceptButton hien tai o tren form
                         return true;
-                    case 187:   // =
+                    //case (int)(Keys.Control | Keys.Return):
+                    //    if (statisticsMI.Checked) AddstaBT_Click(AddstaBT, null);
+                    //    break;
+                    case Keys.Up:   // up
+                        ProcessUpOrDown(1, true);
+                        break;
+                    case Keys.Down:   // down
+                        ProcessUpOrDown(-1, true);
+                        break;
+                    case Keys.Oemplus:   // =
                         equal_Click(equalBT, null);
-                        // return true de tranh nham voi phim AcceptButton hien tai o tren form
-                        return true;
-                    case 110: case 190:   // .
+                        break;
+                    case Keys.Decimal: case Keys.OemPeriod:   // .
                         if (!programmerMI.Checked) numinput(btdot);
                         break;
-                    case 107: case 65723:   // +
+                    case Keys.Add: case Keys.Shift | Keys.Oemplus:   // + 65723
                         if (addbt.Enabled)
                         {
                             if (standardMI.Checked) std_operation(12);
@@ -329,7 +402,7 @@ namespace Calculator
                             if (programmerMI.Checked) pro_operation(12);
                         }
                         break;
-                    case 109: case 00189:   // -
+                    case Keys.Subtract: case Keys.OemMinus:   // -
                         if (minusbt.Enabled)
                         {
                             if (standardMI.Checked) std_operation(13);
@@ -337,7 +410,7 @@ namespace Calculator
                             if (programmerMI.Checked) pro_operation(13);
                         }
                         break;
-                    case 106: case 65592:   // *
+                    case Keys.Multiply: case Keys.Shift | Keys.D8:   // * 65592
                         if (mulbt.Enabled)
                         {
                             if (standardMI.Checked) std_operation(14);
@@ -345,7 +418,7 @@ namespace Calculator
                             if (programmerMI.Checked) pro_operation(14);
                         }
                         break;
-                    case 111: case 00191:   // /
+                    case Keys.Divide: case Keys.Oem2:   // /
                         if (mulbt.Enabled)
                         {
                             if (standardMI.Checked) std_operation(15);
@@ -353,7 +426,7 @@ namespace Calculator
                             if (programmerMI.Checked) pro_operation(15);
                         }
                         break;
-                    case 46:        // del
+                    case Keys.Delete:        // del
                         if (!statisticsMI.Checked)
                         {
                             ce_Click(ce, null);
@@ -364,11 +437,11 @@ namespace Calculator
                             curFrq = curFrq.Substring(curFrq.IndexOf(" "));
                             total -= double.Parse(curFrq);
                             staDGV.Rows.RemoveAt(staDGV.CurrentCell.RowIndex);
-                            countLB.Text = string.Format("Count = {0}", staDGV.RowCount);
+                            DisplayCountNumber();
                         }
                         break;
-                    case 113:       // F2
-                        if (hisDGV.Visible && hisDGV.RowCount > 0 && !standardMI.Checked)
+                    case Keys.F2:       // F2
+                        if (hisDGV.Visible && hisDGV.RowCount > 0/* && !standardMI.Checked*/)
                         {
                             hisDGV.ReadOnly = false;
                             hisDGV.BeginEdit(false);
@@ -382,28 +455,28 @@ namespace Calculator
                             //dgv_OnBeginEdit(staDGV);
                         }
                         return true;
-                    case 114:       // F3
+                    case Keys.F3:       // F3
                         if (scientificMI.Checked) degRB.Checked = true;
                         if (programmerMI.Checked) _wordRB.Checked = true;
                         break;
-                    case 115:       // F4
+                    case Keys.F4:       // F4
                         if (scientificMI.Checked) radRB.Checked = true;
                         if (programmerMI.Checked) _byteRB.Checked = true;
                         break;
-                    case 116:       // F5
+                    case Keys.F5:       // F5
                         if (scientificMI.Checked) graRB.Checked = true;
                         if (programmerMI.Checked) hexRB.Checked = true;
                         break;
-                    case 117:       // F6
+                    case Keys.F6:       // F6
                         if (programmerMI.Checked) decRB.Checked = true;
                         break;
-                    case 118:       // F7
+                    case Keys.F7:       // F7
                         if (programmerMI.Checked) octRB.Checked = true;
                         break;
-                    case 119:       // F8
+                    case Keys.F8:       // F8
                         if (programmerMI.Checked) binRB.Checked = true;
                         break;
-                    case 120:       // F9
+                    case Keys.F9:       // F9
                         if (programmerMI.Checked) numinput_pro(changesignBT);
                         else
                         {
@@ -414,175 +487,183 @@ namespace Calculator
                             }
                             else
                             {
-                                if (screenStr.StartsWith("-")) screenStr = screenStr.Substring(1);
-                                else screenStr = "-" + screenStr;
+                                if (screenStr.StartsWith("-")) screenStr = new StringBuilder(screenStr.ToString(1, screenStr.Length - 1));
+                                else screenStr = new StringBuilder("-").Append(screenStr);
                                 DisplayToScreen();
                             }
                         }
                         break;
-                    case 123:       // F12
+                    case Keys.F12:       // F12
                         if (programmerMI.Checked) qwordRB.Checked = true;
                         break;
-                    case 186:       // ; int()
+                    case Keys.OemSemicolon:       // ; int()
                         if (scientificMI.Checked) MathFunction(int_bt);
                         break;
                     // cac phim A den F
-                    case 65:        // A
+                    case Keys.A:        // A
                         if (btnA.Enabled && programmerMI.Checked) buttonAF(btnA.Text);
                         if (statisticsMI.Checked) xcross_Click(xcross, null);
                         break;
-                    case 66:        // B
+                    case Keys.B:        // B
                         if (btnB.Enabled && programmerMI.Checked) buttonAF(btnB.Text);
                         break;
-                    case 67:        // C
+                    case Keys.C:        // C
                         if (btnC.Enabled && programmerMI.Checked) buttonAF(btnC.Text);
                         break;
-                    case 68:        // D
+                    case Keys.D:        // D
                         if (btnD.Enabled && programmerMI.Checked) buttonAF(btnD.Text);
                         if (scientificMI.Checked) operatorBT_Click(modsciBT, null);
                         if (statisticsMI.Checked) CAD_Click(CAD, null);
                         break;
-                    case 69:        // E
+                    case Keys.E:        // E
                         if (programmerMI.Checked && btnE.Enabled) buttonAF(btnE.Text);
                         if (scientificMI.Checked || statisticsMI.Checked) exp_bt_Click(exp_bt, null); // nut exp
                         break;
-                    case 70:        // F
+                    case Keys.F:        // F
                         if (btnF.Enabled && programmerMI.Checked) buttonAF(btnF.Text);
                         break;
-                    case 73:       // I Inv
+                    case Keys.I:       // I Inv
                         if (scientificMI.Checked) inv_ChkBox.Checked = !inv_ChkBox.Checked;
                         break;
-                    case 74:       // J RoL
+                    case Keys.J:       // J RoL
                         if (programmerMI.Checked) rotateBT_Click(RoLBT, null);
                         break;
-                    case 75:       // K RoR
+                    case Keys.K:       // K RoR
                         if (programmerMI.Checked) rotateBT_Click(RoRBT, null);
                         break;
-                    case 76:       // L log
+                    case Keys.L:       // L log
                         if (scientificMI.Checked) MathFunction(log_bt); // 10^x
                         break;
-                    case 77:       // M dms
+                    case Keys.M:       // M dms
                         if (scientificMI.Checked) MathFunction(dms_bt);
                         break;
-                    case 78:        // N ln()
+                    case Keys.N:        // N ln()
                         if (scientificMI.Checked) MathFunction(ln_bt);
                         break;
-                    case 79:       // O cos
+                    case Keys.O:       // O cos
                         if (scientificMI.Checked) MathFunction(cos_bt);
                         break;
-                    case 80:       // P pi
+                    case Keys.P:       // P pi
                         if (scientificMI.Checked) pi_bt_Click(pi_bt, null);
                         break;
-                    case 81:       // Q x²
+                    case Keys.Q:       // Q x²
                         if (scientificMI.Checked) MathFunction(x2_bt);
                         break;
-                    case 82:       // R 1/x
+                    case Keys.R:       // R 1/x
                         if (standardMI.Checked || scientificMI.Checked) MathFunction(invert_bt);
                         break;
-                    case 83:       // S sin / ∑n
+                    case Keys.S:       // S sin / ∑n
                         if (scientificMI.Checked) MathFunction(sin_bt);
                         if (statisticsMI.Checked) sigmaxBT_Click(sigmaxBT, null);
                         break;
-                    case 84:       // T tan / σn
+                    case Keys.T:       // T tan / σn
                         if (scientificMI.Checked) MathFunction(tan_bt);
                         if (statisticsMI.Checked) sigmanBT_Click(sigmanBT, null);
                         break;
-                    case 86:       // V
+                    case Keys.V:       // V
                         if (scientificMI.Checked) fe_ChkBox.Checked = !fe_ChkBox.Checked;
                         break;
-                    case 88:       // X
+                    case Keys.X:       // X
                         if (scientificMI.Checked || statisticsMI.Checked) exp_bt_Click(exp_bt, null); // nut exp
                         break;
-                    case 89:       // Y
+                    case Keys.Y:       // Y
                         if (scientificMI.Checked) sci_operation(33);
                         break;
-                    case 008:       // Backspace
+                    case Keys.Back:       // Backspace
                         backspacebt_Click(backspacebt, null);
                         break;
-                    case 65593: case 219:    // (
+                    case Keys.Shift | Keys.D9: case Keys.OemOpenBrackets:    // ( 65593
                         open_bracket_Click(open_bracket, null);
                         break;
-                    case 65589:     // %
+                    case Keys.Shift | Keys.D0: case Keys.OemCloseBrackets:    // ) 65584
+                        close_bracket_Click(close_bracket, null);
+                        break;
+                    case Keys.Shift | Keys.D5:     // % 65589
                         if (percent_bt.Enabled) percent_bt_Click(percent_bt, null);
                         if (programmerMI.Checked) operatorBT_Click(modproBT, null);
                         break;
-                    case 65728:     // ~ not
+                    case Keys.Shift | Keys.Oem3:     // ~ not 65728
                         if (programmerMI.Checked) notBT_Click(notBT, null);
                         break;
-                    case 65584: case 221:    // )
-                        close_bracket_Click(null, null);
-                        break;
-                    case 65585:     // !
+                    case Keys.Shift | Keys.D1:     // ! 65585
                         if (scientificMI.Checked) MathFunction(btFactorial);    // n!
                         break;
-                    case 65587:     // #
+                    case Keys.Shift | Keys.D3:     // # 65587
                         if (scientificMI.Checked) MathFunction(x3_bt);    // x³
                         break;
-                    case 65590: case 65591: case 65756: case 65724: case 65726: // ^ & | < >
-                        if (programmerMI.Checked)
-                        {
-                            if (key_hc == 65590) operatorBT_Click(XorBT, null);
-                            if (key_hc == 65591) operatorBT_Click(AndBT, null);
-                            if (key_hc == 65756) operatorBT_Click(or_BT, null);
-                            if (key_hc == 65724) operatorBT_Click(LshBT, null);
-                            if (key_hc == 65726) operatorBT_Click(RshBT, null);
-                        }
+                    case Keys.Shift | Keys.D6: // ^ 65590
+                        if (programmerMI.Checked) operatorBT_Click(XorBT, null);
                         break;
-                    case 65586:     // sqrt
+                    case Keys.Shift | Keys.D7:  // & 65591
+                        if (programmerMI.Checked) operatorBT_Click(AndBT, null);
+                        break;
+                    case Keys.Shift | Keys.Oem5:    // | 65756
+                        if (programmerMI.Checked) operatorBT_Click(or_BT, null);
+                        break;
+                    case Keys.Shift | Keys.Oemcomma:     // < 65724
+                        if (programmerMI.Checked) operatorBT_Click(LshBT, null);
+                        break;
+                    case Keys.Shift | Keys.OemPeriod:   // > 65726
+                        if (programmerMI.Checked) operatorBT_Click(RshBT, null);
+                        break;
+                    case Keys.Shift | Keys.D2:     // sqrt @ 65586
                         if (scientificMI.Checked || standardMI.Checked) MathFunction(sqrt_bt);
                         break;
                     // cac to hop phim
-                    case 131137:    // control A
+                    case Keys.Control | Keys.A:    // control A 131137
                         if (statisticsMI.Checked) x2cross_Click(x2cross, null);
                         break;
-                    case 131138:    // control B
+                    case Keys.Control | Keys.B:    // control B 131138
                         if (scientificMI.Checked) MathFunction(_3vx_bt); // ³√x
                         break;
-                    case 131139: case 131117 :  // control C/control insert
+                    case Keys.Control | Keys.C: case Keys.Control | Keys.Insert :  // control C 131139/control insert 131117
                         copyCTMN_Click(copyCTMN, null); // Copy
                         break;
-                    case 131140:    // control D
+                    case Keys.Control | Keys.D: // control D 131140
                         digitLoad(false);
                         break;
-                    case 131143:    // control G
+                    case Keys.Control | Keys.G:    // control G 131143
                         if (scientificMI.Checked) MathFunction(_10x_bt); // 10^x
                         break;
-                    case 131148:    // control L
+                    //case Keys.Control | Keys.K:    // control L 131147
+                    //    preferrencesMI_Click(preferencesMI, null);  //MC
+                    //    break;
+                    case Keys.Control | Keys.L:    // control L 131148
                         memclearBT_Click(memclearBT, null);  //MC
                         break;
-                    case 131149:    // control M
+                    case Keys.Control | Keys.M:    // control M 131149
                         mem_process("MS"); //MS
                         break;
-                    case 131151:    // control O
+                    case Keys.Control | Keys.O:    // control O 131151
                         MathFunction(cosh_bt);  // cosh
                         break;
-                    case 131152:    // control P
+                    case Keys.Control | Keys.P:    // control P 131152
                         mem_process("M+"); //M+
                         break;
-                    case 131153:    // control Q
+                    case Keys.Control | Keys.Q:    // control Q 131153
                         mem_process("M-"); //M-
                         break;
-                    case 131154:    // control R
+                    case Keys.Control | Keys.R:    // control R 131154
                         if (pex == null) recallMemory();
                         break;
-                    case 131155:    // control S
+                    case Keys.Control | Keys.S:    // control S 131155
                         if (scientificMI.Checked) MathFunction(sinh_bt);  // sinh
                         if (statisticsMI.Checked) sigmax2BT_Click(sigmax2BT, null);
                         break;
-                    case 131156:    // control t
+                    case Keys.Control | Keys.T:    // control t 131156
                         if (scientificMI.Checked) MathFunction(tanh_bt);  // tanh
                         if (statisticsMI.Checked) sigman_1BT_Click(sigman_1BT, null);
                         break;
-                    case 131158: case 65581:   // control V/shift insert
+                    case Keys.Control | Keys.V: case Keys.Shift | Keys.Insert:   // control V 131158/shift insert 65581
                         if (pasteMI.Enabled) { getPaste(null, null); pasteCTMN_Click(pasteCTMN, null); }
                         break;
-                    case 131161:    // control Y
+                    case Keys.Control | Keys.Y:    // control Y 131161
                         if (scientificMI.Checked) sci_operation(34);  // yx
                         break;
-                    case 131085:    // control Enter
-                        AddStaFQ(1);
+                    case Keys.Control | Keys.Enter:    // control Enter 131085
+                        if (statisticsMI.Checked) AddstaBT_Click(AddstaBT, null);
                         break;
-                    case 262211:    // alt C
+                    case Keys.Alt | Keys.C:    // alt C 262211
                         if (dateCalculationMI.Checked) dateCalculationBT_Click(dateCalculationBT, null);
                         if (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked)
                             workSheetCalculateBT_Click(workSheetCalculateBT, null);
@@ -597,56 +678,40 @@ namespace Calculator
         /// </summary>
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (propertiesChange)
+            if ((int)currentConfig[Config._12_ReadDictionary] == 1)
             {
-                if (standardMI.Checked) currentConfig[0] = 0;
-                if (scientificMI.Checked) currentConfig[0] = 1;
-                if (programmerMI.Checked) currentConfig[0] = 2;
-                if (statisticsMI.Checked) currentConfig[0] = 3;
-
-                if (basicMI.Checked) currentConfig[2] = 0;
-                if (unitConversionMI.Checked) currentConfig[2] = 1;
-                if (dateCalculationMI.Checked) currentConfig[2] = 2;
-                if (mortgageMI.Checked) currentConfig[2] = 3;
-                if (vehicleLeaseMI.Checked) currentConfig[2] = 4;
-                if (fe_MPG_MI.Checked) currentConfig[2] = 5;
-                if (feL100_MI.Checked) currentConfig[2] = 6;
-
-                currentConfig[1] = digitGroupingMI.Checked ? 1 : 0;
-                currentConfig[3] = historyMI.Checked ? 1 : 0;
-                currentConfig[4] = mem_num.StrValue;
-                currentConfig[5] = typeUnitCB.SelectedIndex * (typeUnitCB.SelectedIndex >= 0 ? 1 : 0);
-                currentConfig[6] = autocal_date.Checked ? 1 : 0;
-                currentConfig[7] = datemethodCB.SelectedIndex * (datemethodCB.SelectedIndex >= 0 ? 1 : 0);
-
-                if (!currentConfig.Equals(initConfigValue))
-                {
-                    Misc.SaveToRegistryBeforeExit(optionName, currentConfig);
-                }
+                Common.SaveDictionary(factDict);
             }
-            if (initDictLength < Fact_Value.Length && (int)initConfigValue[12] == 1)
+            if (scientificMI.Checked && (int)currentConfig[Config._13_StoreHistory] == 1)
             {
-                #region luu vao file
-                //Array.Sort(Fact_Value, (x, y) => ((BigNumber)x - y).signum);
-                //Array.Sort(Fact_Value, delegate(string bn1, string bn2)
-                //{
-                //    return ((BigNumber)bn1 - bn2).signum;
-                //});
-                //Array.Sort(FactResult, delegate(string bn1, string bn2)
-                //{
-                //    BigNumber _bn1 = bn1;
-                //    BigNumber _bn2 = bn2;
-                //    return (_bn1).exponent.CompareTo((_bn2).exponent);
-                //});
-                //string[] dictContent = new string[Fact_Value.Length];
-                //for (int i = 0; i < Fact_Value.Length; i++)
-                //{
-                //    dictContent[i] = string.Format("{0}{1}", (Fact_Value[i] + ";").PadRight(15), FactResult[i]);
-                //}
-                //File.WriteAllLines(DictionaryPath, dictContent);
-                #endregion
+                Common.SaveHistory(historyObj);
+            }
+            if (!propertiesChange) return;
 
-                Misc.SaveDictionary(initDictLength, Fact_Value, FactResult);
+            if (standardMI.Checked) currentConfig[Config._00_CalculatorType] = 0;
+            if (scientificMI.Checked) currentConfig[Config._00_CalculatorType] = 1;
+            if (programmerMI.Checked) currentConfig[Config._00_CalculatorType] = 2;
+            if (statisticsMI.Checked) currentConfig[Config._00_CalculatorType] = 3;
+
+            if (basicMI.Checked) currentConfig[Config._02_ExtraFunction] = 0;
+            if (unitConversionMI.Checked) currentConfig[Config._02_ExtraFunction] = 1;
+            if (dateCalculationMI.Checked) currentConfig[Config._02_ExtraFunction] = 2;
+            if (mortgageMI.Checked) currentConfig[Config._02_ExtraFunction] = 3;
+            if (vehicleLeaseMI.Checked) currentConfig[Config._02_ExtraFunction] = 4;
+            if (fe_MPG_MI.Checked) currentConfig[Config._02_ExtraFunction] = 5;
+            if (feL100_MI.Checked) currentConfig[Config._02_ExtraFunction] = 6;
+
+            currentConfig[Config._01_UseSep] = digitGroupingMI.Checked ? 1 : 0;
+            currentConfig[Config._03_ShowHistory] = historyMI.Checked ? 1 : 0;
+            currentConfig[Config._04_MemoryNumber] = mem_num.StrValue;
+            currentConfig[Config._05_ShowPreview] = !showPreviewPaneCTMN.Visible ? 1 : 0;
+            currentConfig[Config._06_TypeUnit] = typeUnitCB.SelectedIndex * (typeUnitCB.SelectedIndex >= 0 ? 1 : 0);
+            currentConfig[Config._07_AutoCalculate] = autocal_date.Checked ? 1 : 0;
+            currentConfig[Config._08_DateMethod] = datemethodCB.SelectedIndex * (datemethodCB.SelectedIndex >= 0 ? 1 : 0);
+
+            if (!currentConfig.Equals(initConfig))
+            {
+                Common.SaveToRegistryBeforeExit(optionName, currentConfig);
             }
         }
         #endregion
@@ -691,9 +756,10 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(216 + (exf ? 376 : 0), 310 + 105 * his);     // dua ra ngoai de resize lai form
-            FormSizeChanged(new Size(220 + (exf ? 371 : 0), 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(exf ? APP_W3 : APP_W1, historyMI.Checked ? APP_H3 : APP_H1), isLoaded);
             if (!standardMI.Checked)
             {
+                parser.DecimalPrecision = 15;
                 if (programmerMI.Checked) EnableComponentByProgrammer();
                 modeMethod(standardMI);
                 EnableKeyboardAndChangeFocus();
@@ -704,7 +770,7 @@ namespace Calculator
                 VisibleComponentsToForm(0);
 
                 unitconvPN.Location = new Point(213, 12);
-                unitconvPN.Size = new Size(362, 241 + 103 * his);
+                unitconvPN.Size = new Size(356, 241 + 103 * his);
 
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
@@ -717,7 +783,6 @@ namespace Calculator
                 clear_num(false);
                 prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused;
             }
-            clear_num(true);
         }
         /// <summary>
         /// form scientific
@@ -728,9 +793,10 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(413 + (exf ? 376 : 0), 310 + 105 * his);
-            FormSizeChanged(new Size(413 + (exf ? 371 : 0), 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(exf ? APP_W4 : APP_W2, historyMI.Checked ? APP_H3 : APP_H1), isLoaded);
             if (!scientificMI.Checked)
             {
+                parser.DecimalPrecision = 31;
                 if (programmerMI.Checked) EnableComponentByProgrammer();
                 modeMethod(scientificMI);
                 EnableKeyboardAndChangeFocus();
@@ -745,7 +811,7 @@ namespace Calculator
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
 
                 unitconvPN.Location = new Point(408, 12);
-                unitconvPN.Size = new Size(362, 241 + 103 * his);
+                unitconvPN.Size = new Size(356, 241 + 103 * his);
                 if (exf) basicMI.Checked = false;
 
                 gridPanel.Visible = hisDGV.Visible = historyMI.Checked && historyMI.Enabled;
@@ -756,9 +822,12 @@ namespace Calculator
                     clear_num(true);
                     propertiesChange = true;
                 }
+                if ((int)currentConfig[Config._13_StoreHistory] == 1)
+                {
+                    DisplayHistoryOnLoad(historyObj);
+                }
                 prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused;
             }
-            clear_num(true);
         }
         /// <summary>
         /// form programmer
@@ -768,7 +837,6 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(413 + 374 * exf ? 1 : 0, 374);
-            FormSizeChanged(new Size(413 + (exf ? 371 : 0), 374), isLoaded);
             if (!programmerMI.Checked)
             {
                 if (bin_digit == null) InitBitNumberArray();
@@ -778,15 +846,22 @@ namespace Calculator
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
-                programmerMode();
 
+                showPreviewPaneCTMN.Visible = previewPanelHeight == 0;
+                hidePreviewPaneCTMN.Visible = previewPanelHeight == 81;
+
+                //FormSizeChanged(new Size(413 + (exf ? 371 : 0), 374 + previewPanelHeight), isLoaded);
+                FormSizeChanged(new Size(exf ? APP_W4 : APP_W2, showPreviewPaneCTMN.Visible ? APP_H2 : APP_H4), isLoaded);
+                programmerMode(showPreviewPaneCTMN.Visible);
+                
                 historyMI.Enabled = false;
                 unitconvPN.Location = new Point(408, 12);
-                unitconvPN.Size = new Size(362, 304);
+                unitconvPN.Size = new Size(356, 304 + previewPanelHeight);
 
-                gridPanel.Visible = historyMI.Checked && historyMI.Enabled;
+                gridPanel.Visible = false;
                 hisDGV.Visible = false;
                 staDGV.Visible = false;
+                bin_prvLb.Visible = !showPreviewPaneCTMN.Visible;
 
                 if (!isLoaded)
                 {
@@ -795,7 +870,6 @@ namespace Calculator
                 }
                 prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused;
             }
-            clear_num(true);
         }
         /// <summary>
         /// form statistics
@@ -805,7 +879,7 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(216 + (exf ? 374 : 0), 414);
-            FormSizeChanged(new Size(220 + (exf ? 371 : 0), 414), isLoaded);
+            FormSizeChanged(new Size(exf ? APP_W3 : APP_W1, APP_H3), isLoaded);
             if (!statisticsMI.Checked)
             {
                 modeMethod(statisticsMI);
@@ -819,19 +893,18 @@ namespace Calculator
                 hisDGV.Visible = false;
                 staDGV.Visible = true;
 
-                countLB.Text = "Count = 0";
+                countLB.Text = "∑n = 0";
                 statisticsMode();
                 //ctmnEnableAndVisible();
 
                 EnableComponentByProgrammer();
                 unitconvPN.Location = new Point(213, 12);
-                unitconvPN.Size = new Size(362, 344);
+                unitconvPN.Size = new Size(356, 344);
 
                 clear_num(false);
                 if (!isLoaded) propertiesChange = true;
                 prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused;
             }
-            clear_num(true);
         }
         /// <summary>
         /// khi chọn 4 dòng đầu tiên của menu view
@@ -844,100 +917,105 @@ namespace Calculator
             programmerMI.Checked = false;
             statisticsMI.Checked = false;
             mi.Checked = true;
-            currentConfig[0] = mi.Index;
+            currentConfig[Config._00_CalculatorType] = mi.Index;
 
             historyOptionMI.Visible = historyMI.Enabled = !programmerMI.Checked && !statisticsMI.Checked;
             datasetMI.Visible = statisticsMI.Checked;
-            sepCTMN.Visible = sepMI3.Visible = (mi != programmerMI);
+            sepMI3.Visible = (mi != programmerMI);
+            //sepCTMN.Visible = (mi != programmerMI);
             percent_bt.Enabled = mi == standardMI;
 
             while (hisDGV.RowCount > 0) hisDGV.Rows.RemoveAt(0);
             countLB.Text = "";
         }
-
-        int initDictLength = 0;
         /// <summary>
         /// nạp những setting từ lần sử dụng trước đó từ registry
         /// </summary>
         private void LoadInfo()
         {
-            initConfigValue = Misc.ReadFromRegedit(optionName);
+            initConfig = Common.ReadFromRegedit(optionName);
             //getMemoryNumber();
-            currentConfig = new object[initConfigValue.Length];
-            initConfigValue.CopyTo(currentConfig, 0);
-            if ((int)initConfigValue[0] == 0) stdLoad(true);
-            if ((int)initConfigValue[0] == 1) sciLoad(true);
-            if ((int)initConfigValue[0] == 2) proLoad(true);
-            if ((int)initConfigValue[0] == 3) staLoad(true);
-            if ((int)initConfigValue[1] == 1) digitLoad(true);
-            if ((int)initConfigValue[2] == 1)
+            currentConfig = new object[initConfig.Length];
+            initConfig.CopyTo(currentConfig, 0);
+            mem_num = initConfig[Config._04_MemoryNumber].ToString();
+
+            if ((int)initConfig[Config._00_CalculatorType] == 0) stdLoad(true);
+            if ((int)initConfig[Config._00_CalculatorType] == 1) sciLoad(true);
+           
+            previewPanelHeight = (int)initConfig[Config._05_ShowPreview] == 1 ? 81 : 0;
+            if ((int)initConfig[Config._00_CalculatorType] == 2)
             {
-                exFunc(unitConversionMI, true);
-                typeUnitCB.SelectedIndex = (int)initConfigValue[5];
+                proLoad(true);
             }
-            if ((int)initConfigValue[2] == 2)
+            if ((int)initConfig[Config._00_CalculatorType] == 3) staLoad(true);
+            if ((int)initConfig[Config._01_UseSep] == 1) digitLoad(true);
+
+            switch ((int)initConfig[Config._02_ExtraFunction])
             {
-                exFunc(dateCalculationMI, true);
-                datemethodCB.SelectedIndex = (int)initConfigValue[7];
-                autocal_date.Checked = ((int)initConfigValue[6] == 1);
+                case 1:
+                    exFunc(unitConversionMI, true);
+                    typeUnitCB.SelectedIndex = (int)initConfig[Config._06_TypeUnit];
+                    break;
+                case 2:
+                    exFunc(dateCalculationMI, true);
+                    datemethodCB.SelectedIndex = (int)initConfig[Config._08_DateMethod];
+                    autocal_date.Checked = ((int)initConfig[Config._07_AutoCalculate] == 1);
+                    break;
+                case 3:
+                    exFunc(mortgageMI, true);
+                    break;
+                case 4:
+                    exFunc(vehicleLeaseMI, true);
+                    break;
+                case 5:
+                    exFunc(fe_MPG_MI, true);
+                    break;
+                case 6:
+                    exFunc(feL100_MI, true);
+                    break;
             }
-            if ((int)initConfigValue[2] == 3)
-            {
-                exFunc(mortgageMI, true);
-            }
-            else if ((int)initConfigValue[2] == 4)
-            {
-                exFunc(vehicleLeaseMI, true);
-            }
-            else if ((int)initConfigValue[2] == 5)
-            {
-                exFunc(fe_MPG_MI, true);
-            }
-            else if ((int)initConfigValue[2] == 6)
-            {
-                exFunc(feL100_MI, true);
-            }
-            if ((int)initConfigValue[3] == 1)
+
+            if ((int)initConfig[Config._03_ShowHistory] == 1)
             {
                 if (historyMI.Enabled) formWithHistory(true);
                 historyMI.Checked = true;
             }
 
-			mem_num = initConfigValue[4].ToString();
-            SetMemoryLabelVisible();
-
             typeUnitCB.SelectedIndexChanged -= typeUnitCB_SelectedIndexChanged;
-            typeUnitCB.SelectedIndex = (int)initConfigValue[5];
+            typeUnitCB.SelectedIndex = (int)initConfig[Config._06_TypeUnit];
             typeUnitCB.SelectedIndexChanged += typeUnitCB_SelectedIndexChanged;
 
             datemethodCB.SelectedIndexChanged -= datemethodCB_SelectedIndexChanged;
             autocal_date.CheckedChanged -= autocal_date_CheckedChanged;
 
-            datemethodCB.SelectedIndex = (int)initConfigValue[7];
-            calMethod_SIC(true, (int)initConfigValue[7]);
+            datemethodCB.SelectedIndex = (int)initConfig[Config._08_DateMethod];
+            calMethod_SIC(true, (int)initConfig[Config._08_DateMethod]);
 
             datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
             autocal_date.CheckedChanged += autocal_date_CheckedChanged;
 
-            btdot.Text = Misc.DecimalSeparator;
-            resultCollection = new string[100];
+            btdot.Text = Common.DecimalSeparator;
+            //historyObj = new string[100];
         }
         /// <summary>
-        /// thay đổi kích thước form giống win 7
+        /// animate resization
         /// </summary>
         private void FormSizeChanged(Size newS, bool isLoaded)
         {
             scr_lb.Focus();
-            if (isLoaded || (int)currentConfig[9] == 0) { this.Size = newS; return; }
+            if (isLoaded) { this.Size = newS; return; }
             int old_w = Size.Width, old_h = Size.Height;
             int new_w = newS.Width, new_h = newS.Height;
             //------chi thay doi chieu rong
-            int collapseSpeed = (int)currentConfig[8];
+            int collapseSpeed = (int)currentConfig[Config._09_CollapseSpeed];
             int loopNumber = 0;
+            int inc_or_dec = 0;
+
             if (old_h == new_h)
             {
-                int inc_or_dec = (old_w < new_w) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_w - old_w) / collapseSpeed);
+                inc_or_dec = (old_w < new_w) ? 1 : -1;
+                //loopNumber = (int)(Math.Abs(new_w - old_w) / collapseSpeed);
+                loopNumber = (int)((new_w - old_w) * inc_or_dec / collapseSpeed);
                 for (int i = 0; i < loopNumber; i++)
                     this.Size = new Size(Size.Width + collapseSpeed * inc_or_dec, old_h);
                 goto end;
@@ -945,8 +1023,8 @@ namespace Calculator
             //------chi thay doi chieu cao
             if (old_w == new_w)
             {
-                int inc_or_dec = (old_h < new_h) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_h - old_h) / collapseSpeed);
+                inc_or_dec = (old_h < new_h) ? 1 : -1;
+                loopNumber = (int)((new_h - old_h) * inc_or_dec / collapseSpeed);
                 for (int i = 0; i < loopNumber; i++)
                     this.Size = new Size(old_w, Size.Height + collapseSpeed * inc_or_dec);
                 goto end;
@@ -954,21 +1032,21 @@ namespace Calculator
             //------thay doi ca chieu rong va chieu cao
             int verticalSpd = (new_w - old_w) / (new_h - old_h) * collapseSpeed;
             verticalSpd = Math.Abs(verticalSpd);
+
+            inc_or_dec = (old_h < new_h) ? 1 : -1;
             if (old_w > new_w)
             {
-                int w_inc_or_dec = (old_h < new_h) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_h - old_h) / verticalSpd);
+                loopNumber = (int)((new_h - old_h) * inc_or_dec / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w -= verticalSpd, Size.Height + w_inc_or_dec * collapseSpeed);
+                    this.Size = new Size(old_w -= verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
                 goto end;
             }
 
             if (old_w < new_w)
             {
-                int h_inc_or_dec = (old_h < new_h) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_w - old_w) / verticalSpd);
+                loopNumber = (int)((new_w - old_w) * inc_or_dec / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w += verticalSpd, Size.Height + h_inc_or_dec * collapseSpeed);
+                    this.Size = new Size(old_w += verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
             }
             end: if (Size.Height != new_h || Size.Width != new_w) this.Size = new Size(new_w, new_h);
         }
@@ -978,7 +1056,7 @@ namespace Calculator
         private void formWithHistory(bool isLoaded)
         {
             historyMI.Checked = !historyMI.Checked;
-            currentConfig[3] = historyMI.Checked ? 1 : 0;
+            currentConfig[Config._03_ShowHistory] = historyMI.Checked ? 1 : 0;
 
             prcmdkey = true;
             int his = ((historyMI.Checked && historyMI.Enabled) || statisticsMI.Checked) ? 1 : 0;
@@ -987,7 +1065,7 @@ namespace Calculator
                 fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked) ? 1 : 0;
 
             unitconvPN.Location = new Point(213 + 195 * sci, 12);
-            unitconvPN.Size = new Size(362, 241 + 103 * his);
+            unitconvPN.Size = new Size(356, 241 + 103 * his);
 
             hisDGV.EndEdit();
 
@@ -1013,7 +1091,35 @@ namespace Calculator
 
             //countLB.Text = "";
 
-            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, 310 + 104 * his), isLoaded);
+            //FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, his == 1 ? APP_H3 : APP_H1), isLoaded);
+            if (!isLoaded) propertiesChange = true;
+        }
+        /// <summary>
+        /// form with preview
+        /// </summary>
+        private void formWithPreview(bool isLoaded)
+        {
+            currentConfig[Config._05_ShowPreview] = !showPreviewPaneCTMN.Visible ? 1 : 0;
+
+            prcmdkey = true;
+            int exf = (dateCalculationMI.Checked || unitConversionMI.Checked ||
+                fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked) ? 1 : 0;
+
+            unitconvPN.Location = new Point(408, 12);
+            unitconvPN.Size = new Size(356, 304 + previewPanelHeight);
+
+            programmerMode(showPreviewPaneCTMN.Visible);
+
+            gridPanel.Visible = false;
+            hisDGV.Visible = false;
+            staDGV.Visible = false;
+            bin_prvLb.Visible = !showPreviewPaneCTMN.Visible;
+
+            //countLB.Text = "";
+
+            //FormSizeChanged(new Size(413 + 371 * exf, 374 + previewPanelHeight), isLoaded);
+            FormSizeChanged(new Size(exf == 1 ? APP_W4 : APP_W2, hidePreviewPaneCTMN.Visible ? APP_H4 : APP_H2), isLoaded);
             if (!isLoaded) propertiesChange = true;
         }
         /// <summary>
@@ -1026,9 +1132,9 @@ namespace Calculator
             int pro = programmerMI.Checked ? 1 : 0;
             int sci = scientificMI.Checked ? 1 : 0;
             //FormSizeChanged(new Size(216 + (exf ? 376 : 0), 310 + 105 * his), isLoaded);
-            FormSizeChanged(new Size(591 + 193 * (sci + pro), 310 + 104 * his + 64 * pro), isLoaded);
+            FormSizeChanged(new Size(591 + 193 * (sci + pro), 310 + 104 * his + 64 * pro + previewPanelHeight * pro), isLoaded);
 
-            currentConfig[2] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : 0);
+            currentConfig[Config._02_ExtraFunction] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : -8);
             datecalcPN.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
             unitconvPN.Visible = unitConversionMI.Checked = (menuitem == unitConversionMI);
             workSheetPN.Visible = (menuitem.Parent == worksheetsMI);
@@ -1043,28 +1149,28 @@ namespace Calculator
             switch (menuitem.Index)
             {
                 case 0:
-                    if (mortgageTF == null) InitCustomControls(ref mortgageTF, 5, menuitem.Index);
+                    if (mortgageTF == null) mortgageTF = InitCustomControls(5, menuitem.Index);
                     HideWorkSheetTextField(mortgageTF);
                     typeWorkSheetCB.SelectedIndex = 1;
                     break;
                 case 1:
-                    if (VhTF == null) InitCustomControls(ref VhTF, 6, menuitem.Index);
+                    if (VhTF == null) VhTF = InitCustomControls(6, menuitem.Index);
                     HideWorkSheetTextField(VhTF);
                     typeWorkSheetCB.SelectedIndex = 2;
                     break;
                 case 2:
-                    if (fe_MPGTF == null) InitCustomControls(ref fe_MPGTF, 3, menuitem.Index);
+                    if (fe_MPGTF == null) fe_MPGTF = InitCustomControls(3, menuitem.Index);
                     HideWorkSheetTextField(fe_MPGTF);
                     typeWorkSheetCB.SelectedIndex = 1;
                     break;
                 case 3:
-                    if (feL100TF == null) InitCustomControls(ref feL100TF, 3, menuitem.Index);
+                    if (feL100TF == null) feL100TF = InitCustomControls(3, menuitem.Index);
                     HideWorkSheetTextField(feL100TF);
                     typeWorkSheetCB.SelectedIndex = 1;
                     break;
             }
 
-            unitconvPN.Size = new Size(362, 241 + 63 * pro + 103 * his);
+            unitconvPN.Size = new Size(356, 241 + 63 * pro + 103 * his + previewPanelHeight * pro);
             unitconvPN.Location = new Point(213 + 195 * (sci + pro), 12);
 
             basicMI.Checked = false;
@@ -1076,11 +1182,11 @@ namespace Calculator
             if (isLoaded)
             {
                 datemethodCB.SelectedIndexChanged -= datemethodCB_SelectedIndexChanged;
-                datemethodCB.SelectedIndex = (int)initConfigValue[7];
+                datemethodCB.SelectedIndex = (int)initConfig[Config._08_DateMethod];
                 datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
                 //------------------------
                 typeUnitCB.SelectedIndexChanged -= typeUnitCB_SelectedIndexChanged;
-                typeUnitCB.SelectedIndex = (int)initConfigValue[5];
+                typeUnitCB.SelectedIndex = (int)initConfig[Config._06_TypeUnit];
                 typeUnitCB.SelectedIndexChanged += typeUnitCB_SelectedIndexChanged;
             }
             else
@@ -1090,12 +1196,16 @@ namespace Calculator
                 if (menuitem == dateCalculationMI) datemethodCB.Focus();
                 if (menuitem.Parent == worksheetsMI) typeWorkSheetCB.Focus();
             }
-            toCombobox.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
+            toCB.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
             assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
-            toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
+            toCB.SelectedIndexChanged += fromCB_SelectedIndexChanged;
 
             autocal_date.CheckedChanged -= autocal_date_CheckedChanged;
-            autocal_date.Checked = (int)currentConfig[6] == 1;
+            autocal_date.Checked = (int)currentConfig[Config._07_AutoCalculate] == 1;
+            if (autocal_date.Checked)
+            {
+                dtP_ValueChanged(dtP2, null);
+            }
             autocal_date.CheckedChanged += autocal_date_CheckedChanged;
             if (dateCalculationMI.Checked) this.AcceptButton = dateCalculationBT;
             if (menuitem.Parent == worksheetsMI) this.AcceptButton = workSheetCalculateBT;
@@ -1134,7 +1244,7 @@ namespace Calculator
             invertbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
             percentbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
             sqrtbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
-            screenStr = "0";
+            screenStr = new StringBuilder("0");
 
             // scientific form
             anglePN.Visible = idex == 1;
@@ -1159,7 +1269,7 @@ namespace Calculator
             x3_bt.Visible = idex == 1;
             xn_bt.Visible = idex == 1;
             btFactorial.Visible = idex == 1;
-            modsciBT.Visible = idex == 1 || idex == 2;
+            modsciBT.Visible = idex == 1;
             open_bracket.Visible = idex == 1;
             close_bracket.Visible = idex == 1 || idex == 2;
             bracketTime_lb.Visible = idex == 1 || idex == 2;
@@ -1249,6 +1359,30 @@ namespace Calculator
             this.btnD.Enabled = hexRB.Checked;
             this.btnE.Enabled = hexRB.Checked;
             this.btnF.Enabled = hexRB.Checked;
+
+            #region đổi màu label preview
+            this.hex_prvLb.ForeColor = Color.Black;
+            this.dec_prvLb.ForeColor = Color.Black;
+            this.oct_prvLb.ForeColor = Color.Black;
+            this.bin_prvLb.ForeColor = Color.Black;
+            
+            if (hexRB.Checked)
+            {
+                this.hex_prvLb.ForeColor = Color.Red;
+            }
+            if (decRB.Checked)
+            {
+                this.dec_prvLb.ForeColor = Color.Red;
+            }
+            if (octRB.Checked)
+            {
+                this.oct_prvLb.ForeColor = Color.Red;
+            }
+            if (binRB.Checked)
+            {
+                this.bin_prvLb.ForeColor = Color.Red;
+            }
+            #endregion
         }
         /// <summary>
         /// hiển thị label "M" nếu có chứa memory
@@ -1256,7 +1390,7 @@ namespace Calculator
         private void SetMemoryLabelVisible()
         {
             mem_lb.Visible = mem_num != 0;
-            toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", mem_num.StrValue));
+            toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", digitGroupingMI.Checked ? Common.Group(mem_num.StrValue) : mem_num.StrValue));
         }
         /// <summary>
         /// xử lý số trên bộ nhớ
@@ -1265,10 +1399,10 @@ namespace Calculator
         {
             if (pex == null)
             {
-                if (method == "M+") mem_num = mem_num + screenStr;  // M+
-                if (method == "M-") mem_num = mem_num - screenStr;  // M-
-                if (method == "MS") mem_num = screenStr;            // MS
-                currentConfig[4] = mem_num.StrValue;
+                if (method == "M+") mem_num = mem_num + screenStr.ToString();  // M+
+                if (method == "M-") mem_num = mem_num - screenStr.ToString();  // M-
+                if (method == "MS") mem_num = screenStr.ToString();            // MS
+                currentConfig[Config._04_MemoryNumber] = mem_num.StrValue;
                 DisplayToScreen();
 
                 SetMemoryLabelVisible();
@@ -1276,9 +1410,143 @@ namespace Calculator
                 confirmNumber = true;
             }
         }
+        /// <summary>
+        /// gọi số trên bộ nhớ
+        /// </summary>
+        private void recallMemory()
+        {
+            screenStr = new StringBuilder(mem_num.StrValue);
 
-        public static string[] Fact_Value = new string[] { };
-        public static string[] FactResult = new string[] { };
+            if (!programmerMI.Checked)
+                DisplayToScreen();
+            else
+                ScreenToPanel();
+
+            curOperand = screenStr.ToString();
+            expAdded = false;
+            pre_bt = 25;
+            confirmNumber = true;
+        }
+        /// <summary>
+        /// dán 1 chuỗi vào màn hình
+        /// </summary>
+        /// <param name="data">chuỗi cần dán</param>
+        private void PasteData(string data)
+        {
+            data = StandardPasteData(data);
+
+            #region process data
+            if (data.Length > 255) data = data.Substring(0, 255);
+            if (programmerMI.Checked)
+            {
+                if (hexRB.Checked) data = data.Replace("0X", "");
+            }
+            else
+            {
+                Regex r = new Regex(@"=-\d{1,}");
+                Match m = r.Match(data);
+                while (m.Success)
+                {
+                    // 'x' là keydata của F9
+                    data = data.Replace(m.Groups[0].Value, m.Groups[0].Value.Remove(1, 1) + "x");
+                    m = r.Match(data);
+                }
+                // start with negative number
+                m = Regex.Match(data, @"^-\d+");
+                //m = Regex.Match(data, @"^-(\d+,*\d*e[\+-]?\d+|\d+,*\d*)");
+                if (m.Success)
+                {
+                    // 'x' là keydata của F9
+                    // bỏ dấu - ở đầu số và thay bằng kí tự 'x' ở cuối
+                    data = string.Format("{0}x{1}", m.Groups[0].Value.Substring(1), data.Substring(m.Groups[0].Value.Length));
+                }
+            } 
+            #endregion
+
+            int len = data.Length;
+            Keys[] keyData = new Keys[len];
+            // tạo bừa thôi, hàm ProcessCmdKey có dùng cái này đâu
+            Message msg = Message.Create(IntPtr.Zero, 1, IntPtr.Zero, IntPtr.Zero);
+            for (int i = 0; i < len; i++)
+            {
+                #region process key pressed
+                keyData[i] = (Keys)(data[i]);
+                switch ((int)data[i])
+                {
+                    case 10:
+                    case 61: keyData[i] = Keys.Enter;
+                        break;
+                    case 33: keyData[i] = Keys.Shift | Keys.D1;
+                        break;
+                    case 35: keyData[i] = Keys.Shift | Keys.D3;
+                        break;
+                    case 37: keyData[i] = Keys.Shift | Keys.D5;
+                        break;
+                    case 38: keyData[i] = (Keys)65591;
+                        break;
+                    case 40: /*case 91: */keyData[i] = Keys.OemOpenBrackets;
+                        break;
+                    case 41: /*case 93: */keyData[i] = Keys.OemCloseBrackets;
+                        break;
+                    case 43: if (i > 0)
+                        {
+                            if (data[i - 1] != 88 && data[i - 1] != 69)
+                                keyData[i] = Keys.Add;
+                            else continue;
+                        }
+                        break;
+                    case 42: keyData[i] = Keys.Multiply;
+                        break;
+                    case 44:
+                    case 46: keyData[i] = Keys.Decimal;
+                        break;
+                    case 45:
+                        if (i > 0)
+                        {
+                            if (data[i - 1] != 'E' && data[i - 1] != 'X') keyData[i] = Keys.OemMinus;
+                            else if (programmerMI.Checked || hexRB.Checked) keyData[i] = Keys.OemMinus;
+                            else keyData[i] = Keys.F9;
+                        }
+                        break;
+                    case 47: keyData[i] = Keys.Divide;
+                        break;
+                    case 59: keyData[i] = Keys.OemSemicolon;
+                        break;
+                    case 64: keyData[i] = Keys.Shift | Keys.D2;
+                        break;
+                    case 66: if (scientificMI.Checked) keyData[i] = Keys.Control | Keys.B;
+                        break;
+                    case 71: keyData[i] = Keys.Control | Keys.G;
+                        break;
+                    case 94:
+                        if (scientificMI.Checked) keyData[i] = Keys.Y;
+                        if (programmerMI.Checked) keyData[i] = Keys.Shift | Keys.D6;    //(Keys)65590;
+                        break;
+                    case 124: keyData[i] = Keys.Shift | Keys.Oem5;  //(Keys)65756;
+                        break;
+                } 
+                #endregion
+
+                ProcessCmdKey(ref msg, keyData[i]);
+            }
+            if (programmerMI.Checked) ScreenToPanel();
+            else DisplayToScreen();
+        }
+        /// <summary>
+        /// xoá các ký tự thừa để paste vào cell
+        /// </summary>
+        /// <param name="vl">giá trị trước khi paste</param>
+        /// <returns>giá trị sau khi chuẩn hoá</returns>
+        private string StandardPasteData(object vl)
+        {
+            string valueString = Convert.ToString(vl);
+            valueString = valueString.Replace("\n", "=");
+            valueString = Regex.Replace(valueString, @"\s", "");
+            valueString = valueString.Replace(Common.GroupSeparator, "");
+            return valueString;
+        }
+
+        public static List<FactorialObject> factDict = new List<FactorialObject>();
 
         bool isFuncClicked = false;
         /// <summary>
@@ -1287,9 +1555,9 @@ namespace Calculator
         private void MathFunction(Button bt)
         {
             if (pex != null) return;
-            BigNumber inp_num = screenStr;
+            BigNumber inp_num = screenStr.ToString();
             int tabIndex = bt.TabIndex;
-            string parameter = screenStr;
+            string parameter = screenStr.ToString();
             if (isFuncClicked || expAdded)
             {
                 parameter = curOperand;
@@ -1302,13 +1570,12 @@ namespace Calculator
                 parameter = parameter.Substring(1, parameter.Length - 2);
             }
 
-            int idex = Array.IndexOf(Fact_Value, inp_num.StrValue);
             switch (tabIndex)
             {
                 #region Assign function
                 // sin, cos, tan, sinh, cosh, tanh, log, int
                 case 28: case 29: case 30:
-                    curOperand = string.Format("{0}({1})", bt.Text + parser.Angle, parameter);
+                    curOperand = string.Format("{0}{1}({2})", bt.Text, parser.Angle, parameter);
                     break;
                 case 35: case 36: case 37: case 42: case 44:
                     curOperand = string.Format("{0}({1})", bt.Text, parameter);
@@ -1337,7 +1604,7 @@ namespace Calculator
                         {
                             InitCancelOperation();
                         }
-                        if ((int)currentConfig[10] == 1)
+                        if ((int)currentConfig[Config._10_FastFactorial] == 1)
                             curOperand = string.Format("fast({0})", parameter);
                         else
                             curOperand = string.Format("fact({0})", parameter);
@@ -1361,12 +1628,12 @@ namespace Calculator
 
             if (expAdded)
             {
-                mainExp = mainExp.Substring(0, mainExp.Length - len) + curOperand;
+                mainExp = new StringBuilder(mainExp.ToString().Substring(0, mainExp.Length - len)).Append(curOperand);
                 bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - len) + curOperand;
             }
             else
             {
-                mainExp += curOperand;
+                mainExp = mainExp.Append(curOperand);
                 bracketExp[openBrkLevel] += curOperand;
             }
 
@@ -1376,24 +1643,26 @@ namespace Calculator
             //if (standardMI.Checked) pex = parser.EvaluateStd(curOperand);
             if (tabIndex != 32)
             {
+                #region not a factorial function
                 pex = parser.EvaluateSci(curOperand);
                 //--------------------------------------------------------------
                 if (pex == null)
                 {
-                    screenStr = parser.StringResult;
+                    screenStr = new StringBuilder(parser.StringResult);
                     isFuncClicked = true;
                     confirmNumber = true;
                 }
                 else
                 {
-                    screenStr = pex.Message;
+                    screenStr = new StringBuilder(pex.Message);
                     scr_lb.Text = pex.Message;
                     scr_lb.Font = new Font("Consolas", pex.Message.Length > 40 ? 5.25F : 9.75F);
 
                     inv_ChkBox.Checked = false;
                     fe_ChkBox.Checked = false;
                 }
-                //pex = null;
+                //pex = null; 
+                #endregion
             }
             else
             {
@@ -1407,63 +1676,79 @@ namespace Calculator
                 }
                 if (inp_num >= 1e5 && curOperand.Contains("fact"))
                 {
+                    int idex = Array.IndexOf(factDict.SelectValue(), inp_num.StrValue);
                     if (idex < 0)   // khong tim thay
                     {
-                        ShowFactorialProgress(true);
+                        ShowFactorialProgress_Pref();
                         if (pex == null)
-                            screenStr = parser.StringResult;
+                            screenStr = new StringBuilder(parser.StringResult);
                         else
-                            screenStr = pex.Message;
+                            screenStr = new StringBuilder(pex.Message);
                     }
                     else            // tim thay
                     {
-                        screenStr = FactResult[idex];
+                        screenStr = new StringBuilder(factDict[idex].Result);
                     }
                 }
                 else
                 {
                     InitCancelOperation();
                     pex = parser.EvaluateSci(curOperand);
-                    screenStr = parser.StringResult;
+                    screenStr = new StringBuilder(parser.StringResult);
                 }
                 isFuncClicked = confirmNumber = true;   // funcID != 32;
                 #endregion
             }
 
-            expressionTB.Text = mainExp.Trim();
+            expressionTB.Text = mainExp.ToString().Trim();
             pre_bt = tabIndex;
             DisplayToScreen();
         }
-
-        private void ShowFactorialProgress(bool isPref)
+        /// <summary>
+        /// hiện progress của hàm giai thừa khi thực hiện hàm tính
+        /// </summary>
+        private void ShowFactorialProgress_Pref()
         {
             mWorker = new BackgroundWorker();
             mWorker.WorkerSupportsCancellation = true;
             mWorker.WorkerReportsProgress = true;
-            if (isPref)
-                mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkPrevFunc);
-            else
-                mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkExpr);
+            mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkPrevFunc);
             mWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(mWorker_RunWorkerCompleted);
             mWorker.RunWorkerAsync();
             InitCancelOperation();
             co.ShowDialog();
         }
-
-        private void recalculate(int rowID)
+        /// <summary>
+        /// hiện progress của hàm giai thừa cho cả biểu thức
+        /// </summary>
+        private void ShowFactorialProgress_Expr()
+        {
+            mWorker = new BackgroundWorker();
+            mWorker.WorkerSupportsCancellation = true;
+            mWorker.WorkerReportsProgress = true;
+            mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkExpr);
+            mWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(mWorker_RunWorkerCompleted);
+            mWorker.RunWorkerAsync();
+            InitCancelOperation();
+            co.ShowDialog();
+        }
+        /// <summary>
+        /// hàm tính lại biểu thức
+        /// </summary>
+        /// <param name="rowID">dòng được tính lại</param>
+        private void reCalculate(int rowID)
         {
             hisDGV.EndEdit();
-            mainExp = hisDGV[0, rowID].Value.ToString(); // sau khi ket thuc 1 phep tinh, mainExp duoc gan ve ""
+            mainExp = new StringBuilder(hisDGV[0, rowID].Value.ToString()); // sau khi ket thuc 1 phep tinh, mainExp duoc gan ve ""
             evaluateExpression(rowID, true);
-            //if (pex == null) DisplayToScreen();
         }
         /// <summary>
         /// đưa các giá trị của các biến liên quan đến thứ tự ưu tiên các phép tính về mặc định
         /// </summary>
         private void NewPriorityExpression()
         {
-            priorityExpression = new string[maxBracketLevel + 1][];
-            for (int i = 0; i < maxBracketLevel + 1; i++)
+            priorityExpression = new string[MAX_BRACKET_LEVEL + 1][];
+            for (int i = 0; i < MAX_BRACKET_LEVEL + 1; i++)
             {
                 priorityExpression[i] = new string[7];
                 lowestOperator[i] = 7;
@@ -1479,32 +1764,38 @@ namespace Calculator
         {
             if (isFuncClicked && pex == null)
             {
-                if (prePriority[openBrkLevel].Index < 0 && pre_bt != 32) equal_Click(null, null);
+                if (prePriority[openBrkLevel].Index < 0 && pre_bt != 32) equal_Click(equalBT, null);
                 if (prePriority[openBrkLevel].Index >= 0 && pre_bt != 32 && !c_bt)
                 {
-                    mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length).Trim();
-                    if (scientificMI.Checked) expressionTB.Text = mainExp.Trim();
+                    mainExp = new StringBuilder(mainExp.ToString().Substring(0, mainExp.Length - curOperand.Length).Trim());
+                    if (scientificMI.Checked) expressionTB.Text = mainExp.ToString().Trim();
                 }
             }
-            scr_lb.Text = screenStr = "0";
+            scr_lb.Text = "0";
+            screenStr = new StringBuilder("0");
             isFuncClicked = false;
             expAdded = false;
             prcmdkey = confirmNumber = true;
 
             scr_lb.Font = new Font("Consolas", 15.75F);
-            if (pex != null) expressionTB.Text = mainExp = "";
+            if (pex != null)
+            {
+                expressionTB.Text = "";
+                mainExp = new StringBuilder();
+            }
 
             if (c_bt)
             {
                 pex = null;
                 openBrkLevel = 0;
-                prePriority = new Operator[maxBracketLevel + 1];
-                curPriority = new Operator[maxBracketLevel + 1];
+                prePriority = new Operator[MAX_BRACKET_LEVEL + 1];
+                curPriority = new Operator[MAX_BRACKET_LEVEL + 1];
                 curOperand = "0";
-                expressionTB.Text = bracketTime_lb.Text = mainExp = "";
+                expressionTB.Text = bracketTime_lb.Text = "";
+                mainExp = new StringBuilder();
                 pre_bt = -1;
                 inv_ChkBox.Checked = fe_ChkBox.Checked = false;
-                bracketExp = new string[maxBracketLevel + 1];
+                bracketExp = new string[MAX_BRACKET_LEVEL + 1];
                 NewPriorityExpression();
             }
             if (bin_digit != null)
@@ -1520,8 +1811,8 @@ namespace Calculator
         {
             if (e.Button == MouseButtons.Left)
             {
-                Misc.ReleaseCapture();
-                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
+                Common.ReleaseCapture();
+                Common.SendMessage(Handle, 0xA1, 0x2, 1);
             }
         }
         /// <summary>
@@ -1541,62 +1832,65 @@ namespace Calculator
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = Misc.Group(screenStr);
-                    else if (octRB.Checked) scr_lb.Text = Misc.Group(screenStr, " ", 3);
-                    else if (binRB.Checked || hexRB.Checked) scr_lb.Text = Misc.Group(screenStr, " ", 4);
+                    if (decRB.Checked) scr_lb.Text = Common.Group(screenStr);
+                    else if (octRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 3);
+                    else if (binRB.Checked || hexRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 4);
                 }
                 else
                 {
-                    scr_lb.Text = screenStr;
+                    scr_lb.Text = screenStr.ToString();
                 }
             }
-            else                      // nhóm cho form non-programmer
+            else    // nhóm cho form non-programmer
             {
+                screenStr = screenStr.Replace(".", Common.DecimalSeparator).Replace(",", Common.DecimalSeparator);
                 if (fe_ChkBox.Checked)
                 {
-                    scr_lb.Text = ((BigNumber)screenStr).ToString();
+                    scr_lb.Text = ((BigNumber)screenStr.ToString()).ToString();
                     return;	// không cần quan tâm đến digitGroupingMI nữa
                 }
-                if (!digitGroupingMI.Checked || screenStr.ToUpper().Contains("E"))
+                if (!digitGroupingMI.Checked || screenStr.ToString().ToUpper().Contains("E"))
                 {
-                    scr_lb.Text = screenStr;
+                    scr_lb.Text = screenStr.ToString();
                 }
                 else
                 {
-                    scr_lb.Text = Misc.Group(screenStr);
+                    scr_lb.Text = Common.Group(screenStr);
                 }
             }
             if (hisDGV.Visible) hisDGV.Focus();
             if (staDGV.Visible) staDGV.Focus();
         }
-        //
-        // hàm digit grouping
-        //
+        /// <summary>
+        /// hàm digit grouping
+        /// </summary>
+        /// <param name="isLoaded">load lần đầu tiên</param>
         private void digitLoad(bool isLoaded)
         {
             digitGroupingMI.Checked = !digitGroupingMI.Checked;
-            currentConfig[1] = digitGroupingMI.Checked ? 1 : 0;
+            currentConfig[Config._01_UseSep] = digitGroupingMI.Checked ? 1 : 0;
 
             if (!isLoaded) propertiesChange = true;
+            SetMemoryLabelVisible();
 
             GroupWorksheetsFunctionResult(toTB, unitconvPN);
             GroupWorksheetsFunctionResult(workSheetResultTB, workSheetPN);
 
             if (!programmerMI.Checked)
             {
-                if (Misc.IsNumber(screenStr)) DisplayToScreen();
+                if (Common.IsNumber(screenStr.ToString())) DisplayToScreen();
             }
             else
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = Misc.Group(screenStr, Misc.GroupSeparator, 3);
-                    if (octRB.Checked) scr_lb.Text = Misc.Group(screenStr, " ", 3);
-                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = Misc.Group(screenStr, " ", 4);
+                    if (decRB.Checked) scr_lb.Text = Common.Group(screenStr, Common.GroupSeparator, 3);
+                    if (octRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 3);
+                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 4);
                 }
                 else
                 {
-                    if (decRB.Checked) scr_lb.Text = scr_lb.Text.Replace(Misc.GroupSeparator, "");
+                    if (decRB.Checked) scr_lb.Text = scr_lb.Text.Replace(Common.GroupSeparator, "");
                     if (octRB.Checked || binRB.Checked || hexRB.Checked)
                         scr_lb.Text = scr_lb.Text.Replace(" ", "");
                 }
@@ -1605,17 +1899,17 @@ namespace Calculator
         /// <summary>
         /// nhóm kết quả tính được ở các textbox extra function
         /// </summary>
-        /// <param name="tb">textbox kết quả</param>
+        /// <param name="tbWaterMark">textbox kết quả</param>
         /// <param name="pn">panel chứa kết quả đó</param>
         private void GroupWorksheetsFunctionResult(TextBox tb, IPanel pn)
         {
-            if (Misc.IsNumber(tb.Text) && pn.Visible)
+            if (Common.IsNumber(tb.Text) && pn.Visible)
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (!tb.Text.Contains("E")) tb.Text = Misc.Group(tb.Text);
+                    if (!tb.Text.Contains("E")) tb.Text = Common.Group(tb.Text);
                 }
-                else tb.Text = tb.Text.Replace(Misc.GroupSeparator, "");
+                else tb.Text = tb.Text.Replace(Common.GroupSeparator, "");
             }
         }
         /// <summary>
@@ -1628,16 +1922,16 @@ namespace Calculator
             // neu phim truoc do khong phai la phim mo ngoac - WHY???
             if (expAdded/* && pre_bt != 152*/)
             {
-                mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length);
+                mainExp = new StringBuilder(mainExp.ToString().Substring(0, mainExp.Length - curOperand.Length));
                 expAdded = false;
-                expressionTB.Text = mainExp.Trim();
+                expressionTB.Text = mainExp.ToString().Trim();
                 if (openBrkLevel > 0)
                 {
                     bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - curOperand.Length);
                 }
                 else
                 {
-                    bracketExp[0] = mainExp;
+                    bracketExp[0] = mainExp.ToString();
                 }
             }
         }
@@ -1648,7 +1942,7 @@ namespace Calculator
         {
             if (prePriority[openBrkLevel].Index < 0 && curPriority[openBrkLevel].Index < 0 && isFuncClicked)
             {
-                equal_Click(null, null);
+                equal_Click(equalBT, null);
             }
             if (pex != null) return;
 
@@ -1660,79 +1954,95 @@ namespace Calculator
                 if (!confirmNumber)
                 {
                     expAdded = false;
-                    if (screenStr.Contains("e"))
+                    if (screenStr.ToString().Contains("e"))
                     {
-                        if (screenStr.EndsWith("e+0")) screenStr = screenStr.Replace("e+0", "e+" + index.ToString());
-                        else if (screenStr.EndsWith("e-0")) screenStr = screenStr.Replace("e-0", "e-" + index.ToString());
-                        else screenStr += index.ToString();
-                        if (screenStr.Length >= 56) screenStr = screenStr.Substring(0, screenStr.Length - 1);
+                        if (screenStr.ToString().EndsWith("e+0")) screenStr = screenStr.Replace("e+0", "e+" + index.ToString());
+                        else if (screenStr.ToString().EndsWith("e-0")) screenStr = screenStr.Replace("e-0", "e-" + index.ToString());
+                        else screenStr = screenStr.Append(index.ToString());
+                        if (screenStr.Length >= 56) screenStr = new StringBuilder(screenStr.ToString(0, screenStr.Length - 1));
                     }
                     else
                     {
-                        if (screenStr != "0") strTemp = screenStr + index.ToString();
-                        else { confirmNumber = true; pre_bt = index; return; }
+                        if (screenStr != new StringBuilder("0")) strTemp = screenStr + index.ToString();
+                        else
+                        {
+                            confirmNumber = true; 
+                            pre_bt = index; 
+                            return;
+                        }
                         if (strTemp.Length < ((standardMI.Checked || statisticsMI.Checked) ? 16 : 42)
-                            && (BigNumber)strTemp < "1e32") screenStr = strTemp;
+                            && (BigNumber)strTemp < "1e32") screenStr = new StringBuilder(strTemp);
                         else return;
                     }
                     isFuncClicked = false;
                 }
                 else
                 {
-                    screenStr = index.ToString();
+                    screenStr = new StringBuilder(index.ToString());
                     FixNumberWhenChange();
                     isFuncClicked = false;
                 }
-                curOperand = screenStr;
-                goto breakpoint;
+                curOperand = screenStr.ToString();
             }
             if (index == 10 && pex == null)    // dấu thập phân
             {
                 // chưa có dấu thập phân thì thêm vào, không có thì thôi
                 if (confirmNumber)
                 {
-                    screenStr = "0" + Misc.DecimalSeparator;
+                    screenStr = new StringBuilder().AppendFormat("0{0}", Common.DecimalSeparator);
                     if (expAdded)
-                        expressionTB.Text = mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length);
-                    else expressionTB.Text = mainExp;
+                    {
+                        expressionTB.Text = mainExp.ToString().Substring(0, mainExp.Length - curOperand.Length);
+                        mainExp = new StringBuilder(expressionTB.Text);
+                    }
+                    else expressionTB.Text = mainExp.ToString();
                 }
-                if (!screenStr.Contains(Misc.DecimalSeparator) && !screenStr.Contains("e"))
+                if (!screenStr.ToString().Contains(Common.DecimalSeparator) && !screenStr.ToString().Contains("e"))
                 {
-                    screenStr += Misc.DecimalSeparator;
-                    //if (!Misc.IsNumber(curOperand))
-                    //  curOperand = curOperand.Insert(curOperand.IndexOf(")"), Misc.DecimalSeparator);
+                    screenStr = screenStr.Append(Common.DecimalSeparator);
+                    //if (!Common.IsNumber(curOperand))
+                    //  curOperand = curOperand.Insert(curOperand.IndexOf(")"), Common.DecimalSeparator);
                 }
                 expAdded = false;
 
                 FixNumberWhenChange();
-                curOperand = screenStr;
+                curOperand = screenStr.ToString();
 
                 isFuncClicked = false;
-                goto breakpoint;
             }
             if (index == 11 && pex == null)    // nut doi dau
             {
                 if (!confirmNumber)
                 {
-                    if (screenStr.Contains("e+")) { screenStr = screenStr.Replace("e+", "e-"); curOperand = screenStr; goto breakpoint; }
-                    if (screenStr.Contains("e-")) { screenStr = screenStr.Replace("e-", "e+"); curOperand = screenStr; goto breakpoint; }
+                    if (screenStr.ToString().Contains("e+")) 
+                    { 
+                        screenStr = screenStr.Replace("e+", "e-"); 
+                        curOperand = screenStr.ToString(); 
+                        goto breakpoint; 
+                    }
+                    if (screenStr.ToString().Contains("e-")) 
+                    { 
+                        screenStr = screenStr.Replace("e-", "e+");
+                        curOperand = screenStr.ToString(); 
+                        goto breakpoint; 
+                    }
                 }
                 if (screenStr.StartsWith("-"))
                 {
-                    screenStr = screenStr.Substring(1);
-                    curOperand = screenStr;
+                    screenStr = new StringBuilder(screenStr.ToString(1, screenStr.Length - 1));
+                    curOperand = screenStr.ToString();
                 }
                 else
                 {
-                    if (screenStr != "0") screenStr = "-" + screenStr;
-                    curOperand = string.Format("({0})", screenStr);
+                    if (screenStr != new StringBuilder("0")) screenStr = new StringBuilder("-").Append(screenStr.ToString());
+                    curOperand = screenStr.ToString();
                 }
 
                 pre_bt = index;
                 DisplayToScreen();
                 return;
             }
-            breakpoint: confirmNumber = screenStr == "0";
+            breakpoint: confirmNumber = screenStr == new StringBuilder("0");
             pre_bt = index;
             DisplayToScreen();
         }
@@ -1753,10 +2063,10 @@ namespace Calculator
                     {
                         strTemp = screenStr + index.ToString();
                         if (BigNumber.Two.Pow(SizeBin - 1) >= strTemp) // strTemp chua vuot qua gia tri lon nhat
-                            screenStr += index.ToString();
+                            screenStr = screenStr.Append(index.ToString());
                         else return;
                     }
-                    else screenStr = index.ToString();
+                    else screenStr = new StringBuilder(index.ToString());
                 }
                 else
                 {
@@ -1767,12 +2077,12 @@ namespace Calculator
                     else strTemp = index.ToString();
                     if (binRB.Checked)
                     {
-                        if (strTemp.Length <= SizeBin) screenStr = strTemp;
+                        if (strTemp.Length <= SizeBin) screenStr = new StringBuilder(strTemp);
                         else return;
                     }
                     if (hexRB.Checked)
                     {
-                        if (strTemp.Length <= SizeBin / 4) screenStr = strTemp;
+                        if (strTemp.Length <= SizeBin / 4) screenStr = new StringBuilder(strTemp);
                         else return;
                     }
                     if (octRB.Checked)
@@ -1789,85 +2099,78 @@ namespace Calculator
                             case 64: max = "1777777777777777777777";
                                 break;
                         }
-                        BigNumber oct = strTemp;
-                        if (oct <= max) screenStr = strTemp;
+                        if ((BigNumber)strTemp <= max) screenStr = new StringBuilder(strTemp);
                         else return;
                     }
                 }
+                ScreenToPanel();
+                curOperand = decRB.Value;
+                confirmNumber = screenStr == new StringBuilder("0");
+                pre_bt = index;
             }
             if (index == 11)    // dấu âm
             {
-                bool signNum = (int)currentConfig[11] == 1;
+                bool signNum = (int)currentConfig[Config._11_SignInteger] == 1;
                 if (signNum)   // su dung so nguyen co dau
                 {
-                    if (screenStr.StartsWith("-")) { screenStr = screenStr.Substring(1); ScreenToPanel(); }
+                    if (screenStr.StartsWith("-")) { screenStr = new StringBuilder(screenStr.ToString(1, screenStr.Length - 1)); ScreenToPanel(); }
                     else
                     {
-                        if (screenStr == "0") return;
+                        if (screenStr == new StringBuilder("0")) return;
                         //quy doi ra he 10, lay phan bu voi 256, 65536,... roi tinh nguoc lai ve he cu
                         if (binRB.Checked)
                         {
-                            //decRB.Value = Binary.other_to_dec(screenStr, 02, SizeBin, signNum);
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            screenStr = binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                            screenStr = new StringBuilder(binRB.Value);
                         }
                         if (octRB.Checked)
                         {
-                            //decRB.Value = Binary.other_to_dec(screenStr, 08, SizeBin, signNum);
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            screenStr = octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
+                            octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
+                            screenStr = new StringBuilder(octRB.Value);
                             binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
                         }
                         if (decRB.Checked)
                         {
-                            decRB.Value = screenStr = "-" + screenStr;
+                            decRB.Value = string.Format("-{0}", screenStr);
+                            screenStr = new StringBuilder(decRB.Value);
                             binRB.Value = Binary.dec_to_other(decRB.Value, 2, SizeBin, signNum);
                         }
                         if (hexRB.Checked)
                         {
-                            //decRB.Value = Binary.other_to_dec(screenStr, 16, SizeBin, signNum);
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            screenStr = hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
+                            hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
+                            screenStr = new StringBuilder(hexRB.Value);
                             binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
                         }
+                        ScreenToPanel(true);
                     }
-                    binnum64 = binRB.Value.PadLeft(64, '0');
-                    for (int i = 0; i < 16; i++)
-                    {
-                        bin_digit[i].Text = binnum64.Substring(60 - i * 4, 4);
-                    }
-                    curOperand = screenStr;
-                    confirmNumber = true;
                 }
                 else    // su dung so nguyen khong dau
                 {
-                    if (screenStr.StartsWith("-")) screenStr = screenStr.Substring(1);
+                    if (screenStr.StartsWith("-")) screenStr = new StringBuilder(screenStr.ToString(1, screenStr.Length - 1));
                     else
                     {
-                        if (screenStr == "0") return;
-                        screenStr = (BigNumber.Two.Pow(SizeBin) - decRB.Value).StrValue;
+                        if (screenStr == new StringBuilder("0")) return;
+                        screenStr = new StringBuilder((BigNumber.Two.Pow(SizeBin) - decRB.Value).StrValue);
                         if (!decRB.Checked)
                         {
-                            if (binRB.Checked) screenStr = Binary.dec_to_other(screenStr, 02, SizeBin, signNum);
-                            if (octRB.Checked) screenStr = Binary.dec_to_other(screenStr, 08, SizeBin, signNum);
-                            if (hexRB.Checked) screenStr = Binary.dec_to_other(screenStr, 16, SizeBin, signNum);
+                            if (binRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 02, SizeBin, signNum));
+                            if (octRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 08, SizeBin, signNum));
+                            if (hexRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 16, SizeBin, signNum));
                         }
-                        ScreenToPanel();
-                        confirmNumber = true;
-                        return;
                     }
+                    ScreenToPanel();
                 }
+                curOperand = screenStr.ToString();
                 pre_bt = index;
-                DisplayToScreen();
+                confirmNumber = true;
                 return;
             }
-            ScreenToPanel();
-            curOperand = decRB.Value;
-            confirmNumber = screenStr == "0";
-            pre_bt = index;
         }
         /// <summary>
         /// các nút từ A đến F
@@ -1877,37 +2180,19 @@ namespace Calculator
             if (!confirmNumber)
             {
                 string strTemp = screenStr + text;
-                if (strTemp.Length <= SizeBin / 4) screenStr = strTemp;
+                if (strTemp.Length <= SizeBin / 4) screenStr = new StringBuilder(strTemp);
                 else return;    // khong lam clgh
             }
             else
             {
-                screenStr = text;
+                screenStr = new StringBuilder(text);
             }
             confirmNumber = false;
             prcmdkey = true;
             ScreenToPanel();
         }
-        /// <summary>
-        /// hàm tính tổng
-        /// </summary>
-        /// <param name="isSquare">tham số kiểm tra xem có tính tổng bình phương các số hay không</param>
-        /// <returns>tổng</returns>
-        private double sum(bool isSquare)
-        {
-            double sum = 0;
-            if (staDGV.RowCount == 0) return 0;
-            for (int i = 0; i < staDGV.RowCount; i++)
-            {
-                double frq = double.Parse(staDGV[0, i].ToolTipText.Substring(staDGV[0, i].ToolTipText.LastIndexOf(' ')));
-                double number = double.Parse(staDGV[0, i].Value.ToString());
-                if (isSquare) sum += number * number * frq;
-                else sum += number * frq;
-            }
-            return sum;
-        }
 
-        BigNumber leftNum = 0, rightNum = 0;
+        double leftNum = 0;
         /// <summary>
         /// các toán tử +-*/ của form standard
         /// </summary>
@@ -1915,32 +2200,41 @@ namespace Calculator
         {
             prePriority[0] = curPriority[0].Clone();
             string oper = "";
-            if (index == 12) oper = "+";
-            if (index == 13) oper = "-";
-            if (index == 14) oper = "*";
-            if (index == 15) oper = "/";
+            switch (index)
+            {
+                case 12: oper = "+";
+                    break;
+                case 13: oper = "-";
+                    break;
+                case 14: oper = "*";
+                    break;
+                case 15: oper = "/";
+                    break;
+            }
             curPriority[0] = new Operator(oper, 6);
             if (prePriority[0].Index >= 0)
             {
                 if (Array.IndexOf(new int[] { 12, 13, 14, 15 }, pre_bt) >= 0)    // pre_bt la cac nut co thuoc mang tren
                 {
-                    mainExp = mainExp.Substring(0, mainExp.Length - 2) + oper + " ";
+                    mainExp = new StringBuilder().AppendFormat("{0}{1} ", mainExp.ToString().Substring(0, mainExp.Length - 2), oper);
                     goto breakpoint;
                 }
-                if (!expAdded) mainExp += curOperand;
-                mainExp += " " + oper + " ";
-                rightNum = screenStr;
+                if (!expAdded) mainExp = mainExp.Append(curOperand);
+                mainExp = mainExp.AppendFormat(" {0} ", oper);
+
+                double right = double.Parse(screenStr.ToString());
+                string scrStr = null;
                 switch (prePriority[0].PText)
                 {
-                    case "+": screenStr = (leftNum + rightNum).StrValue;
+                    case "+": scrStr = (leftNum + right).ToString();
                         break;
-                    case "-": screenStr = (leftNum - rightNum).StrValue;
+                    case "-": scrStr = (leftNum - right).ToString();
                         break;
-                    case "*": screenStr = (leftNum * rightNum).StrValue;
+                    case "*": scrStr = (leftNum * right).ToString();
                         break;
-                    case "/": if (rightNum != 0)
+                    case "/": if (screenStr != new StringBuilder("0"))
                         {
-                            screenStr = (leftNum / rightNum).StrValue;
+                            scrStr = (leftNum / right).ToString();
                         }
                         else
                         {
@@ -1948,34 +2242,36 @@ namespace Calculator
                         }
                         break;
                 }
+                screenStr = new StringBuilder(scrStr);
             }
-            else    // prePriority[0].Index < 0 && curPriority[0].Index < 0
+            else    // prePriority[0].Value < 0 && curPriority[0].Value < 0
             {
                 if (isFuncClicked)
                 {
-                    if (!expAdded) mainExp += string.Format("{0} {1} ", curOperand, oper);
-                    else mainExp = string.Format("{0} {1} ", curOperand, oper);
+                    if (!expAdded) mainExp = mainExp.AppendFormat("{0} {1} ", curOperand, oper);
+                    else mainExp = new StringBuilder().AppendFormat("{0} {1} ", curOperand, oper);
                 }
                 else
                 {
-                    mainExp += string.Format(" {0} {1} ", screenStr, oper);
+                    mainExp = mainExp.AppendFormat(" {0} {1} ", screenStr, oper);
                 }
-            }       // prePriority[0].Index >= 0
-            leftNum = screenStr;
+                leftNum = double.Parse(screenStr.ToString());
+            }       // prePriority[0].Value >= 0
+            leftNum = double.Parse(screenStr.ToString());
 
             breakpoint: confirmNumber = true;
-            expressionTB.Text = mainExp.Trim();
+            expressionTB.Text = mainExp.ToString().Trim();
             DisplayToScreen();
             pre_bt = index;
-            curOperand = screenStr;
+            curOperand = screenStr.ToString();
             isFuncClicked = false;
             expAdded = false;
         }
 
-        int[] lowestOperator = new int[maxBracketLevel + 1];
-        string[][] priorityExpression = new string[maxBracketLevel + 1][];
-        Operator[] curPriority = new Operator[maxBracketLevel + 1];
-        Operator[] prePriority = new Operator[maxBracketLevel + 1];
+        int[] lowestOperator = new int[MAX_BRACKET_LEVEL + 1];
+        string[][] priorityExpression = new string[MAX_BRACKET_LEVEL + 1][];
+        Operator[] curPriority = new Operator[MAX_BRACKET_LEVEL + 1];
+        Operator[] prePriority = new Operator[MAX_BRACKET_LEVEL + 1];
         /// <summary>
         /// các toán tử +-*/ của form scientific
         /// </summary>
@@ -2002,7 +2298,7 @@ namespace Calculator
                     if (curPriority[openBrkLevel].Index <= prePriority[openBrkLevel].Index ||
                         (mainExp[0] == '(' && mainExp[mainExp.Length - prePriority[openBrkLevel].PText.Length - 3] == ')'))
                             format = "{0} {1} ";
-                    mainExp = string.Format(format, mainExp.Substring(0, mainExp.Length - prePriority[openBrkLevel].PText.Length - 2), oper);
+                    mainExp = new StringBuilder().AppendFormat(format, mainExp.ToString().Substring(0, mainExp.Length - prePriority[openBrkLevel].PText.Length - 2), oper);
                     bracketExp[openBrkLevel] = string.Format(format, bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - prePriority[openBrkLevel].PText.Length - 2), oper);
                     if (curPriority[openBrkLevel].Index < lowestOperator[openBrkLevel]) lowestOperator[openBrkLevel] = curPriority[openBrkLevel].Index;
                     goto breakpoint;    // thoat tai day
@@ -2011,7 +2307,7 @@ namespace Calculator
                 // biểu thức chính và biểu thức trong ngoặc ở level ngoặc hiện tại
                 if (!expAdded)
                 {
-                    mainExp += curOperand;
+                    mainExp = mainExp.Append(curOperand);
                     bracketExp[openBrkLevel] += curOperand;
                 }
 
@@ -2029,31 +2325,31 @@ namespace Calculator
 
                     // lấy kết quả của phép tính có thứ tự cao hơn TRƯỚC ĐÓ, trả về screenStr
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index]));
-                    screenStr = parser.StringResult;
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // sau đó, gán biểu thức ưu tiên của phép tính TRƯỚC ĐÓ trở về rỗng
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] = null;
 
                     // biểu thức ưu tiên của phép tính HIỆN TẠI thêm kết quả của phép tính có thứ tự cao hơn trước đó
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr;
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr.ToString();
 
                     // tính giá trị của biểu thức ưu tiên của phép tính HIỆN TẠI
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index]));
-                    screenStr = parser.StringResult;
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên là thấp nhất trong biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
                     if (curPriority[openBrkLevel].Index <= lowestOperator[openBrkLevel])
                     {
                         if (openBrkLevel == 0)  // đang ở biểu thức chính
                         {
-                            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
+                            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp.ToString()));
                         }
                         else
                         {
                             //pex = parser.EvaluateSci(bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - 1));
                             pex = parser.EvaluateSci(SimplyFactorialExpression(bracketExp[openBrkLevel]));
                         }
-                        screenStr = parser.StringResult;
+                        screenStr = new StringBuilder(parser.StringResult);
                     }
                 }
                 // hiện tại có mức ưu tiên BẰNG phép tính trước đó
@@ -2064,49 +2360,49 @@ namespace Calculator
 
                     // tính kết quả của phép tính này, trả về screenStr
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index]));
-                    screenStr = parser.StringResult;
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên thấp nhất trong cả biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
                     if (curPriority[openBrkLevel].Index <= lowestOperator[openBrkLevel])
                     {
                         if (openBrkLevel == 0)  // đang ở biểu thức chính
                         {
-                            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
+                            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp.ToString()));
                         }
                         else
                         {
                             pex = parser.EvaluateSci(SimplyFactorialExpression(bracketExp[openBrkLevel]));
                         }
-                        screenStr = parser.StringResult;
+                        screenStr = new StringBuilder(parser.StringResult);
                     }
                 }
 
                 // hoàn thiện nốt các biểu thức bằng cách thêm dấu phép tính cho biểu thức đó
-                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += " " + oper + " ";
-                mainExp += " " + oper + " ";
-                bracketExp[openBrkLevel] += " " + oper + " ";
+                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += string.Format(" {0} ", oper);
+                mainExp = mainExp.AppendFormat(" {0} ", oper);
+                bracketExp[openBrkLevel] += string.Format(" {0} ", oper);
             }
-            else    // prePriority[openBrkLevel].Index < 0
+            else    // prePriority[openBrkLevel].Value < 0
             {
                 lowestOperator[openBrkLevel] = curPriority[openBrkLevel].Index;
 
                 // biểu thức chính và biểu thức trong ngoặc
                 if (!expAdded)
                 {
-                    mainExp += curOperand;
+                    mainExp = mainExp.Append(curOperand);
                     bracketExp[openBrkLevel] += curOperand;
-                    //priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
+                    //priorityExpression[openBrkLevel][curPriority[openBrkLevel].Value] += curOperand;
                 }
-                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand + " " + oper + " ";
-                mainExp += " " + oper + " ";
-                bracketExp[openBrkLevel] += " " + oper + " ";
-            }       // prePriority[openBrkLevel].Index >= 0
+                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += string.Format("{0} {1} ", curOperand, oper);
+                mainExp = mainExp.AppendFormat(" {0} ", oper);
+                bracketExp[openBrkLevel] += string.Format(" {0} ", oper);
+            }       // prePriority[openBrkLevel].Value >= 0
 
             expAdded = false;
-            breakpoint: expressionTB.Text = mainExp.Trim();
+            breakpoint: expressionTB.Text = mainExp.ToString().Trim();
             DisplayToScreen();
             pre_bt = index;
-            curOperand = screenStr;
+            curOperand = screenStr.ToString();
             isFuncClicked = false;
             confirmNumber = true;
         }
@@ -2141,14 +2437,14 @@ namespace Calculator
                     if (curPriority[openBrkLevel].Index <= prePriority[openBrkLevel].Index ||
                         (mainExp[0] == '(' && mainExp[mainExp.Length - prePriority[openBrkLevel].PText.Length - 1] == ')'))
                         format = "{0}{1}";
-                    mainExp = string.Format(format, mainExp.Substring(0, mainExp.Length - prePriority[openBrkLevel].PText.Length), oper);
+                    mainExp = new StringBuilder().AppendFormat(format, mainExp.ToString().Substring(0, mainExp.Length - prePriority[openBrkLevel].PText.Length), oper);
                     bracketExp[openBrkLevel] = string.Format(format, bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - prePriority[openBrkLevel].PText.Length), oper);
                     if (curPriority[openBrkLevel].Index < lowestOperator[openBrkLevel]) lowestOperator[openBrkLevel] = curPriority[openBrkLevel].Index;
                     goto breakpoint;    // thoat tai day
                 }
 
                 // biểu thức chính và biểu thức trong ngoặc ở level ngoặc hiện tại
-                mainExp += curOperand;
+                mainExp = mainExp.Append(curOperand);
                 bracketExp[openBrkLevel] += curOperand;
 
                 // biểu thức ưu tiên
@@ -2164,18 +2460,18 @@ namespace Calculator
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += curOperand;
 
 					// lấy kết quả của phép tính có thứ tự cao hơn TRƯỚC ĐÓ, trả về screenStr
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
-                    screenStr = parser.StringResult;
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // sau đó, gán biểu thức ưu tiên của phép tính TRƯỚC ĐÓ trở về rỗng
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] = null;
 
                     // biểu thức ưu tiên của phép tính HIỆN TẠI thêm kết quả của phép tính có thứ tự cao hơn trước đó
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr;
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr.ToString();
 
                     // tính giá trị của biểu thức ưu tiên của phép tính HIỆN TẠI
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
-                    screenStr = parser.StringResult;
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên là thấp nhất trong biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
                     if (curPriority[openBrkLevel].Index <= lowestOperator[openBrkLevel])
@@ -2183,14 +2479,14 @@ namespace Calculator
                         if (openBrkLevel == 0)  // dang o bieu thuc chinh
                         {
                             //pex = parser.EvaluatePro(mainExp.Substring(0, mainExp.Length - 1));
-                            pex = parser.EvaluatePro(mainExp, (int)currentConfig[11] == 1);
+                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._11_SignInteger] == 1);
                         }
                         else
                         {
                             //pex = parser.EvaluatePro(bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - 1));
-                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[11] == 1);
+                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._11_SignInteger] == 1);
                         }
-                        screenStr = parser.StringResult;
+                        screenStr = new StringBuilder(parser.StringResult);
                     }
                 }
                 // hiện tại có mức ưu tiên BẰNG phép tính trước đó
@@ -2200,8 +2496,8 @@ namespace Calculator
                     priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
 
                     // tính kết quả của phép tính này, trả về screenStr
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
-                    screenStr = parser.StringResult;
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên thấp nhất trong cả biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
                     if (curPriority[openBrkLevel].Index <= lowestOperator[openBrkLevel])
@@ -2209,43 +2505,47 @@ namespace Calculator
                         if (openBrkLevel == 0)
                         {
                             //pex = parser.EvaluatePro(mainExp.Substring(0, mainExp.Length - 1));
-                            pex = parser.EvaluatePro(mainExp, (int)currentConfig[11] == 1);
+                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._11_SignInteger] == 1);
                         }
                         else
                         {
-                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[11] == 1);
+                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._11_SignInteger] == 1);
                         }
-                        screenStr = parser.StringResult;
+                        screenStr = new StringBuilder(parser.StringResult);
                     }
                 }
 
                 // hoàn thiện nốt các biểu thức bằng cách thêm dấu phép tính cho biểu thức đó
                 priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += oper;
-                mainExp += oper;
+                mainExp = mainExp.Append(oper);
                 bracketExp[openBrkLevel] += oper;
             }
-            else    // prePriority[openBrkLevel].Index < 0
+            else    // prePriority[openBrkLevel].Value < 0
             {
                 lowestOperator[openBrkLevel] = curPriority[openBrkLevel].Index;
 
                 // biểu thức chính và biểu thức trong ngoặc và biểu thức ưu tiên
                 if (!expAdded)
                 {
-                    mainExp += curOperand;
+                    mainExp = mainExp.Append(curOperand);
                     bracketExp[openBrkLevel] += curOperand;
                 }
                 priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand + oper;
-                mainExp += oper;
+                mainExp = mainExp.Append(oper);
                 bracketExp[openBrkLevel] += oper;
-            }       // prePriority[openBrkLevel].Index >= 0
+            }       // prePriority[openBrkLevel].Value >= 0
 
             breakpoint: expAdded = false;
             DisplayToScreen();
-            //curOperand = screenStr;
+            //curOperand = screenStr.ToString();
             pre_bt = index;
             confirmNumber = true;
         }
-
+        /// <summary>
+        /// tính lại biểu thức giai thừa
+        /// </summary>
+        /// <param name="exp">biểu thức giai thừa</param>
+        /// <returns>kết quả sau khi tính</returns>
         private string SimplyFactorialExpression(string exp)
         {
             if (!exp.Contains("fact")) return exp;
@@ -2255,13 +2555,13 @@ namespace Calculator
             while ((open = exp.IndexOf("fact(", searchIndex) + 4) >= 4)
             {
                 string subExp = "";
-                int close = Misc.GetCloseBracketIndex(exp, open, ref subExp);
+                int close = Common.GetCloseBracketIndex(exp, open, ref subExp);
                 searchIndex = close + 1;
                 parser.EvaluateSci(subExp);
-                int idex = Array.IndexOf(Fact_Value, parser.StringResult);
+                int idex = Array.IndexOf(factDict.SelectValue(), parser.StringResult);
                 if (idex >= 0)
                 {
-                    exp = exp.Replace(string.Format("fact({0})", subExp), FactResult[idex]);
+                    exp = exp.Replace(string.Format("fact({0})", subExp), factDict[idex].Result);
                 }
                 //open = exp.IndexOf("fact(", searchIndex) + 4;
             }
@@ -2289,14 +2589,17 @@ namespace Calculator
         {
             lock (this)
             {
-                pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                 if (mWorker.CancellationPending)
                 {
                     e.Cancel = true;
+                    return;
                 }
+                pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp.ToString()));
             }
         }
-
+        //
+        // kết thúc tính giai thừa số lớn của biểu thức
+        //
         private void mWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             lock (this)
@@ -2306,7 +2609,9 @@ namespace Calculator
                 co.Dispose();
             }
         }
-
+        //
+        // huỷ hàm tính giai thừa số lớn
+        //
         private void co_DoCancel()
         {
             if (mWorker.IsBusy)
@@ -2321,24 +2626,26 @@ namespace Calculator
         /// xử lý nút lên hoặc xuống hoặc lăn chuột
         /// </summary>
         /// <param name="dir">hướng di chuyển (1=lên, -1=xuống)</param>
-        private void ProcessUpOrDown(int dir)
+        /// <param name="isKeyBoardUpDown">check hàm có phải của sự kiện bấm phím hay không</param>
+        private void ProcessUpOrDown(int dir, bool isKeyBoardUpDown)
         {
             if (hisDGV.CurrentCell != null && (standardMI.Checked || scientificMI.Checked))
             {
                 if ((dir == 1 && hisDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && hisDGV.CurrentCell.RowIndex <= hisDGV.RowCount - 2))
                 {
-                    hisDGV[0, hisDGV.CurrentRow.Index - dir].Selected = true;
-                    evaluateExpression(hisDGV.CurrentRow.Index, false);
-                    curOperand = screenStr;
+                    evaluateExpression(hisDGV.CurrentRow.Index - dir, false);
+                    if (!isKeyBoardUpDown) hisDGV[0, hisDGV.CurrentRow.Index - dir].Selected = true;
+                    curOperand = screenStr.ToString();
                 }
             }
             if (staDGV.CurrentCell != null && statisticsMI.Checked)
             {
                 if ((dir == 1 && staDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && staDGV.CurrentCell.RowIndex <= staDGV.RowCount - 2))
                 {
-                    screenStr = staDGV[0, staDGV.CurrentRow.Index - dir].Value.ToString();
-                    staDGV[0, staDGV.CurrentRow.Index - dir].Selected = true;
+                    //screenStr = staDGV[0, staDGV.CurrentRow.Value - dir].Value.ToString();
+                    if (!isKeyBoardUpDown) staDGV[0, staDGV.CurrentRow.Index - dir].Selected = true;
                     DisplayToScreen();
+                    DisplayCountNumber();
                 }
             }
         }
@@ -2347,16 +2654,23 @@ namespace Calculator
         {
             typeWorkSheetCB.Focus();
         }
-
-        private void parser_UpdateDictEvent(BigNumber input, BigNumber output)
+        /// <summary>
+        /// hàm tính tổng
+        /// </summary>
+        /// <param name="isSquare">tham số kiểm tra xem có tính tổng bình phương các số hay không</param>
+        /// <returns>tổng</returns>
+        private double sum(bool isSquare)
         {
-            if (Array.IndexOf(Fact_Value, input.StrValue) < 0)
+            double sum = 0;
+            if (staDGV.RowCount == 0) return 0;
+            for (int i = 0; i < staDGV.RowCount; i++)
             {
-                Array.Resize<string>(ref Fact_Value, Fact_Value.Length + 1);
-                Array.Resize<string>(ref FactResult, FactResult.Length + 1);
-                Fact_Value[Fact_Value.Length - 1] = input.StrValue;
-                FactResult[FactResult.Length - 1] = output.StrValue;
+                double frq = double.Parse(staDGV[0, i].ToolTipText.Substring(staDGV[0, i].ToolTipText.LastIndexOf(' ')));
+                double number = double.Parse(staDGV[0, i].Value.ToString());
+                if (isSquare) sum += number * number * frq;
+                else sum += number * frq;
             }
+            return sum;
         }
         #endregion
 
@@ -2470,7 +2784,7 @@ namespace Calculator
             this.cancelEditDSMI = new System.Windows.Forms.MenuItem();
             this.clearDatasetMI = new System.Windows.Forms.MenuItem();
             this.sepMI6 = new System.Windows.Forms.MenuItem();
-            this.preferrencesMI = new System.Windows.Forms.MenuItem();
+            this.preferencesMI = new System.Windows.Forms.MenuItem();
             this.helpMI = new System.Windows.Forms.MenuItem();
             this.helpTopicsTSMI = new System.Windows.Forms.MenuItem();
             this.sepMI5 = new System.Windows.Forms.MenuItem();
@@ -2483,6 +2797,8 @@ namespace Calculator
             this.hideHistoryCTMN = new System.Windows.Forms.MenuItem();
             this.clearHistoryCTMN = new System.Windows.Forms.MenuItem();
             this.clearDatasetCTMN = new System.Windows.Forms.MenuItem();
+            this.showPreviewPaneCTMN = new System.Windows.Forms.MenuItem();
+            this.hidePreviewPaneCTMN = new System.Windows.Forms.MenuItem();
             this.helpCTMN = new System.Windows.Forms.ContextMenu();
             this.hotkeyMI = new System.Windows.Forms.MenuItem();
             this.mWorker = new System.ComponentModel.BackgroundWorker();
@@ -2545,40 +2861,44 @@ namespace Calculator
             this.btnA_PN = new Calculator.IPanel();
             this.btnA = new System.Windows.Forms.Button();
             this.PNbinary = new Calculator.IPanel();
+            this.screenPN = new Calculator.IPanel();
+            this.bin_prvLb = new Calculator.ILabel();
+            this.expressionTB = new Calculator.ILabel();
+            this.oct_prvLb = new Calculator.ILabel();
+            this.mem_lb = new System.Windows.Forms.Label();
+            this.dec_prvLb = new Calculator.ILabel();
+            this.scr_lb = new System.Windows.Forms.Label();
+            this.hex_prvLb = new Calculator.ILabel();
             this.anglePN = new Calculator.IPanel();
-            this.graRB = new System.Windows.Forms.RadioButton();
-            this.degRB = new System.Windows.Forms.RadioButton();
-            this.radRB = new System.Windows.Forms.RadioButton();
+            this.graRB = new Calculator.IRadioButton();
+            this.degRB = new Calculator.IRadioButton();
+            this.radRB = new Calculator.IRadioButton();
             this.gridPanel = new Calculator.IPanel();
             this.countLB = new System.Windows.Forms.Label();
             this.hisDGV = new Calculator.IDataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.staDGV = new Calculator.IDataGridView();
             this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.screenPN = new Calculator.IPanel();
-            this.expressionTB = new Calculator.ILabel();
-            this.mem_lb = new System.Windows.Forms.Label();
-            this.scr_lb = new System.Windows.Forms.Label();
             this.basePN = new Calculator.IPanel();
             this.hexRB = new Calculator.IRadioButton();
             this.decRB = new Calculator.IRadioButton();
             this.octRB = new Calculator.IRadioButton();
             this.binRB = new Calculator.IRadioButton();
             this.unknownPN = new Calculator.IPanel();
-            this._byteRB = new System.Windows.Forms.RadioButton();
-            this.qwordRB = new System.Windows.Forms.RadioButton();
-            this.dwordRB = new System.Windows.Forms.RadioButton();
-            this._wordRB = new System.Windows.Forms.RadioButton();
+            this._byteRB = new Calculator.IRadioButton();
+            this.qwordRB = new Calculator.IRadioButton();
+            this.dwordRB = new Calculator.IRadioButton();
+            this._wordRB = new Calculator.IRadioButton();
             this.unitconvPN = new Calculator.IPanel();
-            this.toCombobox = new System.Windows.Forms.ComboBox();
+            this.toCB = new Calculator.IComboBox();
             this.typeUnitLB = new System.Windows.Forms.Label();
-            this.fromCB = new System.Windows.Forms.ComboBox();
+            this.fromCB = new Calculator.IComboBox();
             this.typeUnitCB = new System.Windows.Forms.ComboBox();
             this.invert_unit = new System.Windows.Forms.Button();
             this.toLB = new System.Windows.Forms.Label();
             this.toTB = new System.Windows.Forms.TextBox();
             this.fromLB = new System.Windows.Forms.Label();
-            this.fromTB = new System.Windows.Forms.TextBox();
+            this.fromTB = new Calculator.ITextBox();
             this.workSheetPN = new Calculator.IPanel();
             this.typeMorgageLB = new System.Windows.Forms.Label();
             this.typeWorkSheetCB = new System.Windows.Forms.ComboBox();
@@ -2606,11 +2926,11 @@ namespace Calculator
             this.btnB_PN.SuspendLayout();
             this.btnD_PN.SuspendLayout();
             this.btnA_PN.SuspendLayout();
+            this.screenPN.SuspendLayout();
             this.anglePN.SuspendLayout();
             this.gridPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.hisDGV)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.staDGV)).BeginInit();
-            this.screenPN.SuspendLayout();
             this.basePN.SuspendLayout();
             this.unknownPN.SuspendLayout();
             this.unitconvPN.SuspendLayout();
@@ -3740,7 +4060,7 @@ namespace Calculator
             this.historyOptionMI,
             this.datasetMI,
             this.sepMI6,
-            this.preferrencesMI});
+            this.preferencesMI});
             this.editMI.Shortcut = System.Windows.Forms.Shortcut.CtrlC;
             this.editMI.Text = "&Edit";
             this.editMI.Popup += new System.EventHandler(this.getPaste);
@@ -3862,12 +4182,12 @@ namespace Calculator
             this.sepMI6.Index = 5;
             this.sepMI6.Text = "-";
             // 
-            // preferrencesMI
+            // preferencesMI
             // 
-            this.preferrencesMI.Index = 6;
-            this.preferrencesMI.Shortcut = System.Windows.Forms.Shortcut.CtrlK;
-            this.preferrencesMI.Text = "&Preferences";
-            this.preferrencesMI.Click += new System.EventHandler(this.preferrencesMI_Click);
+            this.preferencesMI.Index = 6;
+            this.preferencesMI.Shortcut = System.Windows.Forms.Shortcut.CtrlK;
+            this.preferencesMI.Text = "P&references";
+            this.preferencesMI.Click += new System.EventHandler(this.preferrencesMI_Click);
             // 
             // helpMI
             // 
@@ -3905,7 +4225,9 @@ namespace Calculator
             this.showHistoryCTMN,
             this.hideHistoryCTMN,
             this.clearHistoryCTMN,
-            this.clearDatasetCTMN});
+            this.clearDatasetCTMN,
+            this.showPreviewPaneCTMN,
+            this.hidePreviewPaneCTMN});
             this.mainContextMenu.Popup += new System.EventHandler(this.mainContextMenu_Popup);
             // 
             // copyCTMN
@@ -3953,6 +4275,18 @@ namespace Calculator
             this.clearDatasetCTMN.Visible = false;
             this.clearDatasetCTMN.Click += new System.EventHandler(this.CAD_Click);
             // 
+            // showPreviewPaneCTMN
+            // 
+            this.showPreviewPaneCTMN.Index = 7;
+            this.showPreviewPaneCTMN.Text = "&Show Preview";
+            this.showPreviewPaneCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
+            // 
+            // hidePreviewPaneCTMN
+            // 
+            this.hidePreviewPaneCTMN.Index = 8;
+            this.hidePreviewPaneCTMN.Text = "&Hide Preview";
+            this.hidePreviewPaneCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
+            // 
             // helpCTMN
             // 
             this.helpCTMN.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
@@ -3961,7 +4295,7 @@ namespace Calculator
             // hotkeyMI
             // 
             this.hotkeyMI.Index = 0;
-            this.hotkeyMI.Text = "What is this?";
+            this.hotkeyMI.Text = "&What is this?";
             this.hotkeyMI.Click += new System.EventHandler(this.hotkeyMI_Click);
             // 
             // mWorker
@@ -4777,11 +5111,132 @@ namespace Calculator
             // PNbinary
             // 
             this.PNbinary.BackColor = System.Drawing.Color.Transparent;
-            this.PNbinary.Location = new System.Drawing.Point(186, 397);
+            this.PNbinary.Location = new System.Drawing.Point(186, 415);
             this.PNbinary.Name = "PNbinary";
             this.PNbinary.Size = new System.Drawing.Size(385, 60);
             this.PNbinary.TabIndex = 214;
             this.PNbinary.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            // 
+            // screenPN
+            // 
+            this.screenPN.BackColor = System.Drawing.Color.White;
+            this.screenPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.screenPN.ContextMenu = this.mainContextMenu;
+            this.screenPN.Controls.Add(this.bin_prvLb);
+            this.screenPN.Controls.Add(this.expressionTB);
+            this.screenPN.Controls.Add(this.oct_prvLb);
+            this.screenPN.Controls.Add(this.mem_lb);
+            this.screenPN.Controls.Add(this.dec_prvLb);
+            this.screenPN.Controls.Add(this.scr_lb);
+            this.screenPN.Controls.Add(this.hex_prvLb);
+            this.screenPN.Location = new System.Drawing.Point(12, 12);
+            this.screenPN.Name = "screenPN";
+            this.screenPN.Size = new System.Drawing.Size(190, 47);
+            this.screenPN.TabIndex = 154;
+            this.screenPN.TabStop = true;
+            this.screenPN.BackColorChanged += new System.EventHandler(this.screenPN_BackColorChanged);
+            this.screenPN.SizeChanged += new System.EventHandler(this.screenPN_SizeChanged);
+            this.screenPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // bin_prvLb
+            // 
+            this.bin_prvLb.AllowLinkClick = true;
+            this.bin_prvLb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.bin_prvLb.AutoEllipsis = true;
+            this.bin_prvLb.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.bin_prvLb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.bin_prvLb.Location = new System.Drawing.Point(3, -15);
+            this.bin_prvLb.Name = "bin_prvLb";
+            this.bin_prvLb.Size = new System.Drawing.Size(36, 13);
+            this.bin_prvLb.TabIndex = 0;
+            this.bin_prvLb.Text = "Bin: 0";
+            this.bin_prvLb.TextChanged += new System.EventHandler(this.prvlbBin_TextChanged);
+            this.bin_prvLb.Click += new System.EventHandler(this.prvlb_Click);
+            // 
+            // expressionTB
+            // 
+            this.expressionTB.BackColor = System.Drawing.Color.Transparent;
+            this.expressionTB.ContextMenu = this.mainContextMenu;
+            this.expressionTB.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.expressionTB.Location = new System.Drawing.Point(13, 0);
+            this.expressionTB.Name = "expressionTB";
+            this.expressionTB.Size = new System.Drawing.Size(175, 13);
+            this.expressionTB.TabIndex = 251;
+            this.expressionTB.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.expressionTB.TextChanged += new System.EventHandler(this.expressionTB_TextChanged);
+            this.expressionTB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // oct_prvLb
+            // 
+            this.oct_prvLb.AllowLinkClick = true;
+            this.oct_prvLb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.oct_prvLb.AutoSize = true;
+            this.oct_prvLb.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.oct_prvLb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.oct_prvLb.Location = new System.Drawing.Point(3, -33);
+            this.oct_prvLb.Name = "oct_prvLb";
+            this.oct_prvLb.Size = new System.Drawing.Size(37, 13);
+            this.oct_prvLb.TabIndex = 0;
+            this.oct_prvLb.Text = "Oct: 0";
+            this.oct_prvLb.Click += new System.EventHandler(this.prvlb_Click);
+            // 
+            // mem_lb
+            // 
+            this.mem_lb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.mem_lb.AutoSize = true;
+            this.mem_lb.BackColor = System.Drawing.Color.Transparent;
+            this.mem_lb.Location = new System.Drawing.Point(1, 26);
+            this.mem_lb.Name = "mem_lb";
+            this.mem_lb.Size = new System.Drawing.Size(17, 13);
+            this.mem_lb.TabIndex = 21;
+            this.mem_lb.Text = "M";
+            this.mem_lb.Visible = false;
+            this.mem_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.mem_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // dec_prvLb
+            // 
+            this.dec_prvLb.AllowLinkClick = true;
+            this.dec_prvLb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.dec_prvLb.AutoSize = true;
+            this.dec_prvLb.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.dec_prvLb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.dec_prvLb.ForeColor = System.Drawing.Color.Red;
+            this.dec_prvLb.Location = new System.Drawing.Point(3, -51);
+            this.dec_prvLb.Name = "dec_prvLb";
+            this.dec_prvLb.Size = new System.Drawing.Size(38, 13);
+            this.dec_prvLb.TabIndex = 0;
+            this.dec_prvLb.Text = "Dec: 0";
+            this.dec_prvLb.Click += new System.EventHandler(this.prvlb_Click);
+            // 
+            // scr_lb
+            // 
+            this.scr_lb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.scr_lb.BackColor = System.Drawing.Color.Transparent;
+            this.scr_lb.Font = new System.Drawing.Font("Consolas", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.scr_lb.Location = new System.Drawing.Point(13, 0);
+            this.scr_lb.Name = "scr_lb";
+            this.scr_lb.Size = new System.Drawing.Size(175, 45);
+            this.scr_lb.TabIndex = 22;
+            this.scr_lb.Text = "0";
+            this.scr_lb.TextAlign = System.Drawing.ContentAlignment.BottomRight;
+            this.scr_lb.TextChanged += new System.EventHandler(this.scr_lb_TextChanged);
+            this.scr_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
+            this.scr_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            // 
+            // hex_prvLb
+            // 
+            this.hex_prvLb.AllowLinkClick = true;
+            this.hex_prvLb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.hex_prvLb.AutoSize = true;
+            this.hex_prvLb.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.hex_prvLb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.hex_prvLb.Location = new System.Drawing.Point(3, -69);
+            this.hex_prvLb.Name = "hex_prvLb";
+            this.hex_prvLb.Size = new System.Drawing.Size(38, 13);
+            this.hex_prvLb.TabIndex = 0;
+            this.hex_prvLb.Text = "Hex: 0";
+            this.hex_prvLb.Click += new System.EventHandler(this.prvlb_Click);
             // 
             // anglePN
             // 
@@ -4797,6 +5252,7 @@ namespace Calculator
             // graRB
             // 
             this.graRB.AutoSize = true;
+            this.graRB.ContextMenu = this.helpCTMN;
             this.graRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.graRB.Location = new System.Drawing.Point(134, 6);
             this.graRB.Name = "graRB";
@@ -4804,6 +5260,7 @@ namespace Calculator
             this.graRB.TabIndex = 116;
             this.graRB.Text = "Grads";
             this.graRB.UseVisualStyleBackColor = true;
+            this.graRB.Value = null;
             this.graRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.graRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.graRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -4812,6 +5269,7 @@ namespace Calculator
             // 
             this.degRB.AutoSize = true;
             this.degRB.Checked = true;
+            this.degRB.ContextMenu = this.helpCTMN;
             this.degRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.degRB.Location = new System.Drawing.Point(4, 6);
             this.degRB.Name = "degRB";
@@ -4820,6 +5278,7 @@ namespace Calculator
             this.degRB.TabStop = true;
             this.degRB.Text = "Degrees";
             this.degRB.UseVisualStyleBackColor = true;
+            this.degRB.Value = null;
             this.degRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.degRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.degRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -4827,6 +5286,7 @@ namespace Calculator
             // radRB
             // 
             this.radRB.AutoSize = true;
+            this.radRB.ContextMenu = this.helpCTMN;
             this.radRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radRB.Location = new System.Drawing.Point(71, 6);
             this.radRB.Name = "radRB";
@@ -4834,6 +5294,7 @@ namespace Calculator
             this.radRB.TabIndex = 115;
             this.radRB.Text = "Radians";
             this.radRB.UseVisualStyleBackColor = true;
+            this.radRB.Value = null;
             this.radRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.radRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.radRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -4860,9 +5321,9 @@ namespace Calculator
             this.countLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.countLB.Location = new System.Drawing.Point(4, 4);
             this.countLB.Name = "countLB";
-            this.countLB.Size = new System.Drawing.Size(59, 13);
+            this.countLB.Size = new System.Drawing.Size(41, 13);
             this.countLB.TabIndex = 2;
-            this.countLB.Text = "Count = 0";
+            this.countLB.Text = "∑n = 0";
             this.countLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
             // hisDGV
@@ -4887,6 +5348,7 @@ namespace Calculator
             dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
             this.hisDGV.DefaultCellStyle = dataGridViewCellStyle2;
             this.hisDGV.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
+            this.hisDGV.IsCancelEdit = false;
             this.hisDGV.Location = new System.Drawing.Point(-1, 21);
             this.hisDGV.MultiSelect = false;
             this.hisDGV.Name = "hisDGV";
@@ -4904,8 +5366,9 @@ namespace Calculator
             this.hisDGV.TabIndex = 0;
             this.hisDGV.TabStop = false;
             this.hisDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
-            this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
-            this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
+            this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.hisDGV_CellClick);
+            this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.hisDGV_CellEndEdit);
+            this.hisDGV.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.hisDGV_RowsAdded);
             this.hisDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
@@ -4940,6 +5403,7 @@ namespace Calculator
             dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
             dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.staDGV.DefaultCellStyle = dataGridViewCellStyle3;
+            this.staDGV.IsCancelEdit = false;
             this.staDGV.Location = new System.Drawing.Point(-1, 21);
             this.staDGV.MultiSelect = false;
             this.staDGV.Name = "staDGV";
@@ -4963,64 +5427,6 @@ namespace Calculator
             this.Column2.Name = "Column2";
             this.Column2.ReadOnly = true;
             this.Column2.Width = 190;
-            // 
-            // screenPN
-            // 
-            this.screenPN.BackColor = System.Drawing.Color.White;
-            this.screenPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.screenPN.ContextMenu = this.mainContextMenu;
-            this.screenPN.Controls.Add(this.expressionTB);
-            this.screenPN.Controls.Add(this.mem_lb);
-            this.screenPN.Controls.Add(this.scr_lb);
-            this.screenPN.Location = new System.Drawing.Point(12, 12);
-            this.screenPN.Name = "screenPN";
-            this.screenPN.Size = new System.Drawing.Size(190, 47);
-            this.screenPN.TabIndex = 154;
-            this.screenPN.TabStop = true;
-            this.screenPN.BackColorChanged += new System.EventHandler(this.screenPN_BackColorChanged);
-            this.screenPN.SizeChanged += new System.EventHandler(this.screenPN_SizeChanged);
-            this.screenPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // expressionTB
-            // 
-            this.expressionTB.AllowTextChanged = true;
-            this.expressionTB.BackColor = System.Drawing.Color.Transparent;
-            this.expressionTB.ContextMenu = this.mainContextMenu;
-            this.expressionTB.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.expressionTB.Location = new System.Drawing.Point(13, 0);
-            this.expressionTB.Name = "expressionTB";
-            this.expressionTB.Size = new System.Drawing.Size(175, 13);
-            this.expressionTB.TabIndex = 251;
-            this.expressionTB.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.expressionTB.TextChanged += new System.EventHandler(this.expressionTB_TextChanged);
-            this.expressionTB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // mem_lb
-            // 
-            this.mem_lb.AutoSize = true;
-            this.mem_lb.BackColor = System.Drawing.Color.Transparent;
-            this.mem_lb.Location = new System.Drawing.Point(1, 26);
-            this.mem_lb.Name = "mem_lb";
-            this.mem_lb.Size = new System.Drawing.Size(17, 13);
-            this.mem_lb.TabIndex = 21;
-            this.mem_lb.Text = "M";
-            this.mem_lb.Visible = false;
-            this.mem_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.mem_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // scr_lb
-            // 
-            this.scr_lb.BackColor = System.Drawing.Color.Transparent;
-            this.scr_lb.Font = new System.Drawing.Font("Consolas", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.scr_lb.Location = new System.Drawing.Point(13, 0);
-            this.scr_lb.Name = "scr_lb";
-            this.scr_lb.Size = new System.Drawing.Size(175, 45);
-            this.scr_lb.TabIndex = 22;
-            this.scr_lb.Text = "0";
-            this.scr_lb.TextAlign = System.Drawing.ContentAlignment.BottomRight;
-            this.scr_lb.TextChanged += new System.EventHandler(this.scr_lb_TextChanged);
-            this.scr_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            this.scr_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             // 
             // basePN
             // 
@@ -5115,6 +5521,7 @@ namespace Calculator
             // _byteRB
             // 
             this._byteRB.AutoSize = true;
+            this._byteRB.ContextMenu = this.helpCTMN;
             this._byteRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._byteRB.Location = new System.Drawing.Point(7, 67);
             this._byteRB.Name = "_byteRB";
@@ -5122,6 +5529,7 @@ namespace Calculator
             this._byteRB.TabIndex = 2;
             this._byteRB.Text = "Byte";
             this._byteRB.UseVisualStyleBackColor = true;
+            this._byteRB.Value = null;
             this._byteRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this._byteRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._byteRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -5130,6 +5538,7 @@ namespace Calculator
             // 
             this.qwordRB.AutoSize = true;
             this.qwordRB.Checked = true;
+            this.qwordRB.ContextMenu = this.helpCTMN;
             this.qwordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.qwordRB.Location = new System.Drawing.Point(7, 4);
             this.qwordRB.Name = "qwordRB";
@@ -5138,6 +5547,7 @@ namespace Calculator
             this.qwordRB.TabStop = true;
             this.qwordRB.Text = "Qword";
             this.qwordRB.UseVisualStyleBackColor = true;
+            this.qwordRB.Value = null;
             this.qwordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this.qwordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.qwordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -5145,6 +5555,7 @@ namespace Calculator
             // dwordRB
             // 
             this.dwordRB.AutoSize = true;
+            this.dwordRB.ContextMenu = this.helpCTMN;
             this.dwordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dwordRB.Location = new System.Drawing.Point(7, 25);
             this.dwordRB.Name = "dwordRB";
@@ -5152,6 +5563,7 @@ namespace Calculator
             this.dwordRB.TabIndex = 8;
             this.dwordRB.Text = "Dword";
             this.dwordRB.UseVisualStyleBackColor = true;
+            this.dwordRB.Value = null;
             this.dwordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this.dwordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.dwordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -5159,6 +5571,7 @@ namespace Calculator
             // _wordRB
             // 
             this._wordRB.AutoSize = true;
+            this._wordRB.ContextMenu = this.helpCTMN;
             this._wordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._wordRB.Location = new System.Drawing.Point(7, 46);
             this._wordRB.Name = "_wordRB";
@@ -5166,6 +5579,7 @@ namespace Calculator
             this._wordRB.TabIndex = 4;
             this._wordRB.Text = "Word";
             this._wordRB.UseVisualStyleBackColor = true;
+            this._wordRB.Value = null;
             this._wordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this._wordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._wordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
@@ -5174,7 +5588,7 @@ namespace Calculator
             // 
             this.unitconvPN.BackColor = System.Drawing.Color.White;
             this.unitconvPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.unitconvPN.Controls.Add(this.toCombobox);
+            this.unitconvPN.Controls.Add(this.toCB);
             this.unitconvPN.Controls.Add(this.typeUnitLB);
             this.unitconvPN.Controls.Add(this.fromCB);
             this.unitconvPN.Controls.Add(this.typeUnitCB);
@@ -5193,17 +5607,19 @@ namespace Calculator
             this.unitconvPN.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
             this.unitconvPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
-            // toCombobox
+            // toCB
             // 
-            this.toCombobox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.toCombobox.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.toCombobox.FormattingEnabled = true;
-            this.toCombobox.Location = new System.Drawing.Point(12, 181);
-            this.toCombobox.Name = "toCombobox";
-            this.toCombobox.Size = new System.Drawing.Size(330, 21);
-            this.toCombobox.TabIndex = 14;
-            this.toCombobox.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
-            this.toCombobox.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.toCB.AllowFilter = true;
+            this.toCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.toCB.FormattingEnabled = true;
+            this.toCB.Location = new System.Drawing.Point(12, 181);
+            this.toCB.MainDataSource = new string[0];
+            this.toCB.Name = "toCB";
+            this.toCB.Size = new System.Drawing.Size(330, 21);
+            this.toCB.TabIndex = 14;
+            this.toCB.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
+            this.toCB.Enter += new System.EventHandler(this.DisableKeyboard);
             // 
             // typeUnitLB
             // 
@@ -5219,10 +5635,12 @@ namespace Calculator
             // 
             // fromCB
             // 
+            this.fromCB.AllowFilter = true;
             this.fromCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.fromCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.fromCB.FormattingEnabled = true;
             this.fromCB.Location = new System.Drawing.Point(12, 104);
+            this.fromCB.MainDataSource = new string[0];
             this.fromCB.MaxDropDownItems = 14;
             this.fromCB.Name = "fromCB";
             this.fromCB.Size = new System.Drawing.Size(330, 21);
@@ -5238,6 +5656,7 @@ namespace Calculator
             this.typeUnitCB.Items.AddRange(new object[] {
             "Angle",
             "Area",
+            "Data",
             "Energy",
             "Length",
             "Power",
@@ -5283,7 +5702,8 @@ namespace Calculator
             // toTB
             // 
             this.toTB.BackColor = System.Drawing.SystemColors.Control;
-            this.toTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.toTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.toTB.ForeColor = System.Drawing.SystemColors.ControlText;
             this.toTB.Location = new System.Drawing.Point(12, 154);
             this.toTB.Name = "toTB";
             this.toTB.ReadOnly = true;
@@ -5306,12 +5726,16 @@ namespace Calculator
             // 
             // fromTB
             // 
-            this.fromTB.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
+            this.fromTB.AllowTextChanged = true;
+            this.fromTB.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic);
             this.fromTB.ForeColor = System.Drawing.SystemColors.GrayText;
             this.fromTB.Location = new System.Drawing.Point(12, 77);
             this.fromTB.MaxLength = 20;
             this.fromTB.Name = "fromTB";
+            this.fromTB.NumberModeOnly = true;
             this.fromTB.Size = new System.Drawing.Size(330, 23);
+            this.fromTB.SuggestText = "Enter value";
+            this.fromTB.SuggestType = Calculator.SuggestType.WatermarkText;
             this.fromTB.TabIndex = 10;
             this.fromTB.Text = "Enter value";
             this.fromTB.TextChanged += new System.EventHandler(this.fromTB_TextChanged);
@@ -5332,6 +5756,7 @@ namespace Calculator
             this.workSheetPN.Size = new System.Drawing.Size(356, 241);
             this.workSheetPN.TabIndex = 34;
             this.workSheetPN.Visible = false;
+            this.workSheetPN.FocusEvent += new System.EventHandler(this.workSheetPN_FocusEvent);
             this.workSheetPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // typeMorgageLB
@@ -5393,7 +5818,7 @@ namespace Calculator
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 282);
+            this.ClientSize = new System.Drawing.Size(214, 302);
             this.Controls.Add(this.datecalcPN);
             this.Controls.Add(this.num9BT_PN);
             this.Controls.Add(this.num7BT_PN);
@@ -5414,9 +5839,9 @@ namespace Calculator
             this.Controls.Add(this.btnD_PN);
             this.Controls.Add(this.btnA_PN);
             this.Controls.Add(this.PNbinary);
+            this.Controls.Add(this.screenPN);
             this.Controls.Add(this.anglePN);
             this.Controls.Add(this.gridPanel);
-            this.Controls.Add(this.screenPN);
             this.Controls.Add(this.bracketTime_lb);
             this.Controls.Add(this.inv_ChkBox);
             this.Controls.Add(this.XorBT);
@@ -5517,14 +5942,14 @@ namespace Calculator
             this.btnB_PN.ResumeLayout(false);
             this.btnD_PN.ResumeLayout(false);
             this.btnA_PN.ResumeLayout(false);
+            this.screenPN.ResumeLayout(false);
+            this.screenPN.PerformLayout();
             this.anglePN.ResumeLayout(false);
             this.anglePN.PerformLayout();
             this.gridPanel.ResumeLayout(false);
             this.gridPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.hisDGV)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.staDGV)).EndInit();
-            this.screenPN.ResumeLayout(false);
-            this.screenPN.PerformLayout();
             this.basePN.ResumeLayout(false);
             this.basePN.PerformLayout();
             this.unknownPN.ResumeLayout(false);
@@ -5824,77 +6249,77 @@ namespace Calculator
         /// <summary>
         /// set lại location cho các control của form programmer mode
         /// </summary>
-        private void programmerMode()
+        private void programmerMode(bool isPreview)
         {
-            this.PNbinary.Location = new Point(12, 64);
-            this.basePN.Location = new Point(12, 129);
-            this.unknownPN.Location = new Point(12, 225);
+            this.PNbinary.Location = new Point(12, 64 + previewPanelHeight);
+            this.basePN.Location = new Point(12, 129 + previewPanelHeight);
+            this.unknownPN.Location = new Point(12, 225 + previewPanelHeight);
 
-            this.bracketTime_lb.Location = new Point(90, 129);
-            this.openProBT.Location = new Point(90, 161);
-            this.RoLBT.Location = new Point(90, 193);
-            this.or_BT.Location = new Point(90, 225);
-            this.LshBT.Location = new Point(90, 257);
-            this.notBT.Location = new Point(90, 289);
+            this.bracketTime_lb.Location = new Point(90, 129 + previewPanelHeight);
+            this.openProBT.Location = new Point(90, 161 + previewPanelHeight);
+            this.RoLBT.Location = new Point(90, 193 + previewPanelHeight);
+            this.or_BT.Location = new Point(90, 225 + previewPanelHeight);
+            this.LshBT.Location = new Point(90, 257 + previewPanelHeight);
+            this.notBT.Location = new Point(90, 289 + previewPanelHeight);
 
-            this.modproBT.Location = new Point(129, 129);
-            this.close_bracket.Location = new Point(129, 161);
-            this.RoRBT.Location = new Point(129, 193);
-            this.XorBT.Location = new Point(129, 225);
-            this.RshBT.Location = new Point(129, 257);
-            this.AndBT.Location = new Point(129, 289);
+            this.modproBT.Location = new Point(129, 129 + previewPanelHeight);
+            this.close_bracket.Location = new Point(129, 161 + previewPanelHeight);
+            this.RoRBT.Location = new Point(129, 193 + previewPanelHeight);
+            this.XorBT.Location = new Point(129, 225 + previewPanelHeight);
+            this.RshBT.Location = new Point(129, 257 + previewPanelHeight);
+            this.AndBT.Location = new Point(129, 289 + previewPanelHeight);
 
-            this.btnA_PN.Location = new Point(168, 129);
-            this.btnB_PN.Location = new Point(168, 161);
-            this.btnC_PN.Location = new Point(168, 193);
-            this.btnD_PN.Location = new Point(168, 225);
-            this.btnE_PN.Location = new Point(168, 257);
-            this.btnF_PN.Location = new Point(168, 289);
+            this.btnA_PN.Location = new Point(168, 129 + previewPanelHeight);
+            this.btnB_PN.Location = new Point(168, 161 + previewPanelHeight);
+            this.btnC_PN.Location = new Point(168, 193 + previewPanelHeight);
+            this.btnD_PN.Location = new Point(168, 225 + previewPanelHeight);
+            this.btnE_PN.Location = new Point(168, 257 + previewPanelHeight);
+            this.btnF_PN.Location = new Point(168, 289 + previewPanelHeight);
 
-            this.memclearBT.Location = new Point(207, 129);
-            this.backspacebt.Location = new Point(207, 161);
-            this.num7BT_PN.Location = new Point(207, 193);
-            this.num4BT_PN.Location = new Point(207, 225);
-            this.num1BT.Location = new Point(207, 257);
-            this.num0BT.Location = new Point(207, 289);
+            this.memclearBT.Location = new Point(207, 129 + previewPanelHeight);
+            this.backspacebt.Location = new Point(207, 161 + previewPanelHeight);
+            this.num7BT_PN.Location = new Point(207, 193 + previewPanelHeight);
+            this.num4BT_PN.Location = new Point(207, 225 + previewPanelHeight);
+            this.num1BT.Location = new Point(207, 257 + previewPanelHeight);
+            this.num0BT.Location = new Point(207, 289 + previewPanelHeight);
 
-            this.mem_recall.Location = new Point(246, 129);
-            this.ce.Location = new Point(246, 161);
-            this.num8BT_PN.Location = new Point(246, 193);
-            this.num5BT_PN.Location = new Point(246, 225);
-            this.num2BT_PN.Location = new Point(246, 257);
+            this.mem_recall.Location = new Point(246, 129 + previewPanelHeight);
+            this.ce.Location = new Point(246, 161 + previewPanelHeight);
+            this.num8BT_PN.Location = new Point(246, 193 + previewPanelHeight);
+            this.num5BT_PN.Location = new Point(246, 225 + previewPanelHeight);
+            this.num2BT_PN.Location = new Point(246, 257 + previewPanelHeight);
 
-            this.mem_store.Location = new Point(285, 129);
-            this.clearbt.Location = new Point(285, 161);
-            this.num9BT_PN.Location = new Point(285, 193);
-            this.num6BT_PN.Location = new Point(285, 225);
-            this.num3BT_PN.Location = new Point(285, 257);
-            this.btdot_PN.Location = new Point(285, 289);
+            this.mem_store.Location = new Point(285, 129 + previewPanelHeight);
+            this.clearbt.Location = new Point(285, 161 + previewPanelHeight);
+            this.num9BT_PN.Location = new Point(285, 193 + previewPanelHeight);
+            this.num6BT_PN.Location = new Point(285, 225 + previewPanelHeight);
+            this.num3BT_PN.Location = new Point(285, 257 + previewPanelHeight);
+            this.btdot_PN.Location = new Point(285, 289 + previewPanelHeight);
 
-            this.mem_add_bt.Location = new Point(324, 129);
-            this.changesignBT.Location = new Point(324, 161);
-            this.divbt.Location = new Point(324, 193);
-            this.mulbt.Location = new Point(324, 225);
-            this.minusbt.Location = new Point(324, 257);
-            this.addbt.Location = new Point(324, 289);
+            this.mem_add_bt.Location = new Point(324, 129 + previewPanelHeight);
+            this.changesignBT.Location = new Point(324, 161 + previewPanelHeight);
+            this.divbt.Location = new Point(324, 193 + previewPanelHeight);
+            this.mulbt.Location = new Point(324, 225 + previewPanelHeight);
+            this.minusbt.Location = new Point(324, 257 + previewPanelHeight);
+            this.addbt.Location = new Point(324, 289 + previewPanelHeight);
 
-            this.mem_minus_bt.Location = new Point(363, 129);
-            this.sqrtbt_PN.Location = new Point(363, 161);
-			this.percentbt_PN.Location = new Point(363, 193);
-            this.invertbt_PN.Location = new Point(363, 225);
-            this.equalBT.Location = new Point(363, 257);
+            this.mem_minus_bt.Location = new Point(363, 129 + previewPanelHeight);
+            this.sqrtbt_PN.Location = new Point(363, 161 + previewPanelHeight);
+            this.percentbt_PN.Location = new Point(363, 193 + previewPanelHeight);
+            this.invertbt_PN.Location = new Point(363, 225 + previewPanelHeight);
+            this.equalBT.Location = new Point(363, 257 + previewPanelHeight);
 
             this.screenPN.Location = new Point(12, 12);
-            this.screenPN.Size = new Size(385, 47);
+            this.screenPN.Size = new Size(385, 47 + previewPanelHeight);
+            bin_prvLb.Width = 385;
 
-            this.scr_lb.Text = "0";
+            //this.scr_lb.Text = "0";
 
             this.mem_lb.Visible = (mem_num != 0);
 
             this.sqrt_bt.Enabled = false;
             this.invert_bt.Enabled = false;
             this.btdot.Enabled = false;
-
 
             baseRBCheckedChanged();
             //copyHistoryMI.Enabled = false;
@@ -5947,140 +6372,19 @@ namespace Calculator
             this.screenPN.Size = new Size(190, 47);
 
             this.gridPanel.Location = new Point(12, 12);
-            this.screenPN.Location = new Point(12, 116);
-            this.screenPN.Size = new Size(190, 47);
             this.staDGV.Size = new Size(190, 85);
             this.gridPanel.Size = new Size(190, 105);
 
             //this.staDGV.CurrentCell = null;
         }
         /// <summary>
-        /// gọi các property ẩn của các control
-        /// </summary>
-        private void HiddenProperties()
-        {
-            this.num1BT.ContextMenu = helpCTMN;
-            this.num2BT.ContextMenu = helpCTMN;
-            this.num1BT.ContextMenu = helpCTMN;
-            this.num2BT.ContextMenu = helpCTMN;
-            this.num3BT.ContextMenu = helpCTMN;
-            this.num4BT.ContextMenu = helpCTMN;
-            this.num5BT.ContextMenu = helpCTMN;
-            this.num6BT.ContextMenu = helpCTMN;
-            this.num7BT.ContextMenu = helpCTMN;
-            this.num8BT.ContextMenu = helpCTMN;
-            this.num9BT.ContextMenu = helpCTMN;
-            this.num0BT.ContextMenu = helpCTMN;
-            this.btdot.ContextMenu = helpCTMN;
-            this.addbt.ContextMenu = helpCTMN;
-            this.mulbt.ContextMenu = helpCTMN;
-            this.divbt.ContextMenu = helpCTMN;
-            this.minusbt.ContextMenu = helpCTMN;
-            this.equalBT.ContextMenu = helpCTMN;
-            this.invert_bt.ContextMenu = helpCTMN;
-            this.mem_add_bt.ContextMenu = helpCTMN;
-            this.mem_minus_bt.ContextMenu = helpCTMN;
-            this.memclearBT.ContextMenu = helpCTMN;
-            this.mem_recall.ContextMenu = helpCTMN;
-            this.percent_bt.ContextMenu = helpCTMN;
-            this.sqrt_bt.ContextMenu = helpCTMN;
-            this.mem_store.ContextMenu = helpCTMN;
-            this.changesignBT.ContextMenu = helpCTMN;
-            this.clearbt.ContextMenu = helpCTMN;
-            this.ce.ContextMenu = helpCTMN;
-            this.backspacebt.ContextMenu = helpCTMN;
-            //-----------------------------------------------------------------
-            this.open_bracket.ContextMenu = helpCTMN;
-            this.close_bracket.ContextMenu = helpCTMN;
-            this.nvx_bt.ContextMenu = helpCTMN;
-            this.btFactorial.ContextMenu = helpCTMN;
-            this._3vx_bt.ContextMenu = helpCTMN;
-            this._10x_bt.ContextMenu = helpCTMN;
-            this.x2_bt.ContextMenu = helpCTMN;
-            this.xn_bt.ContextMenu = helpCTMN;
-            this.x3_bt.ContextMenu = helpCTMN;
-            this.log_bt.ContextMenu = helpCTMN;
-            this.sinh_bt.ContextMenu = helpCTMN;
-            this.cosh_bt.ContextMenu = helpCTMN;
-            this.tanh_bt.ContextMenu = helpCTMN;
-            this.dms_bt.ContextMenu = helpCTMN;
-            this.pi_bt.ContextMenu = helpCTMN;
-            this.inv_ChkBox.ContextMenu = helpCTMN;
-            this.int_bt.ContextMenu = helpCTMN;
-            this.fe_ChkBox.ContextMenu = helpCTMN;
-            this.sin_bt.ContextMenu = helpCTMN;
-            this.cos_bt.ContextMenu = helpCTMN;
-            this.tan_bt.ContextMenu = helpCTMN;
-            this.ln_bt.ContextMenu = helpCTMN;
-            this.exp_bt.ContextMenu = helpCTMN;
-            this.degRB.ContextMenu = helpCTMN;
-            this.radRB.ContextMenu = helpCTMN;
-            this.graRB.ContextMenu = helpCTMN;
-            this.bracketTime_lb.ContextMenu = helpCTMN;
-            //-----------------------------------------------------------------
-            this.RoLBT.ContextMenu = helpCTMN;
-            this.or_BT.ContextMenu = helpCTMN;
-            this.LshBT.ContextMenu = helpCTMN;
-            this.modsciBT.ContextMenu = helpCTMN;
-            this.RoRBT.ContextMenu = helpCTMN;
-            this.RshBT.ContextMenu = helpCTMN;
-            this.openProBT.ContextMenu = helpCTMN;
-            this.notBT.ContextMenu = helpCTMN;
-            this.AndBT.ContextMenu = helpCTMN;
-            this.XorBT.ContextMenu = helpCTMN;
-            this.modproBT.ContextMenu = helpCTMN;
-            this.btnA.ContextMenu = helpCTMN;
-            this.btnB.ContextMenu = helpCTMN;
-            this.btnC.ContextMenu = helpCTMN;
-            this.btnD.ContextMenu = helpCTMN;
-            this.btnE.ContextMenu = helpCTMN;
-            this.btnF.ContextMenu = helpCTMN;
-            this.qwordRB.ContextMenu = helpCTMN;
-            this.dwordRB.ContextMenu = helpCTMN;
-            this._wordRB.ContextMenu = helpCTMN;
-            this._byteRB.ContextMenu = helpCTMN;
-            //-----------------------------------------------------------------
-            this.AddstaBT.ContextMenu = helpCTMN;
-            this.CAD.ContextMenu = helpCTMN;
-            this.sigmax2BT.ContextMenu = helpCTMN;
-            this.sigmaxBT.ContextMenu = helpCTMN;
-            this.sigman_1BT.ContextMenu = helpCTMN;
-            this.sigmanBT.ContextMenu = helpCTMN;
-            this.xcross.ContextMenu = helpCTMN;
-            this.x2cross.ContextMenu = helpCTMN;
-            //-----------------------------------------------------------------
-
-            screenPN.ContextMenu = gridPanel.ContextMenu = mainContextMenu;
-
-            //VisibleComponentsToForm(true);
-            //hideSciComponent(scientificMI.Checked);
-            //hideProComponent(programmerMI.Checked);
-            //hideStaComponent(statisticsMI.Checked);
-
-            copyMI.Text = "&Copy\tCtrl+C";
-            pasteMI.Text = "&Paste\tCtrl+V";
-            cancelEditHisMI.Text = "Ca&ncel edit\tEsc";
-            reCalculateMI.Text = "Re&calculate\t=";
-
-            cancelEditDSMI.Text = "Ca&ncel edit\tEsc";
-            commitDSMI.Text = "C&ommit\t=";
-
-            clearDatasetMI.Text = "C&lear\tD";
-
-            NewPriorityExpression();
-
-            //parser.Transfer += new Parser.SendValue(parser_Transfer);
-            parser.UpdateDictEvent += new Parser.UpdateDictionary(parser_UpdateDictEvent);
-            hisDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
-            staDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
-            workSheetPN.FocusEvent += new EventHandler(workSheetPN_FocusEvent);
-        }
-        /// <summary>
         /// khởi tạo mảng các textbox trong hàm chức năng fuel economy, ...
         /// </summary>
-        private void InitCustomControls(ref TextField[] itf, int capacity, int lbIndex)
+        /// <param name="capacity">số textfield của form</param>
+        /// <param name="lbIndex">index menu trong submenu worksheet</param>
+        private TextField[] InitCustomControls(int capacity, int lbIndex)
         {
-            itf = new TextField[capacity];
+            var itf = new TextField[capacity];
             for (int i = 0; i < capacity; i++)
             {
                 itf[i] = new TextField();
@@ -6092,8 +6396,11 @@ namespace Calculator
             }
 
             workSheetPN.Controls.AddRange(itf);
+            return itf;
         }
-
+        /// <summary>
+        /// khởi tạo form cancel
+        /// </summary>
         private void InitCancelOperation()
         {
             //if (co == null)
@@ -6113,7 +6420,7 @@ namespace Calculator
             for (int i = 1; i >= 0; i--)
                 for (int j = 7; j >= 0; j--)
                 {
-                    k = 8 * i + j;  // k = 8j + index
+                    k = 8 * i + j;  // k = 8j + i
                     bin_digit[k] = new ILabel();
                     PNbinary.Controls.Add(bin_digit[k]);
                     bin_digit[k].Text = "0000";
@@ -6178,7 +6485,21 @@ namespace Calculator
 
         private void ButtonMouseUp(object sender, MouseEventArgs e)
         {
-            screenPN.Focus();
+            Button bt = sender as Button;
+            // standard hoac scientific form, co su dung history
+            if (bt == equalBT && (standardMI.Checked || scientificMI.Checked) && historyMI.Checked)
+            {
+                hisDGV.Focus();
+            }
+            // statistics form
+            else if (bt == AddstaBT && statisticsMI.Checked)
+            {
+                staDGV.Focus();
+            }
+            else
+            {
+                screenPN.Focus();
+            }
         }
         /// <summary>
         /// Tắt tính năng bắt sự kiện phím của chương trình (nhập số textbox)
@@ -6211,10 +6532,11 @@ namespace Calculator
         private void EnableKeyboardAndChangeFocus()
         {
             prcmdkey = !hisDGV.IsCurrentCellInEditMode || !staDGV.IsCurrentCellInEditMode;
-            fromTB_LostFocus(null, null);
+            //hisDGV.DefaultCellStyle.SelectionBackColor = Color.FromArgb(179, 217, 255);
+            //fromTB_LostFocus(fromTB, null);
             if (fromTB.Focused || toTB.Focused || typeUnitCB.Focused) toLB.Focus();
-            if (datemethodCB.Focused || tbResult2.Focused || tbResult1.Focused
-                || periodsDateUD.Focused || dtP1.Focused || dtP2.Focused)
+            if (datemethodCB.Focused || tbResult2.Focused || tbResult1.Focused || dtP1.Focused || dtP2.Focused
+                || periodsDateUD.Focused || periodsMonthUD.Focused || periodsYearUD.Focused)
             {
                 firstDate.Focus();
             }
@@ -6276,6 +6598,12 @@ namespace Calculator
             EnableKeyboardAndChangeFocus();
         }
 
+        private void FocusAndMoveForm(object sender, MouseEventArgs e)
+        {
+            EnableKeyboardAndChangeFocus();
+            MoveFormWithoutMouseAtTitleBar(sender, e);
+        }
+
         #endregion
 
         #region regist component
@@ -6326,6 +6654,10 @@ namespace Calculator
         private ToolTip toolTip1;
         private ToolTip toolTip2;
         private IPanel screenPN;
+        private ILabel hex_prvLb;
+        private ILabel bin_prvLb;
+        private ILabel oct_prvLb;
+        private ILabel dec_prvLb;
         private ContextMenu helpCTMN;
         private MenuItem hotkeyMI;
         //------------------------------------------------------------------
@@ -6352,9 +6684,9 @@ namespace Calculator
         private Button cos_bt;
         private Button tan_bt;
         private Button btFactorial;
-        private RadioButton degRB;
-        private RadioButton radRB;
-        private RadioButton graRB;
+        private IRadioButton degRB;
+        private IRadioButton radRB;
+        private IRadioButton graRB;
         private CheckBox inv_ChkBox;
         private CheckBox fe_ChkBox;
         private IPanel anglePN;
@@ -6387,11 +6719,11 @@ namespace Calculator
         private Label typeUnitLB;
         private Label fromLB;
         private Label toLB;
-        private TextBox fromTB;
+        private ITextBox fromTB;
         private TextBox toTB;
         private ComboBox typeUnitCB;
-        private ComboBox fromCB;
-        private ComboBox toCombobox;
+        private IComboBox fromCB;
+        private IComboBox toCB;
         private Button invert_unit;
         private Button dnBT;
         private Button upBT;
@@ -6427,7 +6759,7 @@ namespace Calculator
         private MenuItem commitDSMI;
         private MenuItem clearDatasetMI;
         private MenuItem sepMI6;
-        private MenuItem preferrencesMI;
+        private MenuItem preferencesMI;
         private MenuItem helpMI;
         private MenuItem helpTopicsTSMI;
         private MenuItem sepMI5;
@@ -6446,11 +6778,13 @@ namespace Calculator
         private MenuItem hideHistoryCTMN;
         private MenuItem clearDatasetCTMN;
         private MenuItem clearHistoryCTMN;
+        private MenuItem showPreviewPaneCTMN;
+        private MenuItem hidePreviewPaneCTMN;
         //------------------------------------------------------------------
-        private RadioButton qwordRB;
-        private RadioButton dwordRB;
-        private RadioButton _wordRB;
-        private RadioButton _byteRB;
+        private IRadioButton qwordRB;
+        private IRadioButton dwordRB;
+        private IRadioButton _wordRB;
+        private IRadioButton _byteRB;
         private IRadioButton hexRB;
         private IRadioButton decRB;
         private IRadioButton octRB;

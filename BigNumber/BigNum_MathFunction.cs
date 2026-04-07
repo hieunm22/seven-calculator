@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 
 namespace Calculator
 {
@@ -8,7 +9,7 @@ namespace Calculator
         static void Abs(BigNumber d, BigNumber s)
         {
             Copy(s, d);
-            if (d.signum != 0) d.signum = 1;
+            if (d.signum < 0) d.signum = 1;
         }
 
         static void Neg(BigNumber s, BigNumber d)
@@ -25,7 +26,7 @@ namespace Calculator
 
             if (mexp == 0)
             {
-                Copy("1", dst);
+                Copy(One, dst);
                 return;
             }
             else
@@ -55,7 +56,7 @@ namespace Calculator
             local_precision = places + 8;
 
             // eo hieu sao doan nay de one no lai doc duoc la 0
-            Copy("1", B);
+            Copy(One, B);
             Copy(src, C);
 
             ii = nexp & 1;
@@ -103,7 +104,7 @@ namespace Calculator
 
             if (yy.signum == 0)
             {
-                Copy("1", rr);
+                Copy(One, rr);
                 return;
             }
 
@@ -147,97 +148,108 @@ namespace Calculator
         /// <summary>
         /// DEG
         /// </summary>
-        static void DEG(BigNumber xx, BigNumber rr)
+        static void DEG(BigNumber dst, BigNumber src)
         {
             //12.3456789 = 12°34'56.789"
             BigNumber dd = 0, mm = 0, ss = 0, mTemp = 0;
             //BigNumber dd = "0", mm = 0, ss = 0.0, mTemp = "0";
-            Copy(rr, dd);
-            if (!IsInteger(rr))
+            if (IsInteger(src))
             {
-                Floor(dd, rr);
-                Sub(rr, dd, mTemp);
+                Copy(src, dst);
+                return;
+            }
 
-                string mT = mTemp.ToFullString().Substring(2);
-                if ((mT.Length & 1) == 1) mT += "0";
+            Copy(src, dd);
+            // tách phần nguyên và phần lẻ của src
+            Floor(dd, src);
+            Sub(src, dd, mTemp);
 
-                if (mT.Length <= 2) Copy(mT.PadRight(2, '0'), mm);                    
-                else
+            // xử lý phần lẻ
+            string mT = mTemp.ToFullString().Substring(2);
+            if ((mT.Length & 1) == 1) mT += "0";
+
+            // 2 ký tự đầu sẽ là số phút
+            if (mT.Length <= 2) Copy(mT.PadRight(2, '0'), mm);
+            else
+            {
+                Copy(mT.Substring(0, 2), mm);
+                Copy(mT.Substring(2, mT.Length - 2), ss);
+                if (ss >= 100) ss = ss.mantissa[0];
+            }
+
+            if (mTemp.mantissa.Length > 2 && mTemp.mantissa[2] != 0)
+            //if (mTemp.mantissa[2] != 0)
+            {
+                byte[] man = new byte[mT.Length / 2];
+                ss.dataLength = mTemp.dataLength - 2;
+                //if (mTemp.StrValue.Length % 2 != 0) mT += "0";
+                for (int i = 2; i < mT.Length / 2; i++)
                 {
-                    Copy(mT.Substring(0, 2), mm);
-                    Copy(mT.Substring(2, mT.Length - 2), ss);
-                    if (ss >= 100) ss = ss.mantissa[0];
+                    man[i - 2] = byte.Parse(mT.Substring(2 * i, 2));
                 }
 
-                if (mTemp.mantissa.Length > 2)
-                    if (mTemp.mantissa[2] != 0)
-                    {
-                        byte[] man = new byte[mT.Length / 2];
-                        ss.dataLength = mTemp.dataLength - 2;
-                        //if (mTemp.StrValue.Length % 2 != 0) mT += "0";
-                        for (int i = 2; i < mT.Length / 2; i++)
-                        {
-                            man[i - 2] = byte.Parse(mT.Substring(2 * i, 2));
-                        }
-                        // tìm hạng của ma trận ss.mantissa
-                        int rank = ss.mantissa.Length - 1;
-                        for (; rank >= 0; rank--)
-                        {
-                            if (ss.mantissa[rank] != 0) break;
-                        }
-                        byte[] resultArr = new byte[++rank + man.Length];
-                        Array.Copy(ss.mantissa, resultArr, rank);
-                        Array.Copy(man, 0, resultArr, rank, resultArr.Length - rank);
-                        ss.mantissa = resultArr;
-                    }
+                // tìm hạng của ma trận ss.mantissa
+                #region cách cũ
+                //int rank = ss.mantissa.Length - 1;
+                //for (; rank >= 0; rank--)
+                //{
+                //    if (ss.mantissa[rank] != 0) break;
+                //} 
+                #endregion
+                int rank = ss.mantissa.GetArrayRank();
 
-                // ss=mm*60+ss, xx=dd+ss/3600
-                Mul(mm, 60, mTemp);
-                Add(mTemp, ss, ss);
-                Div(ss, 3600, mTemp);
-                Add(dd, mTemp, xx);
+                byte[] resultAsrc = new byte[++rank + man.Length];
+                Array.Copy(ss.mantissa, resultAsrc, rank);
+                Array.Copy(man, 0, resultAsrc, rank, resultAsrc.Length - rank);
+                ss.mantissa = resultAsrc;
             }
-            else Copy(rr, xx);
+
+            // ss = mm * 60 + ss
+            Mul(mm, 60, mTemp);
+            Add(mTemp, ss, ss);
+            // dst = dd + ss / 3600
+            Div(ss, 3600, mTemp);
+            Add(dd, mTemp, dst);
         }
         /// <summary>
         /// DMS
         /// </summary>
-        static void DMS(BigNumber xx, BigNumber rr)
+        static void DMS(BigNumber dst, BigNumber src)
         {
             BigNumber dd = "0", mm = "0", ss = "0", mTemp = "0", sTemp = "0", mfloor = "0";
-            Copy(rr, dd);
-            if (!IsInteger(rr))
+            Copy(src, dd);
+            if (!IsInteger(src))
             {
-                Floor(dd, rr);        // dd = rr.floor();
-                Sub(rr, dd, mTemp);   // mtemp=rr-dd
-                Mul(mTemp, 0.6, mm);  // mm=mtemp*60
-                Mul(mm, 100, mTemp);  // mm=mtemp*60
+                Floor(dd, src);        // dd    = src.floor();
+                Sub(src, dd, mTemp);   // mtemp = src - dd
+                Mul(mTemp, 0.6, mm);   // mm    = mtemp * 0.6
+                Mul(mm, 100, mTemp);   // mTemp = mm * 100
                 if (!IsInteger(mTemp))
                 {
-                    Floor(mfloor, mTemp);         //mTemp=mm.floor()
-                    Sub(mTemp, mfloor, sTemp);    //stemp=mm-mfloor
-                    Mul(sTemp, 60.0, ss);         //ss=stemp*60
+                    Floor(mfloor, mTemp);         //mfloor  = mTemp.floor()
+                    Sub(mTemp, mfloor, sTemp);    //sTemp   = mTemp - mfloor
+                    Mul(sTemp, 60d, ss);          //ss      = sTemp * 60
                 }
                 else
                 {
-                    Add(dd, mm, xx);
+                    Add(dd, mm, dst);    // xx = dd + mm
                     return;
                 }
-                Div(mfloor, 100.0, mfloor);
-                Add(dd, mfloor, xx);
+                Div(mfloor, 100d, mfloor);
+                Add(dd, mfloor, dst);
 
-                Div(ss, 10000.0, ss);
-                Add(xx, ss, xx);
+                Div(ss, 10000d, ss);
+                Add(dst, ss, dst);
             }
             else
             {
-                Copy(rr, xx);
+                Copy(src, dst);
             }
         }
 
         static void Reciprocal(BigNumber src, BigNumber dst, int places)
         {
-            Div("1", src, dst, places);
+            Div(One, src, dst, places);
         }
 
         static private void Exp(BigNumber src, BigNumber dst, int places)
@@ -248,7 +260,7 @@ namespace Calculator
 
             if (src.signum == 0)
             {
-                Copy("1", dst);
+                Copy(One, dst);
                 return;
             }
 
@@ -345,7 +357,7 @@ namespace Calculator
             tolerance = -(places + 4);
             prev_exp = 0;
 
-            Add("1", xx, rr);
+            Add(One, xx, rr);
             Copy(xx, term);
 
             m1 = 2L;
@@ -383,7 +395,7 @@ namespace Calculator
             {
                 if (dst.signum < 0)
                 {
-                    Neg("1", dst);
+                    Neg(One, dst);
                 }
                 else
                 {
@@ -402,7 +414,7 @@ namespace Calculator
 
                 Normalize(mtmp);
 
-                Add(mtmp, "1", dst);
+                Add(mtmp, One, dst);
                 dst.signum = -1;
             }
             else
@@ -427,7 +439,7 @@ namespace Calculator
                 if (dst.signum < 0)
                     SetZero(dst);
                 else
-                    Copy("1", dst);
+                    Copy(One, dst);
 
                 return;
             }
@@ -445,7 +457,7 @@ namespace Calculator
                 mtmp.dataLength = mtmp.exponent;
                 Normalize(mtmp);
 
-                Add(mtmp, "1", dst);
+                Add(mtmp, One, dst);
             }
         }
 
@@ -455,7 +467,7 @@ namespace Calculator
             double dd;
             string buf = ToExpString(a, 15);
 
-            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSeparator;
+            scci.NumberFormat.NumberDecimalSeparator = Common.DecimalSeparator;
 
             dd = Convert.ToDouble(buf, scci);
             if (dd != 0) SetFromDouble(r, (1.0 / Math.Sqrt(dd)));
@@ -553,16 +565,10 @@ namespace Calculator
         /// </summary>
         public static long Compare(BigNumber ltmp, BigNumber rtmp)
         {
-            long llen, rlen, lsign, rsign, j, lexp, rexp;
-
-            llen = ltmp.dataLength;
-            rlen = rtmp.dataLength;
+            long lsign, rsign;
 
             lsign = ltmp.signum;
             rsign = rtmp.signum;
-
-            lexp = ltmp.exponent;
-            rexp = rtmp.exponent;
 
             int res = (lsign == 1) ? 1 : -1;
 
@@ -572,9 +578,17 @@ namespace Calculator
 
             //if (lsign == -rsign) return lsign;
 
+            long lexp, rexp;
+            lexp = ltmp.exponent;
+            rexp = rtmp.exponent;
+
             if (lexp > rexp) return res;
 
             if (lexp < rexp) return -res;
+
+            long llen, rlen, j;
+            llen = ltmp.dataLength;
+            rlen = rtmp.dataLength;
 
             if (llen < rlen)
                 j = (llen + 1) >> 1;
@@ -669,7 +683,7 @@ namespace Calculator
                 Neg(tmpX, tmp0);
                 Exp(tmp0, tmp1, (places + 8));
                 Mul(tmp1, nn, tmp2);
-                Sub(tmp2, "1", tmp1);
+                Sub(tmp2, One, tmp1);
 
                 M_log_near_1(tmp1, tmp0, (places - 104));
 
@@ -772,7 +786,7 @@ namespace Calculator
                 Round(tmp3, sum, dplaces);
             }
 
-            Sub("1", tmp3, tmp4);
+            Sub(One, tmp3, tmp4);
             Reciprocal(tmp4, rr, places);
         }
 
@@ -851,20 +865,20 @@ namespace Calculator
 
                 dplaces += 6 + (int)Math.Log10(places);
 
-                Copy("1", tmp7);
+                Copy(One, tmp7);
                 tmp7.exponent = -places;
 
-                LogAGMRFunc("1", tmp7, tmp8, dplaces);
+                LogAGMRFunc(One, tmp7, tmp8, dplaces);
 
                 Mul(tmp7, "0.5", tmp6);
 
-                LogAGMRFunc("1", tmp6, tmp9, dplaces);
+                LogAGMRFunc(One, tmp6, tmp9, dplaces);
 
                 Sub(tmp9, tmp8, BN_lc_log2);
 
                 tmp7.exponent -= 1;
 
-                LogAGMRFunc("1", tmp7, tmp9, dplaces);
+                LogAGMRFunc(One, tmp7, tmp9, dplaces);
 
                 Sub(tmp9, tmp8, BN_lc_log10);
                 Reciprocal(BN_lc_log10R, BN_lc_log10, dplaces);
@@ -903,7 +917,7 @@ namespace Calculator
 
             if (mexp == 0 || mexp == 1)
             {
-                Sub(src, "1", tmp0);
+                Sub(src, One, tmp0);
 
                 if (tmp0.signum == 0)    /* is input exactly 1 ?? */
                 {                           /* if so, result is 0    */
@@ -952,19 +966,6 @@ namespace Calculator
 
                 Round(tmp1, dst, places);
             }
-
-        }
-        /// <summary>
-        /// làm tròn kiểu xấp xỉ
-        /// </summary>
-        static void Approximate(BigNumber input)
-        {
-            BigNumber result = new BigNumber();
-            BigNumber sub = new BigNumber();
-            Round(input, result, 24);
-            Sub(result, input, sub);
-            Abs(sub, sub);
-            if (Compare(sub, "1e" + (-29 + input.exponent).ToString()) < 0) Copy(result, input);
         }
         /// <summary>
         /// so sánh 1 số có phải bội số số kia hay không?
@@ -994,6 +995,16 @@ namespace Calculator
             Add(src, src.signum * t0_5, dst);
 
             dst.dataLength = ii;
+            // cắt những phần tử thừa của mảng mantissa 
+            //Array.Resize<byte>(ref dst.mantissa, (int)ii + 1);
+            #region nếu mảng chứa những phần tử = 0 đằng sau thì cũng cắt nốt đi
+            //long index = 0;
+            //for (long i = dst.mantissa.Length - 1; i >= 0; i--)
+            //{
+            //    if (dst.mantissa[i] != 0) { index = i + 1; break; }
+            //}
+            //Array.Resize(ref dst.mantissa, (int)index);
+            #endregion
             Normalize(dst);
         }
         /// <summary>
@@ -1156,7 +1167,7 @@ namespace Calculator
             else
             {
                 throw new Exception("'Expand', new length is smaller than current length");
-				//return;
+                //return;
             }
         }
         /// <summary>
@@ -1337,7 +1348,7 @@ namespace Calculator
                 res = res.PadRight((int)exp, '0');
                 if (exp < res.Length)
                 {
-                    res = res.Insert((int)exp, Misc.DecimalSeparator);
+                    res = res.Insert((int)exp, Common.DecimalSeparator);
                 }
             }
             else
@@ -1345,7 +1356,7 @@ namespace Calculator
                 res = res.PadLeft(1 - (int)exp + res.Length, '0');
                 if (res.Length >= 2)
                 {
-                    res = res.Insert(1, Misc.DecimalSeparator);
+                    res = res.Insert(1, Common.DecimalSeparator);
                 }
             }
             if (atm.signum < 0) res = "-" + res;
@@ -1384,7 +1395,7 @@ namespace Calculator
 
                     if (dec_places > 0)
                     {
-                        res += Misc.DecimalSeparator;
+                        res += Common.DecimalSeparator;
                     }
 
                     res = res.PadRight(dec_places + res.Length, '0') + "e+0";
@@ -1435,7 +1446,7 @@ namespace Calculator
                 if (first != 0)
                 {
                     first = 0;
-                    res += Misc.DecimalSeparator;
+                    res += Common.DecimalSeparator;
                 }
 
                 res += (char)('0' + numrem);
@@ -1456,7 +1467,7 @@ namespace Calculator
 
         static double ExpStringToDouble(string src)
         {
-            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSeparator;
+            scci.NumberFormat.NumberDecimalSeparator = Common.DecimalSeparator;
             return Convert.ToDouble(src, scci);
         }
 

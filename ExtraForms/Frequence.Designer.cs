@@ -28,20 +28,29 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.frqTB = new Calculator.ITextBox();
             this.SuspendLayout();
+            // 
+            // toolTip1
+            // 
+            this.toolTip1.IsBalloon = true;
             // 
             // frqTB
             // 
             this.frqTB.AllowTextChanged = true;
             this.frqTB.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.frqTB.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
+            this.frqTB.ForeColor = System.Drawing.Color.Black;
             this.frqTB.Location = new System.Drawing.Point(0, 0);
             this.frqTB.Name = "frqTB";
             this.frqTB.NumberModeOnly = true;
-            this.frqTB.Size = new System.Drawing.Size(284, 22);
+            this.frqTB.Size = new System.Drawing.Size(284, 20);
+            this.frqTB.SuggestText = "Enter value";
+            this.frqTB.SuggestType = Calculator.SuggestType.PlaceHolder;
             this.frqTB.TabIndex = 0;
             this.frqTB.Text = "1";
-            this.frqTB.WatermarkText = "Enter frequence of this number";
             // 
             // Frequence
             // 
@@ -64,6 +73,7 @@
         #endregion
 
         private ITextBox frqTB;
+        private System.Windows.Forms.ToolTip toolTip1;
 
 
 

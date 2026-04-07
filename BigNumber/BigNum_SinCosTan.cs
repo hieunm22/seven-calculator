@@ -47,7 +47,7 @@ namespace Calculator
         /// <param name="src">x</param>
         static void Cosx(BigNumber src, BigNumber dst)
         {
-            if (Compare(src, 0) == 0) { dst = "1"; return; }
+            if (Compare(src, 0) == 0) { dst = One; return; }
             if (CheckIfCommonMultiple(src, BN_HalfOfPi)) { SetZero(dst); return; }
             BigNumber param = new BigNumber();
             if (Compare(src, -BN_PI.Round(numDefaultPlaces)) < 0)
@@ -89,7 +89,7 @@ namespace Calculator
         private BigNumber ArcSinx(BigNumber src)
         {
             //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
-            if (src.Abs() > "1")
+            if (src.Abs() > One)
             {
                 throw new Exception("Invalid argument in arcsin/arccos function");
             }

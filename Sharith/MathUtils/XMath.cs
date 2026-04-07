@@ -97,15 +97,6 @@ namespace Sharith.Math.MathUtils
 
         public static BigNumber Factorial(long n)
         {
-            if (n > 20)
-            {
-                throw new ArgumentOutOfRangeException("max n is 20 but was " + n.ToString());
-            }
-            if (n < 0)
-            {
-                throw new ArgumentOutOfRangeException("min n is 0");
-            }
-
             return top21Factorial[n];
         }
 

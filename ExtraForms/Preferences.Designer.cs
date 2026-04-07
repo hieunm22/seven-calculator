@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Drawing;
+using System.Windows.Forms;
 
 namespace Calculator
 {
@@ -32,38 +33,37 @@ namespace Calculator
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Preferences));
-            this.spdLB = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.fastFactCB = new System.Windows.Forms.CheckBox();
-            this.usedSignChkB = new System.Windows.Forms.CheckBox();
-            this.animateCB = new System.Windows.Forms.CheckBox();
-            this.readDictChkB = new System.Windows.Forms.CheckBox();
-            this.fastInputCkB = new System.Windows.Forms.CheckBox();
+            this.ckbFastFact = new System.Windows.Forms.CheckBox();
+            this.ckbUsedSign = new System.Windows.Forms.CheckBox();
+            this.ckbReadDict = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
-            this.collapsedSpdNUD = new Calculator.INumericUpDown();
-            ((System.ComponentModel.ISupportInitialize)(this.collapsedSpdNUD)).BeginInit();
+            this.ckbStoreHistory = new System.Windows.Forms.CheckBox();
+            this.cbbInputMethod = new System.Windows.Forms.ComboBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.btnDefault = new System.Windows.Forms.Button();
+            this.nudCollapsedSpd = new Calculator.INumericUpDown();
+            ((System.ComponentModel.ISupportInitialize)(this.nudCollapsedSpd)).BeginInit();
             this.SuspendLayout();
             // 
-            // spdLB
+            // label1
             // 
-            this.spdLB.AutoSize = true;
-            this.spdLB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.spdLB.Location = new System.Drawing.Point(21, 14);
-            this.spdLB.Name = "spdLB";
-            this.spdLB.Size = new System.Drawing.Size(101, 13);
-            this.spdLB.TabIndex = 0;
-            this.spdLB.Text = "Collapsed speed";
-            this.spdLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(21, 16);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(93, 15);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Collapsed speed";
             // 
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnOK.Location = new System.Drawing.Point(78, 179);
+            this.btnOK.Location = new System.Drawing.Point(40, 178);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(87, 25);
-            this.btnOK.TabIndex = 7;
+            this.btnOK.Size = new System.Drawing.Size(72, 27);
+            this.btnOK.TabIndex = 10;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
@@ -71,139 +71,151 @@ namespace Calculator
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCancel.Location = new System.Drawing.Point(198, 179);
+            this.btnCancel.Location = new System.Drawing.Point(135, 178);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(87, 25);
-            this.btnCancel.TabIndex = 8;
+            this.btnCancel.Size = new System.Drawing.Size(72, 27);
+            this.btnCancel.TabIndex = 11;
             this.btnCancel.Text = "C&ancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // fastFactCB
+            // ckbFastFact
             // 
-            this.fastFactCB.AutoSize = true;
-            this.fastFactCB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fastFactCB.Location = new System.Drawing.Point(24, 69);
-            this.fastFactCB.Name = "fastFactCB";
-            this.fastFactCB.Size = new System.Drawing.Size(98, 17);
-            this.fastFactCB.TabIndex = 3;
-            this.fastFactCB.Text = "&Fast factorial";
-            this.toolTip1.SetToolTip(this.fastFactCB, "Using an approximate method to calculate a big number, \r\nso that accuracy of the " +
+            this.ckbFastFact.AutoSize = true;
+            this.ckbFastFact.Location = new System.Drawing.Point(24, 46);
+            this.ckbFastFact.Name = "ckbFastFact";
+            this.ckbFastFact.Size = new System.Drawing.Size(93, 19);
+            this.ckbFastFact.TabIndex = 3;
+            this.ckbFastFact.Text = "&Fast factorial";
+            this.toolTip1.SetToolTip(this.ckbFastFact, "Using an approximate method to calculate a big number, \r\nso that accuracy of the " +
         "result is less than normal method");
-            this.fastFactCB.UseVisualStyleBackColor = true;
-            this.fastFactCB.CheckedChanged += new System.EventHandler(this.fastFactCB_CheckedChanged);
+            this.ckbFastFact.UseVisualStyleBackColor = true;
+            this.ckbFastFact.CheckedChanged += new System.EventHandler(this.ckbFastFact_CheckedChanged);
             // 
-            // usedSignChkB
+            // ckbUsedSign
             // 
-            this.usedSignChkB.AutoSize = true;
-            this.usedSignChkB.Checked = true;
-            this.usedSignChkB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.usedSignChkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.usedSignChkB.Location = new System.Drawing.Point(24, 92);
-            this.usedSignChkB.Name = "usedSignChkB";
-            this.usedSignChkB.Size = new System.Drawing.Size(287, 17);
-            this.usedSignChkB.TabIndex = 4;
-            this.usedSignChkB.Text = "U&se signed-integer calculation in programmer";
-            this.toolTip1.SetToolTip(this.usedSignChkB, resources.GetString("usedSignChkB.ToolTip"));
-            this.usedSignChkB.UseVisualStyleBackColor = true;
-            this.usedSignChkB.CheckedChanged += new System.EventHandler(this.usedSignChkB_CheckedChanged);
+            this.ckbUsedSign.AutoSize = true;
+            this.ckbUsedSign.Checked = true;
+            this.ckbUsedSign.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckbUsedSign.Location = new System.Drawing.Point(24, 68);
+            this.ckbUsedSign.Name = "ckbUsedSign";
+            this.ckbUsedSign.Size = new System.Drawing.Size(269, 19);
+            this.ckbUsedSign.TabIndex = 4;
+            this.ckbUsedSign.Text = "U&se signed-integer calculation in programmer";
+            this.toolTip1.SetToolTip(this.ckbUsedSign, resources.GetString("ckbUsedSign.ToolTip"));
+            this.ckbUsedSign.UseVisualStyleBackColor = true;
+            this.ckbUsedSign.CheckedChanged += new System.EventHandler(this.ckbUsedSign_CheckedChanged);
             // 
-            // animateCB
+            // ckbReadDict
             // 
-            this.animateCB.AutoSize = true;
-            this.animateCB.Checked = true;
-            this.animateCB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.animateCB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.animateCB.Location = new System.Drawing.Point(24, 46);
-            this.animateCB.Name = "animateCB";
-            this.animateCB.Size = new System.Drawing.Size(132, 17);
-            this.animateCB.TabIndex = 2;
-            this.animateCB.Text = "Animate &resization";
-            this.toolTip1.SetToolTip(this.animateCB, "Animate resization when change form in View menu");
-            this.animateCB.UseVisualStyleBackColor = true;
-            this.animateCB.CheckedChanged += new System.EventHandler(this.animateCB_CheckedChanged);
+            this.ckbReadDict.AutoSize = true;
+            this.ckbReadDict.Checked = true;
+            this.ckbReadDict.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.ckbReadDict.Location = new System.Drawing.Point(24, 90);
+            this.ckbReadDict.Name = "ckbReadDict";
+            this.ckbReadDict.Size = new System.Drawing.Size(267, 19);
+            this.ckbReadDict.TabIndex = 5;
+            this.ckbReadDict.Text = "R&ead and write factorial result from dictionary";
+            this.toolTip1.SetToolTip(this.ckbReadDict, resources.GetString("ckbReadDict.ToolTip"));
+            this.ckbReadDict.UseVisualStyleBackColor = true;
+            this.ckbReadDict.CheckedChanged += new System.EventHandler(this.readDictChkB_CheckedChanged);
             // 
-            // readDictChkB
+            // toolTip1
             // 
-            this.readDictChkB.AutoSize = true;
-            this.readDictChkB.Checked = true;
-            this.readDictChkB.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.readDictChkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.readDictChkB.Location = new System.Drawing.Point(24, 115);
-            this.readDictChkB.Name = "readDictChkB";
-            this.readDictChkB.Size = new System.Drawing.Size(289, 30);
-            this.readDictChkB.TabIndex = 5;
-            this.readDictChkB.Text = "R&ead and write factorial result from dictionary\r\n(restart application required)";
-            this.toolTip1.SetToolTip(this.readDictChkB, resources.GetString("readDictChkB.ToolTip"));
-            this.readDictChkB.UseVisualStyleBackColor = true;
-            this.readDictChkB.CheckedChanged += new System.EventHandler(this.readDictChkB_CheckedChanged);
+            this.toolTip1.AutomaticDelay = 1000;
+            this.toolTip1.AutoPopDelay = 15000;
+            this.toolTip1.InitialDelay = 1000;
+            this.toolTip1.ReshowDelay = 500;
             // 
-            // fastInputCkB
+            // ckbStoreHistory
             // 
-            this.fastInputCkB.AutoSize = true;
-            this.fastInputCkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.fastInputCkB.Location = new System.Drawing.Point(24, 151);
-            this.fastInputCkB.Name = "fastInputCkB";
-            this.fastInputCkB.Size = new System.Drawing.Size(212, 17);
-            this.fastInputCkB.TabIndex = 6;
-            this.fastInputCkB.Text = "En&ter frequence foreach number";
-            this.toolTip1.SetToolTip(this.fastInputCkB, "Press Enter to input a number with custom frequency.\r\nUse Ctrl-Enter instead to i" +
-        "nput number with default \r\nfrequency 1 when checked");
-            this.fastInputCkB.UseVisualStyleBackColor = true;
-            this.fastInputCkB.CheckedChanged += new System.EventHandler(this.fastInputCkB_CheckedChanged);
+            this.ckbStoreHistory.AutoSize = true;
+            this.ckbStoreHistory.Location = new System.Drawing.Point(24, 112);
+            this.ckbStoreHistory.Name = "ckbStoreHistory";
+            this.ckbStoreHistory.Size = new System.Drawing.Size(155, 19);
+            this.ckbStoreHistory.TabIndex = 13;
+            this.ckbStoreHistory.Text = "S&tore history expressions";
+            this.toolTip1.SetToolTip(this.ckbStoreHistory, "Store the calculation history and reload \r\nit on the next application start");
+            this.ckbStoreHistory.UseVisualStyleBackColor = true;
+            this.ckbStoreHistory.CheckedChanged += new System.EventHandler(this.ckbStoreHistory_CheckedChanged);
             // 
-            // collapsedSpdNUD
+            // cbbInputMethod
             // 
-            this.collapsedSpdNUD.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.collapsedSpdNUD.Location = new System.Drawing.Point(146, 12);
-            this.collapsedSpdNUD.Maximum = new decimal(new int[] {
+            this.cbbInputMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbbInputMethod.FormattingEnabled = true;
+            this.cbbInputMethod.Items.AddRange(new object[] {
+            "Control-Enter                    ",
+            "Enter                                   "});
+            this.cbbInputMethod.Location = new System.Drawing.Point(159, 138);
+            this.cbbInputMethod.Name = "cbbInputMethod";
+            this.cbbInputMethod.Size = new System.Drawing.Size(159, 23);
+            this.cbbInputMethod.TabIndex = 7;
+            this.cbbInputMethod.SelectedIndexChanged += new System.EventHandler(this.countMethodCB_SelectedIndexChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(21, 142);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(122, 15);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "Enter frequence using";
+            // 
+            // btnDefault
+            // 
+            this.btnDefault.Location = new System.Drawing.Point(230, 178);
+            this.btnDefault.Name = "btnDefault";
+            this.btnDefault.Size = new System.Drawing.Size(72, 27);
+            this.btnDefault.TabIndex = 12;
+            this.btnDefault.Text = "&Default";
+            this.btnDefault.UseVisualStyleBackColor = true;
+            this.btnDefault.Click += new System.EventHandler(this.btnDefault_Click);
+            // 
+            // nudCollapsedSpd
+            // 
+            this.nudCollapsedSpd.Location = new System.Drawing.Point(146, 14);
+            this.nudCollapsedSpd.Maximum = new decimal(new int[] {
             12,
             0,
             0,
             0});
-            this.collapsedSpdNUD.Minimum = new decimal(new int[] {
+            this.nudCollapsedSpd.Minimum = new decimal(new int[] {
             4,
             0,
             0,
             0});
-            this.collapsedSpdNUD.Name = "collapsedSpdNUD";
-            this.collapsedSpdNUD.Size = new System.Drawing.Size(78, 21);
-            this.collapsedSpdNUD.TabIndex = 1;
-            this.collapsedSpdNUD.Value = new decimal(new int[] {
+            this.nudCollapsedSpd.Name = "nudCollapsedSpd";
+            this.nudCollapsedSpd.Size = new System.Drawing.Size(78, 23);
+            this.nudCollapsedSpd.TabIndex = 1;
+            this.nudCollapsedSpd.Value = new decimal(new int[] {
             5,
             0,
             0,
             0});
-            this.collapsedSpdNUD.ValueChanged += new System.EventHandler(this.collapsedSpdNUD_ValueChanged);
+            this.nudCollapsedSpd.ValueChanged += new System.EventHandler(this.nudCollapsedSpd_ValueChanged);
             // 
             // Preferences
             // 
             this.AcceptButton = this.btnOK;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(362, 221);
-            this.Controls.Add(this.animateCB);
-            this.Controls.Add(this.readDictChkB);
-            this.Controls.Add(this.fastInputCkB);
-            this.Controls.Add(this.usedSignChkB);
-            this.Controls.Add(this.collapsedSpdNUD);
-            this.Controls.Add(this.fastFactCB);
+            this.ClientSize = new System.Drawing.Size(343, 226);
+            this.Controls.Add(this.ckbStoreHistory);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.cbbInputMethod);
+            this.Controls.Add(this.ckbReadDict);
+            this.Controls.Add(this.ckbUsedSign);
+            this.Controls.Add(this.nudCollapsedSpd);
+            this.Controls.Add(this.ckbFastFact);
+            this.Controls.Add(this.btnDefault);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.spdLB);
-            this.Font = new System.Drawing.Font("Verdana", 8.25F);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            this.Controls.Add(this.label1);
             this.Name = "Preferences";
             this.ShowIcon = false;
-            this.ShowInTaskbar = false;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Preferences";
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
-            ((System.ComponentModel.ISupportInitialize)(this.collapsedSpdNUD)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudCollapsedSpd)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -211,15 +223,17 @@ namespace Calculator
 
         #endregion
 
-        private Label spdLB;
+        private Label label1;
         private Button btnOK;
         private Button btnCancel;
-        private CheckBox fastFactCB;
-        private INumericUpDown collapsedSpdNUD;
-        private CheckBox usedSignChkB;
-        private CheckBox animateCB;
-        private CheckBox readDictChkB;
-        private CheckBox fastInputCkB;
+        private CheckBox ckbFastFact;
+        private INumericUpDown nudCollapsedSpd;
+        private CheckBox ckbUsedSign;
+        private CheckBox ckbReadDict;
         private ToolTip toolTip1;
+        private ComboBox cbbInputMethod;
+        private Label label2;
+        private Button btnDefault;
+        private CheckBox ckbStoreHistory;
     }
 }

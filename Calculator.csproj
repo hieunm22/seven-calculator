@@ -91,7 +91,41 @@
     <Compile Include="BigNumber\BigNum_SinCosTan.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\Binary.cs" />
+    <Compile Include="Classes\Config.cs" />
+    <Compile Include="Classes\ConvertDate.cs" />
+    <Compile Include="Classes\FactorialObject.cs" />
+    <Compile Include="Classes\HistoryObject.cs" />
+    <Compile Include="Classes\LunarDate.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Classes\Operator.cs" />
+    <Compile Include="Classes\SuggestType.cs" />
+    <Compile Include="Classes\TrigonometryMode.cs" />
+    <Compile Include="Controls\IComboBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\IDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\IDateTimePicker.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ILabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\INumericUpDown.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\IPanel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\IRadioButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\ITextBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ExtraForms\About.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -110,11 +144,14 @@
     <Compile Include="ExtraForms\CancelOperation.Designer.cs">
       <DependentUpon>CancelOperation.cs</DependentUpon>
     </Compile>
-    <Compile Include="Classes\CustomControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Classes\Miscellaneous.cs" />
+    <Compile Include="Classes\Common.cs" />
     <Compile Include="Classes\Parser.cs" />
+    <Compile Include="ExtraForms\ExtraForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExtraForms\ExtraForm.Designer.cs">
+      <DependentUpon>ExtraForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ExtraForms\Frequence.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -127,10 +164,10 @@
     <Compile Include="ExtraForms\Info.Designer.cs">
       <DependentUpon>Info.cs</DependentUpon>
     </Compile>
-    <Compile Include="ExtraForms\TextField.cs">
+    <Compile Include="Controls\TextField.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="ExtraForms\TextField.Designer.cs">
+    <Compile Include="Controls\TextField.Designer.cs">
       <DependentUpon>TextField.cs</DependentUpon>
     </Compile>
     <Compile Include="ExtraForms\Preferences.cs">
@@ -156,13 +193,18 @@
     <EmbeddedResource Include="ExtraForms\About.resx">
       <DependentUpon>About.cs</DependentUpon>
       <SubType>Designer</SubType>
+      <LastGenOutput>About1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="calc.resx">
       <DependentUpon>calc.cs</DependentUpon>
       <SubType>Designer</SubType>
+      <LastGenOutput>calc1.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="ExtraForms\CancelOperation.resx">
       <DependentUpon>CancelOperation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExtraForms\ExtraForm.resx">
+      <DependentUpon>ExtraForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ExtraForms\Frequence.resx">
       <DependentUpon>Frequence.cs</DependentUpon>
@@ -170,7 +212,7 @@
     <EmbeddedResource Include="ExtraForms\Info.resx">
       <DependentUpon>Info.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="ExtraForms\TextField.resx">
+    <EmbeddedResource Include="Controls\TextField.resx">
       <DependentUpon>TextField.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ExtraForms\Preferences.resx">
