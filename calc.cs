@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Security.Principal;
@@ -16,13 +17,14 @@ namespace Calculator
         }
 
         #region bien toan cuc
-        StringBuilder screenStr = new StringBuilder("0"), mainExp = new StringBuilder();
+        StringBuilder screenStr = new StringBuilder("0");
         string curOperand = "0";
+        StringBuilder mainExp = new StringBuilder();
         bool confirmNumber = true, prcmdkey = true, expAdded = false, propertiesChange = false;
         int pre_bt = -1;
         object[] initConfig, currentConfig;
-        HistoryObject[] historyObj = new HistoryObject[100];
-        Parser parser = new Parser();
+        HistoryModel[] historyObj = new HistoryModel[100];
+        MathParserService parser = new MathParserService();
         Exception pex = null;
         Control infoControl;
 
@@ -41,11 +43,11 @@ namespace Calculator
             WindowState = FormWindowState.Normal;   // không được xóa dòng này (lý do ở trên)
             LoadInfo();
             AdministratorCheck();
-            if ((int)initConfig[Config._12_ReadDictionary] == 1)
-                Common.ReadDictionary(ref factDict);
-            if ((int)initConfig[Config._13_StoreHistory] == 1)
+            if ((int)initConfig[Config._11_ReadDictionary] == 1)
+                RegistryService.ReadDictionary(ref factDict);
+            if ((int)initConfig[Config._12_StoreHistory] == 1)
             {
-                historyObj = Common.ReadHistory();
+                historyObj = RegistryService.ReadHistory();
                 if ((int)initConfig[Config._00_CalculatorType] == 1)
                 {
                     DisplayHistoryOnLoad(historyObj);
@@ -59,20 +61,20 @@ namespace Calculator
         /// <summary>
         /// hiển thị lịch sử các phép tính onload
         /// </summary>
-        private void DisplayHistoryOnLoad(HistoryObject[] ho)
+        private void DisplayHistoryOnLoad(HistoryModel[] ho)
         {
             for (int i = 0; i < ho.Length; i++)
             {
                 if (ho[i] == null) break;
                 hisDGV.Rows.Add();
-                hisDGV[0, i].Value = Common.StandardExpression(ho[i].Expression);
+                hisDGV[0, i].Value = MathService.StandardExpression(ho[i].Expression);
                 ChangeDGVHeight(hisDGV);
             }
             if (hisDGV.RowCount > 0)
             {
                 hisDGV.CurrentCell = hisDGV[0, 0];
-                hisDGV_SetStatusLabel();
-                //countLB.Text = string.Format("Value = 1 / {0}", hisDGV.RowCount);
+                //hisDGV_SetStatusLabel();
+                countLB.Text = string.Format("Value = 1 / {0}", hisDGV.RowCount);
             }
             //screenStr = historyObj[0];
             //DisplayToScreen();
@@ -101,12 +103,12 @@ namespace Calculator
         private void HiddenProperties()
         {
             // set context menu to all buttons that are children of main form
-            this.Controls.OfType<Button>().ToList().ForEach(fe => fe.ContextMenu = helpCTMN);
-            //this.Controls.OfType<Button>().All(a => { a.ContextMenu = helpCTMN; return true; });
+            Controls.OfType<Button>().ToList().ForEach(fe => fe.ContextMenu = helpCTMN);
+            //Controls.OfType<Button>().All(a => { a.ContextMenu = helpCTMN; return true; });
 
-            this.inv_ChkBox.ContextMenu = helpCTMN;
-            this.fe_ChkBox.ContextMenu = helpCTMN;
-            this.bracketTime_lb.ContextMenu = helpCTMN;
+            inv_ChkBox.ContextMenu = helpCTMN;
+            fe_ChkBox.ContextMenu = helpCTMN;
+            bracketTime_lb.ContextMenu = helpCTMN;
 
             screenPN.ContextMenu = gridPanel.ContextMenu = mainContextMenu;
 
@@ -123,8 +125,8 @@ namespace Calculator
 
             NewPriorityExpression();
 
-            //parser.Transfer += new Parser.SendValue(parser_Transfer);
-            parser.UpdateDictEvent += new Parser.UpdateDictionary(parser_UpdateDictEvent);
+            //parser.Transfer += new MathParserService.SendValue(parser_Transfer);
+            parser.UpdateDictEvent += new MathParserService.UpdateDictionary(parser_UpdateDictEvent);
             hisDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
             staDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
         }
@@ -250,7 +252,7 @@ namespace Calculator
                     hisDGV.Rows.Add();
                     try
                     {
-                        historyObj[hisDGV.RowCount - 1] = new HistoryObject();
+                        historyObj[hisDGV.RowCount - 1] = new HistoryModel();
                         historyObj[hisDGV.RowCount - 1].Expression = mainExp.ToString();
                         historyObj[hisDGV.RowCount - 1].Result = screenStr.ToString();
                     }
@@ -264,8 +266,8 @@ namespace Calculator
                     hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
                     hisDGV.AllowCellStateChanged = true;
                     ChangeDGVHeight(hisDGV);
-                    hisDGV_SetStatusLabel();
-                    //countLB.Text = string.Format("Value = {0} / {0}", hisDGV.RowCount);
+                    //hisDGV_SetStatusLabel();
+                    countLB.Text = string.Format("Value = {0} / {0}", hisDGV.RowCount);
                     #endregion
 
                     mainExp = new StringBuilder();
@@ -300,7 +302,7 @@ namespace Calculator
                     hisDGV.Rows.Add();
                     try
                     {
-                        historyObj[hisDGV.RowCount - 1] = new HistoryObject();
+                        historyObj[hisDGV.RowCount - 1] = new HistoryModel();
                         historyObj[hisDGV.RowCount - 1].Expression = mainExp.ToString();
                         historyObj[hisDGV.RowCount - 1].Result = screenStr.ToString();
                     }
@@ -315,8 +317,8 @@ namespace Calculator
                     //hisDGV.AllowCellDoubleClick = true;
                     hisDGV.AllowCellStateChanged = true;
                     ChangeDGVHeight(hisDGV);
-                    hisDGV_SetStatusLabel();
-                    //countLB.Text = string.Format("Value = {0} / {0}", hisDGV.RowCount);
+                    //hisDGV_SetStatusLabel();
+                    countLB.Text = string.Format("Value = {0} / {0}", hisDGV.RowCount);
                     #endregion
 
                     mainExp = new StringBuilder();
@@ -334,7 +336,7 @@ namespace Calculator
                     if (!expAdded) mainExp = mainExp.Append(curOperand);
                     if (curPriority[openBrkLevel].Index < 0) goto jump;
                     //if (prePriority[openBrkLevel].Value < 0) goto jump;
-                    pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._11_SignInteger] == 1);
+                    pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._10_SignInteger] == 1);
                     if (pex == null)
                     {
                         screenStr = new StringBuilder(parser.StringResult);
@@ -351,7 +353,7 @@ namespace Calculator
                 DisplayToScreen();
                 openBrkLevel = 0;
                 leftNum = 0;
-                jump: bracketExp = new string[MAX_BRACKET_LEVEL + 1];
+                jump: bracketExp = new string[Constants.MAX_BRACKET_LEVEL + 1];
                 NewPriorityExpression();
                 pre_bt = 16;
             }
@@ -409,12 +411,12 @@ namespace Calculator
             }
             if (!inv_ChkBox.Checked)
             {
-                screenStr = new StringBuilder("31415926535897932384626433832795").Insert(1, Common.DecimalSeparator);
+                screenStr = new StringBuilder("31415926535897932384626433832795").Insert(1, MathService.DecimalSeparator);
                 //curOperand = "pi";
             }
             else
             {
-                screenStr = new StringBuilder("6283185307179586476925286766559").Insert(1, Common.DecimalSeparator);
+                screenStr = new StringBuilder("6283185307179586476925286766559").Insert(1, MathService.DecimalSeparator);
                 //curOperand = "2 * pi";
             }
             curOperand = screenStr.ToString();
@@ -441,7 +443,7 @@ namespace Calculator
                 else
                 {
                     if (digitGroupingMI.Checked)
-                        scr_lb.Text = Common.Group(screenStr.ToString());
+                        scr_lb.Text = MathService.Group(screenStr.ToString());
                     else scr_lb.Text = screenStr.ToString();
                 }
             }
@@ -476,6 +478,7 @@ namespace Calculator
                 dms_bt.Text = "deg";
                 pi_bt.Font = new Font(pi_bt.Font.FontFamily, 9F);
                 pi_bt.Text = "2*π";
+                btFactorial.Text = Config.FAST_FACTORIAL_TEXT;
             }
             if (!inv_ChkBox.Checked && pex == null)
             {
@@ -497,9 +500,10 @@ namespace Calculator
                 ln_bt.Text = "ln";
                 int_bt.Font = new Font(int_bt.Font.FontFamily, 8.25F);
                 int_bt.Text = "Int";
+                dms_bt.Text = "dms";
                 pi_bt.Font = new Font(pi_bt.Font.FontFamily, 12F);
                 pi_bt.Text = "π";
-                dms_bt.Text = "dms";
+                btFactorial.Text = "n!";
             }
         }
         //
@@ -533,12 +537,12 @@ namespace Calculator
 
             if (!confirmNumber)
             {
-                if ((screenStr.Length == 2 && (screenStr.StartsWith("-") || screenStr.ToString().EndsWith(Common.DecimalSeparator))) || screenStr.Length == 1)
+                if ((screenStr.Length == 2 && (screenStr.StartsWith("-") || screenStr.ToString().EndsWith(MathService.DecimalSeparator))) || screenStr.Length == 1)
                 {
                     screenStr = new StringBuilder("0");
                     confirmNumber = true;
                 }
-                if ((screenStr.Length == 2 && !screenStr.StartsWith("-") && !screenStr.ToString().EndsWith(Common.DecimalSeparator)) || screenStr.Length > 2)
+                if ((screenStr.Length == 2 && !screenStr.StartsWith("-") && !screenStr.ToString().EndsWith(MathService.DecimalSeparator)) || screenStr.Length > 2)
                 {
                     if (!screenStr.ToString().EndsWith("e+0"))
                     {
@@ -557,17 +561,17 @@ namespace Calculator
         }
 
         int openBrkLevel;
-        string[] bracketExp = new string[MAX_BRACKET_LEVEL + 1];
+        string[] bracketExp = new string[Constants.MAX_BRACKET_LEVEL + 1];
         //
         // nut mo ngoac
         //
         private void open_bracket_Click(object sender, EventArgs e)
         {
-            if (pex == null && openBrkLevel < MAX_BRACKET_LEVEL)
+            if (pex == null && openBrkLevel < Constants.MAX_BRACKET_LEVEL)
             {
                 //screenStr = new StringBuilder("0");
                 DisplayToScreen();
-                if (openBrkLevel < MAX_BRACKET_LEVEL)
+                if (openBrkLevel < Constants.MAX_BRACKET_LEVEL)
                 {
                     bracketTime_lb.Text = string.Format("(={0}", ++openBrkLevel);
                 }
@@ -621,8 +625,8 @@ namespace Calculator
                 // gan cac bien mang ve gia tri mac dinh
                 bracketExp[openBrkLevel] = null;
                 lowestOperator[openBrkLevel] = 7;
-                prePriority[openBrkLevel] = new Operator();
-                curPriority[openBrkLevel] = new Operator();
+                prePriority[openBrkLevel] = new OperatorModel();
+                curPriority[openBrkLevel] = new OperatorModel();
 
                 if (scientificMI.Checked)
                 {
@@ -721,23 +725,23 @@ namespace Calculator
                 {
                     if (historyMI.Checked) stdWithHistory();
                     else initializedForm(false);
-                    FormSizeChanged(new Size(APP_W1, his ? APP_H3 : APP_H1), false);
+                    FormSizeChanged(new Size(Constants.APP_W1, his ? Constants.APP_H3 : Constants.APP_H1), false);
                 }
                 if (scientificMI.Checked)
                 {
                     if (historyMI.Checked) sciWithHistory();
                     else scientificLoad(false);
-                    FormSizeChanged(new Size(APP_W2, his ? APP_H3 : APP_H1), false);
+                    FormSizeChanged(new Size(Constants.APP_W2, his ? Constants.APP_H3 : Constants.APP_H1), false);
                 }
                 if (programmerMI.Checked)
                 {
-                    programmerMode(showPreviewPaneCTMN.Visible);
-                    FormSizeChanged(new Size(APP_W2, (int)currentConfig[Config._05_ShowPreview] == 1 ? APP_H4 : APP_H2), false);
+                    programmerMode(showPreviewPanelCTMN.Visible);
+                    FormSizeChanged(new Size(Constants.APP_W2, (int)currentConfig[Config._05_ShowPreview] == 1 ? Constants.APP_H4 : Constants.APP_H2), false);
                 }
                 if (statisticsMI.Checked)
                 {
                     statisticsMode();
-                    FormSizeChanged(new Size(APP_W1, APP_H3), false);
+                    FormSizeChanged(new Size(Constants.APP_W1, Constants.APP_H3), false);
                 }
                 DisplayToScreen();
                 scr_lb.Focus();
@@ -801,8 +805,9 @@ namespace Calculator
                 clearHistoryCTMN.Enabled = clearHistoryMI.Enabled = hisDGV.RowCount > 0 && his;
             }
 
-            showPreviewPaneCTMN.Visible = programmerMI.Checked && previewPanelHeight == 0;
-            hidePreviewPaneCTMN.Visible = programmerMI.Checked && previewPanelHeight != 0;
+            showPreviewPanelCTMN.Visible = programmerMI.Checked && previewPanelHeight == 0;
+            hidePreviewPanelCTMN.Visible = programmerMI.Checked && previewPanelHeight != 0;
+            previewMI.Checked = hidePreviewPanelCTMN.Visible;
             clearDatasetCTMN.Visible = clearDatasetMI.Visible = statisticsMI.Checked;
             getPaste(null, null);
         }
@@ -828,9 +833,9 @@ namespace Calculator
         {
             propertiesChange = true;
 
-            previewPanelHeight = showPreviewPaneCTMN.Visible ? 81 : 0;
-            showPreviewPaneCTMN.Visible = !showPreviewPaneCTMN.Visible;
-            hidePreviewPaneCTMN.Visible = !showPreviewPaneCTMN.Visible;
+            previewPanelHeight = showPreviewPanelCTMN.Visible ? 81 : 0;
+            showPreviewPanelCTMN.Visible = !showPreviewPanelCTMN.Visible;
+            hidePreviewPanelCTMN.Visible = !showPreviewPanelCTMN.Visible;
 
             formWithPreview(false);
         }
@@ -866,7 +871,7 @@ namespace Calculator
                 }
                 Clipboard.SetText(clipboard);
             }
-            catch (Exception ex) //{ /*làm gì giờ*/ }
+            catch (Exception ex)
             {
                 Clipboard.SetText(ex.InnerException != null ? ex.InnerException.Message : ex.Message);
             }
@@ -886,14 +891,17 @@ namespace Calculator
         private void copyDatasetMI_Click(object sender, EventArgs e)
         {
             // DO SOMETHING HERE
-            string clipboard = "";
+            StringBuilder clipboard = new StringBuilder();
             try
             {
                 foreach (DataGridViewRow item in staDGV.Rows)
                 {
-                    clipboard += item.Cells[0].Value + "\n";
+                    clipboard = clipboard.AppendFormat("{0}_{1}\n", 
+                        item.Cells[0].Value, 
+                        item.Cells[0].ToolTipText.Substring("Frequence: ".Length)
+                        );
                 }
-                Clipboard.SetText(clipboard);
+                Clipboard.SetText(clipboard.ToString());
             }
             catch (Exception ex) //{ /*làm gì giờ*/ }
             {
@@ -961,11 +969,10 @@ namespace Calculator
         {
             Preferences pre = new Preferences(
                 currentConfig[Config._09_CollapseSpeed],
-                (int)currentConfig[Config._10_FastFactorial] == 1, 
-                (int)currentConfig[Config._11_SignInteger] == 1,
-                (int)currentConfig[Config._12_ReadDictionary] == 1,
-                (int)currentConfig[Config._13_StoreHistory] == 1, 
-                currentConfig[Config._14_FastInput]
+                (int)currentConfig[Config._10_SignInteger] == 1,
+                (int)currentConfig[Config._11_ReadDictionary] == 1,
+                (int)currentConfig[Config._12_StoreHistory] == 1, 
+                currentConfig[Config._13_FastInput]
                 );
             pre.DoCheck += new Preferences.PreferencesChanged(pre_DoCheck);
             pre.ShowDialog();
@@ -979,7 +986,7 @@ namespace Calculator
             {
                 if ((bool)paras[3])
                 {
-                    Common.ReadDictionary(ref factDict);
+                    RegistryService.ReadDictionary(ref factDict);
                 }
                 else    // phải giữ lại những gì vừa tính
                 {
@@ -999,12 +1006,11 @@ namespace Calculator
                     #endregion
                 }
             }
-            currentConfig[Config._09_CollapseSpeed] = (int)paras[0];
-            currentConfig[Config._10_FastFactorial] = (bool)paras[1] ? 1 : 0;
-            currentConfig[Config._11_SignInteger] = (bool)paras[2] ? 1 : 0;
-            currentConfig[Config._12_ReadDictionary] = (bool)paras[3] ? 1 : 0;
-            currentConfig[Config._13_StoreHistory] = (bool)paras[4] ? 1 : 0;
-            currentConfig[Config._14_FastInput] = (int)paras[5];
+            currentConfig[Config._09_CollapseSpeed] = (int)paras[Config._09_CollapseSpeed - 9];
+            currentConfig[Config._10_SignInteger] = (bool)paras[Config._10_SignInteger - 9] ? 1 : 0;
+            currentConfig[Config._11_ReadDictionary] = (bool)paras[Config._11_ReadDictionary - 9] ? 1 : 0;
+            currentConfig[Config._12_StoreHistory] = (bool)paras[Config._12_StoreHistory - 9] ? 1 : 0;
+            currentConfig[Config._13_FastInput] = (int)paras[Config._13_FastInput - 9];
             if (statisticsMI.Checked)
             {
                 DisplayCountNumber();
@@ -1020,7 +1026,8 @@ namespace Calculator
         /// <param name="countMethod">cấu hình count method</param>
         private void DisplayCountNumber()
         {
-            countLB.Text = string.Format("∑n = {0}, Index = {1} / {2}", total, staDGV.CurrentCell.RowIndex + 1, staDGV.RowCount);
+            //countLB.Text = string.Format("∑n = {0}, Id = {1} / {2}", total, staDGV.CurrentCell.RowIndex + 1, staDGV.RowCount);
+            countLB.Text = string.Format("∑n = {0}", total);
         }
         #endregion
 
@@ -1057,7 +1064,7 @@ namespace Calculator
                     tbResult1.Text = tbResult2.Text = "Same dates";
                 else if (diff == 1)
                     tbResult2.Text = "1 day";
-                else tbResult2.Text = string.Format("{0} days", Common.Group(diff));
+                else tbResult2.Text = string.Format("{0} days", MathService.Group(diff));
 
                 #region hiển thị kết quả lên textbox
                 StringBuilder text = new StringBuilder();
@@ -1102,7 +1109,7 @@ namespace Calculator
             }
             else if (datemethodCB.SelectedIndex == 2)
             {
-                LunarDate lunar = ConvertDate.cd.Solar2Lunar(dtP1.Value);
+                LunarDateModel lunar = ConvertDateService.cd.Solar2Lunar(dtP1.Value);
                 tbResult2.Text = lunar.ToString();
                 // tô đỏ những ngày lễ/rằm/đầu tháng trong âm lịch
                 var dm = lunar.Day.ToString() + lunar.Month.ToString();
@@ -1284,13 +1291,13 @@ namespace Calculator
         private void assignDefaultIndex(int selectindex)
         {
             fromCB.Items.Clear();
-            fromCB.Items.AddRange(unitTypeItemMember[selectindex]);
-            fromCB.MainDataSource = unitTypeItemMember[selectindex];
+            fromCB.Items.AddRange(Constants.unitTypeItemMember[selectindex]);
+            fromCB.MainDataSource = Constants.unitTypeItemMember[selectindex];
             fromCB.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
             fromCB.SelectedIndex = 0;
             toCB.Items.Clear();
-            toCB.Items.AddRange(unitTypeItemMember[selectindex]);
-            toCB.MainDataSource = unitTypeItemMember[selectindex];
+            toCB.Items.AddRange(Constants.unitTypeItemMember[selectindex]);
+            toCB.MainDataSource = Constants.unitTypeItemMember[selectindex];
 
             switch (typeUnitCB.Items[selectindex].ToString())
             {
@@ -1338,7 +1345,7 @@ namespace Calculator
         /// <returns>giá trị dạng chuỗi của khung kết quả</returns>
         private string GetToTBText(string fromstr, Color color)
         {
-            if (Common.IsNumber(fromstr))// && fromTB.Text.Trim() != "")
+            if (MathService.IsNumber(fromstr))// && fromTB.Text.Trim() != "")
             {
                 double db = double.Parse(fromstr);
                 string cbbText = typeUnitCB.Text;
@@ -1351,11 +1358,11 @@ namespace Calculator
                     return "The input number must be a positive";
                 if (digitGroupingMI.Checked)
                 {
-                    if (db.ToString().IndexOf("E") <= 0) return Common.Group(db);
+                    if (db.ToString().IndexOf("E") <= 0) return MathService.Group(db);
                     else return db.ToString().ToLower();
                 }
                 else
-                    return db.ToString().Replace(Common.GroupSeparator, "").ToLower();
+                    return db.ToString().Replace(MathService.GroupSeparator, "").ToLower();
             }
             else if ((fromstr == "Enter value" && color == SystemColors.GrayText) || fromstr == "") return "";
             else return "Invalid input number";
@@ -1381,31 +1388,31 @@ namespace Calculator
 
         private void hotkeyMI_Click(object sender, EventArgs e)
         {
-            Info info = new Info(infoControl);
-            info.Form_Closed += new Info.SendKeyHandler(tt_Form_Closed);
-            info.Show();
+            Info tt = new Info(infoControl);
+            tt.Form_Closed += new Info.SendKeyHandler(tt_Form_Closed);
+            tt.Show();
             // location la diem goc trai tren cua control so voi man hinh desktop
-            Point p = new Point(location.X + (infoControl.Size.Width - info.Size.Width) / 2, location.Y + infoControl.Size.Height);
+            Point p = new Point(location.X + (infoControl.Size.Width - tt.Size.Width) / 2, location.Y + infoControl.Size.Height);
 
             // man hinh lam viec (chi desktop, khong tinh taskbar va cac thu linh tinh khac)
             Rectangle screen = Screen.PrimaryScreen.WorkingArea;
 
-            if (p.X + info.Size.Width >= screen.Width)    // vuot qua chieu rong ben phai
+            if (p.X + tt.Size.Width >= screen.Width)    // vuot qua chieu rong ben phai
             {
-                if (p.Y + info.Size.Height >= screen.Height) p = new Point(location.X - info.Size.Width, location.Y - info.Size.Height - 10);
-                p = new Point(location.X - info.Size.Width, p.Y);
+                if (p.Y + tt.Size.Height >= screen.Height) p = new Point(location.X - tt.Size.Width, location.Y - tt.Size.Height - 10);
+                p = new Point(location.X - tt.Size.Width, p.Y);
             }
-            else if (p.Y + info.Size.Height >= screen.Height)  // vuot qua chieu cao ben duoi
+            else if (p.Y + tt.Size.Height >= screen.Height)  // vuot qua chieu cao ben duoi
             {
-                if (p.X + info.Size.Width < screen.Width && p.X > 0) p = new Point(p.X, location.Y - info.Size.Height - 10);
-                if (p.X <= 0) p = new Point(location.X + infoControl.Size.Width + 5, location.Y - info.Size.Height - 10);
+                if (p.X + tt.Size.Width < screen.Width && p.X > 0) p = new Point(p.X, location.Y - tt.Size.Height - 10);
+                if (p.X <= 0) p = new Point(location.X + infoControl.Size.Width + 5, location.Y - tt.Size.Height - 10);
             }
             else if (p.X <= 0)
             {
                 p = new Point(location.X + infoControl.Size.Width + 5, p.Y);
             }
 
-            info.Location = p;
+            tt.Location = p;
         }
         /// <summary>
         /// truyền phím được bấm ở form info về form chính
@@ -1429,6 +1436,11 @@ namespace Calculator
         {
             formWithHistory(false);
         }
+
+        private void previewMI_Click(object sender, EventArgs e)
+        {
+            previewPanelCTMN_Click(null, null);
+        }
         /// <summary>
         /// xoá lịch sử trên grid, đồng thời xoá luôn trên registry nếu có đặt cấu hình
         /// </summary>
@@ -1436,12 +1448,12 @@ namespace Calculator
         {
             hisDGV.AllowCellStateChanged = false;
             hisDGV.Rows.Clear();
-            historyObj = new HistoryObject[100];
+            historyObj = new HistoryModel[100];
             hisDGV.AllowCellStateChanged = true;
             countLB.Text = "";
-            if ((int)currentConfig[Config._13_StoreHistory] == 1)
+            if ((int)currentConfig[Config._12_StoreHistory] == 1)
             {
-                Common.ClearHistory();
+                RegistryService.ClearHistory();
             }
         }
         /// <summary>
@@ -1500,7 +1512,7 @@ namespace Calculator
             var dgv = sender as IDataGridView;
             try
             {
-                dgv[0, dgv.CurrentCell.RowIndex].Value = Common.StandardExpression(dgv[0, dgv.CurrentCell.RowIndex].Value.ToString());
+                dgv[0, dgv.CurrentCell.RowIndex].Value = MathService.StandardExpression(dgv[0, dgv.CurrentCell.RowIndex].Value.ToString());
             }
             catch { dgv[0, dgv.CurrentCell.RowIndex].Value = "0"; }
             screenPN.BackColor = Color.White;
@@ -1525,7 +1537,7 @@ namespace Calculator
             if (dgv == staDGV && !dgv.IsCancelEdit)
             {
                 dgv.IsCancelEdit = false;
-                if ((int)currentConfig[Config._14_FastInput] == 1)
+                if ((int)currentConfig[Config._13_FastInput] == 1)
                 {
                     addStaWithFrequence(true);
                 } 
@@ -1594,10 +1606,9 @@ namespace Calculator
         {
             try
             {
-                hisDGV_SetStatusLabel();
                 //countLB.Text = string.Format("Value = {0} / {1}", rowindex + 1, hisDGV.RowCount);
                 string expression = hisDGV[0, rowindex].Value.ToString();
-                int matches = Common.NumberOfOpenWOClose(expression);
+                int matches = MathService.NumberOfOpenWOClose(expression);
                 if (matches > 0)
                 {
                     expression = expression.PadRight(matches + expression.Length, ')');
@@ -1656,6 +1667,7 @@ namespace Calculator
                         pex = new Exception(screenStr.ToString());
                 }
                 confirmNumber = true;
+                //hisDGV_SetStatusLabel();
                 DisplayToScreen();
             }
             catch (Exception ex)
@@ -1679,7 +1691,7 @@ namespace Calculator
             {
                 //if (open < 4) break;
                 string subExp = "";
-                int close = Common.GetCloseBracketIndex(expression, open, ref subExp);
+                int close = MathService.GetCloseBracketIndex(expression, open, ref subExp);
                 searchIndex = close + 1;
                 //string subExp = expression.Substring(open + 1, close - open - 1);
                 parser.EvaluateSci(subExp);
@@ -1738,9 +1750,9 @@ namespace Calculator
                 {
                     binRB.Value = "0";
                 }
-                decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[Config._11_SignInteger] == 1);
-                octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[Config._11_SignInteger] == 1);
-                hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[Config._11_SignInteger] == 1);
+                decRB.Value = BinaryService.OthersToDecimal(binRB.Value, 02, SizeBin, (int)currentConfig[Config._10_SignInteger] == 1);
+                octRB.Value = BinaryService.DecimalToOthers(decRB.Value, 08, SizeBin, (int)currentConfig[Config._10_SignInteger] == 1);
+                hexRB.Value = BinaryService.DecimalToOthers(decRB.Value, 16, SizeBin, (int)currentConfig[Config._10_SignInteger] == 1);
                 ToPreviewPanel();
                 if (binRB.Checked) screenStr = new StringBuilder(binRB.Value);
                 if (octRB.Checked) screenStr = new StringBuilder(octRB.Value);
@@ -1765,34 +1777,34 @@ namespace Calculator
         {
             try
             {
-                bool signNum = (int)currentConfig[Config._11_SignInteger] == 1;
+                bool signNum = (int)currentConfig[Config._10_SignInteger] == 1;
                 if (binRB.Checked)
                 {
                     if (!isUpdated) binRB.Value = screenStr.ToString();
-                    if (!isUpdated) decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, signNum);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
+                    if (!isUpdated) decRB.Value = BinaryService.OthersToDecimal(binRB.Value, 02, SizeBin, signNum);
+                    octRB.Value = BinaryService.DecimalToOthers(decRB.Value, 08, SizeBin, signNum);
+                    hexRB.Value = BinaryService.DecimalToOthers(decRB.Value, 16, SizeBin, signNum);
                 }
                 if (octRB.Checked)
                 {
                     octRB.Value = screenStr.ToString();
-                    if (!isUpdated) decRB.Value = Binary.other_to_dec(octRB.Value, 08, SizeBin, signNum);
-                    if (!isUpdated) binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
+                    if (!isUpdated) decRB.Value = BinaryService.OthersToDecimal(octRB.Value, 08, SizeBin, signNum);
+                    if (!isUpdated) binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 02, SizeBin, signNum);
+                    hexRB.Value = BinaryService.DecimalToOthers(decRB.Value, 16, SizeBin, signNum);
                 }
                 if (decRB.Checked)
                 {
-                    if (!isUpdated) binRB.Value = Binary.dec_to_other(screenStr.ToString(), 02, SizeBin, signNum);
-                    octRB.Value = Binary.dec_to_other(screenStr.ToString(), 08, SizeBin, signNum);
-                    if (!isUpdated) decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, signNum);
-                    hexRB.Value = Binary.dec_to_other(screenStr.ToString(), 16, SizeBin, signNum);
+                    if (!isUpdated) binRB.Value = BinaryService.DecimalToOthers(screenStr.ToString(), 02, SizeBin, signNum);
+                    octRB.Value = BinaryService.DecimalToOthers(screenStr.ToString(), 08, SizeBin, signNum);
+                    if (!isUpdated) decRB.Value = BinaryService.OthersToDecimal(binRB.Value, 02, SizeBin, signNum);
+                    hexRB.Value = BinaryService.DecimalToOthers(screenStr.ToString(), 16, SizeBin, signNum);
                 }
                 if (hexRB.Checked)
                 {
                     hexRB.Value = screenStr.ToString();
-                    if (!isUpdated) decRB.Value = Binary.other_to_dec(hexRB.Value, 16, SizeBin, signNum);
-                    if (!isUpdated) binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
+                    if (!isUpdated) decRB.Value = BinaryService.OthersToDecimal(hexRB.Value, 16, SizeBin, signNum);
+                    if (!isUpdated) binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 02, SizeBin, signNum);
+                    octRB.Value = BinaryService.DecimalToOthers(decRB.Value, 08, SizeBin, signNum);
                 }
                 ToPreviewPanel();
 
@@ -1815,10 +1827,10 @@ namespace Calculator
         /// </summary>
         private void ToPreviewPanel()
         {
-            hex_prvLb.Text = string.Format("Hex: {0}", Common.Group(hexRB.Value, " ", 4));
-            dec_prvLb.Text = string.Format("Dec: {0}", Common.Group(decRB.Value, Common.GroupSeparator, 3));
-            oct_prvLb.Text = string.Format("Oct: {0}", Common.Group(octRB.Value, " ", 3));
-            bin_prvLb.Text = string.Format("Bin: {0}", Common.Group(binRB.Value, " ", 4));
+            hex_prvLb.Text = string.Format("Hex: {0}", MathService.Group(hexRB.Value, " ", 4));
+            dec_prvLb.Text = string.Format("Dec: {0}", MathService.Group(decRB.Value, MathService.GroupSeparator, 3));
+            oct_prvLb.Text = string.Format("Oct: {0}", MathService.Group(octRB.Value, " ", 3));
+            bin_prvLb.Text = string.Format("Bin: {0}", MathService.Group(binRB.Value, " ", 4));
         }
         /// <summary>
         /// preview label của số nhị phân text changed
@@ -1843,7 +1855,7 @@ namespace Calculator
             if (rb.Checked)
             {
                 baseRBCheckedChanged();
-                //var a = this.Controls.Find("prvlb" + rb.Text, true);
+                //var a = Controls.Find("prvlb" + rb.Text, true);
                 //if (a.Length > 0) a[0].ForeColor = Color.Red;
                 screenStr = new StringBuilder(rb.Value);
                 DisplayToScreen();
@@ -1964,9 +1976,7 @@ namespace Calculator
             Label lbl = sender as Label;
             string rbName = lbl.Name.Substring(0, 3) + "RB";
             IRadioButton rb = basePN.Controls[rbName] as IRadioButton;
-            rb.CheckedChanged -= baseRB_CheckedChanged;
             rb.Checked = true;
-            rb.CheckedChanged += baseRB_CheckedChanged;
             baseRB_CheckedChanged(rb, e);
         }
         #endregion
@@ -1976,6 +1986,8 @@ namespace Calculator
         /// biến lưu tổng Σn của các số trên grid
         /// </summary>
         double total = 0;
+
+        List<StatisticModel> statisticItems = new List<StatisticModel>();
         //
         // nút xoá hết (CAD)
         //
@@ -1992,8 +2004,8 @@ namespace Calculator
         {
             if (pex == null)
             {
-                if ((Form.ModifierKeys != Keys.None && (int)currentConfig[Config._14_FastInput] != 1)       // ctrl enter và tick chọn (nhập frequency cho từng số)            
-                    || (Form.ModifierKeys == Keys.None && (int)currentConfig[Config._14_FastInput] == 1))   // hoặc enter và untick chọn (nhập frequency cho từng số)
+                if ((ModifierKeys != Keys.None && (int)currentConfig[Config._13_FastInput] != 1)       // ctrl enter và tick chọn (nhập frequency cho từng số)            
+                    || (ModifierKeys == Keys.None && (int)currentConfig[Config._13_FastInput] == 1))   // hoặc enter và untick chọn (nhập frequency cho từng số)
                 {
                     var dr = addStaWithFrequence(false) ;
                     if (dr == DialogResult.OK)
@@ -2003,7 +2015,7 @@ namespace Calculator
                 }
                 else
                 {
-                    AddStaFQ(1d);
+                    AddStaFQ(1);
                 }
             }
         }
@@ -2029,27 +2041,46 @@ namespace Calculator
         /// </summary>
         /// <param name="fq">giá trị tần suất từ bảng nhập</param>
         /// <param name="isUpdate">true nếu là cập nhật lại giá trị và tần suất của số đó, false nếu là add bình thường</param>
-        private void frq_GetFrequence(double fq, bool isUpdate)
+        private void frq_GetFrequence(int fq, bool isUpdate)
         {
-            if (!isUpdate) AddStaFQ(fq);
-            else UpdateStaFQ(fq);
+            if (!isUpdate) 
+                AddStaFQ(fq);
+            else 
+                UpdateStaFQ(fq);
             screenPN.Focus();
             //DisplayCountNumber();
         }
         /// <summary>
         /// thêm giá trị mới với tần suất đã nhập
         /// </summary>
-        /// <param name="fq">tần suất</param>
-        private void AddStaFQ(double fq)
+        /// <param name="frequence">tần suất</param>
+        private void AddStaFQ(int frequence)
         {
-            staDGV.Rows.Add();
-            staDGV.Rows[staDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
-            var cell = staDGV[0, staDGV.RowCount - 1];
+            var existItem = statisticItems.FirstOrDefault(f => f.Value.ToString() == screenStr.ToString());
+            DataGridViewCell cell;
+            if (existItem != null)
+            {
+                existItem.Frequence += frequence;
+                cell = staDGV[0, existItem.Id - 1];
+            }
+            else
+            {
+                var newItem = new StatisticModel()
+                {
+                    Id = statisticItems.Count + 1,
+                    Value = double.Parse(screenStr.ToString()),
+                    Frequence = frequence,
+                };
+                statisticItems.Add(newItem);
+                staDGV.Rows.Add();
+                staDGV.Rows[staDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
+                cell = staDGV[0, staDGV.RowCount - 1];
+            }
             cell.Value = screenStr.ToString();
             cell.Selected = true;
-            cell.ToolTipText = string.Format("Frequence: {0}", fq);
+            cell.ToolTipText = string.Format("Frequence: {0}", existItem != null ? existItem.Frequence : frequence);
             staDGV.CurrentCell = cell;
-            total += fq;
+            total += frequence;
             screenStr = new StringBuilder("0");
             DisplayToScreen();
             DisplayCountNumber();
@@ -2090,7 +2121,7 @@ namespace Calculator
                 return;
             }
             double resultSigmaN = sum(true) - sum(false) * sum(false) / total;
-            resultSigmaN /= (total - 1);
+            resultSigmaN /= total - 1;
             resultSigmaN = Math.Sqrt(resultSigmaN);
             screenStr = new StringBuilder(resultSigmaN.ToString());
             DisplayToScreen();
@@ -2122,7 +2153,8 @@ namespace Calculator
         private void sigmax2BT_Click(object sender, EventArgs e)
         {
             if (total == 0) return;
-            screenStr = new StringBuilder(sum(true).ToString());
+            var squareSum = sum(true);
+            screenStr = new StringBuilder(squareSum.ToString());
             DisplayToScreen();
         }
         //
@@ -2168,7 +2200,7 @@ namespace Calculator
                 staDGV.MouseDown += EnableKeyboardAndChangeFocus;
                 string vl = staDGV[0, e.RowIndex].Value.ToString();
                 double.Parse(vl);
-                vl = vl.Replace(",", Common.DecimalSeparator).Replace(".", Common.DecimalSeparator);
+                vl = vl.Replace(",", MathService.DecimalSeparator).Replace(".", MathService.DecimalSeparator);
                 staDGV[0, e.RowIndex].Value = vl;
                 dgv_OnEndEdit(sender);
             }
@@ -2246,18 +2278,18 @@ namespace Calculator
                     case 0:
                         smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
                         result_WS = db[3] * (smth - 1);
-                        result_WS /= (smth * db[2] / 1200);
+                        result_WS /= smth * db[2] / 1200;
                         result_WS = db[0] - result_WS;
                         break;
                     case 1:
                         smth = Math.Pow(1 + db[3] / 1200, db[2] * 12);
                         result_WS = (db[0] - db[1]) * smth * (db[3] / 1200);
-                        result_WS /= (smth - 1);
+                        result_WS /= smth - 1;
                         break;
                     case 2:
                         smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
                         result_WS = db[3] * (smth - 1);
-                        result_WS /= (smth * db[2] / 1200);
+                        result_WS /= smth * db[2] / 1200;
                         result_WS += db[0];
                         break;
                     case 3:
@@ -2266,10 +2298,10 @@ namespace Calculator
                         break;
                 }
                 mortgageTF[order[len]].AllowTextChanged = false;
-                mortgageTF[order[len]].TBFont = new Font(mortgageTF[order[len]].Font, FontStyle.Regular);
-                mortgageTF[order[len]].Fore_Color = SystemColors.WindowText;
+                //mortgageTF[order[len]].TBFont = new Font(mortgageTF[order[len]].Font, FontStyle.Regular);
+                //mortgageTF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = mortgageTF[order[len]].TextBoxText = Common.Group(result_WS.ToString());
+                    workSheetResultTB.Text = mortgageTF[order[len]].TextBoxText = MathService.Group(result_WS.ToString());
                 else
                     workSheetResultTB.Text = mortgageTF[order[len]].TextBoxText = result_WS.ToString();
                 mortgageTF[order[len]].AllowTextChanged = true;
@@ -2278,11 +2310,57 @@ namespace Calculator
             if (wsType == 1)
             {
                 #region vehicle lease calculation
+                /*
+                 * with p is periodic payment
+                 *      lv is the lease value
+                 *      lp is lease period (in years)
+                 *      n is payments per year = 12 * n in months
+                 *      rv is residual value
+                 *      r is interest rate (in percent %)
+                 * we have the formula:
+                 *      numerator = (lv - rv + rv * r / lp)
+                 *      denominator = (1 - (1 + r / lp) ^ -(n*lp)) / r * lp
+                 *      p = numerator / denominator
+                 * so we can calculate the other varius from the formula above
+                 *
+                 * */
                 switch (typeWorkSheetCB.SelectedIndex)
                 {
+                    case 0:
+                        //db = new double[5] { lv, n, rv, r, p };
+                        var periodicRate = db[3] / db[1];
+                        result_WS = Math.Log(1 - periodicRate * (db[0] - db[2]) / (db[4] - db[2] * periodicRate));
+                        result_WS /= -db[1];
+                        result_WS /= Math.Log(1 + periodicRate);
+                        break;
+                    case 1:
+                        //db = new double[5] { lp, n, rv, r, p };
+                        periodicRate = db[3] / db[1];
+                        result_WS = db[4] * (1 - Math.Pow(1 + periodicRate, -db[1] * db[0])) / periodicRate;
+                        result_WS += db[2] / Math.Pow(1 + periodicRate, db[1] * db[0]);
+                        break;
+                    case 2:
+                        //db = new double[5] { lv, lp, n, rv, r };
+                        //result_WS = (lv - rv) / (lp * n) + rv * (rv / n);
+                        result_WS = (db[0] - db[3]) / (db[1] * db[2]) + db[3] * (db[4] / db[2]);
+                        break;
+                    case 3:
+                        //db = new double[5] { lv, lp, n, r, p };
+                        periodicRate = db[3] / db[2];
+                        var depreciationValue = db[4] * (1 - Math.Pow(1 + periodicRate, -db[1] * db[2])) / periodicRate;
+                        result_WS = db[0] - depreciationValue;
+                        break;
                     default: // chua co cong thuc tinh => ケメノ
                         break;
                 }
+                VhTF[order[len]].AllowTextChanged = false;
+                //mortgageTF[order[len]].TBFont = new Font(mortgageTF[order[len]].Font, FontStyle.Regular);
+                //mortgageTF[order[len]].Fore_Color = SystemColors.WindowText;
+                if (digitGroupingMI.Checked)
+                    workSheetResultTB.Text = VhTF[order[len]].TextBoxText = MathService.Group(result_WS.ToString());
+                else
+                    workSheetResultTB.Text = VhTF[order[len]].TextBoxText = result_WS.ToString();
+                VhTF[order[len]].AllowTextChanged = true;
                 #endregion
             }
             if (wsType == 2)
@@ -2298,10 +2376,10 @@ namespace Calculator
                         break;
                 }
                 fe_MPGTF[order[len]].AllowTextChanged = false;
-                fe_MPGTF[order[len]].TBFont = new Font(fe_MPGTF[order[len]].Font, FontStyle.Regular);
-                fe_MPGTF[order[len]].Fore_Color = SystemColors.WindowText;
+                //fe_MPGTF[order[len]].TBFont = new Font(fe_MPGTF[order[len]].Font, FontStyle.Regular);
+                //fe_MPGTF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = fe_MPGTF[order[len]].TextBoxText = Common.Group(result_WS.ToString());
+                    workSheetResultTB.Text = fe_MPGTF[order[len]].TextBoxText = MathService.Group(result_WS.ToString());
                 else
                     workSheetResultTB.Text = fe_MPGTF[order[len]].TextBoxText = result_WS.ToString();
                 fe_MPGTF[order[len]].AllowTextChanged = true;
@@ -2323,10 +2401,10 @@ namespace Calculator
                         break;
                 }
                 feL100TF[order[len]].AllowTextChanged = false;
-                feL100TF[order[len]].TBFont = new Font(feL100TF[order[len]].Font, FontStyle.Regular);
-                feL100TF[order[len]].Fore_Color = SystemColors.WindowText;
+                //feL100TF[order[len]].TBFont = new Font(feL100TF[order[len]].Font, FontStyle.Regular);
+                //feL100TF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = feL100TF[order[len]].TextBoxText = Common.Group(result_WS.ToString());
+                    workSheetResultTB.Text = feL100TF[order[len]].TextBoxText = MathService.Group(result_WS.ToString());
                 else
                     workSheetResultTB.Text = feL100TF[order[len]].TextBoxText = result_WS.ToString();
                 feL100TF[order[len]].AllowTextChanged = true;
@@ -2346,8 +2424,6 @@ namespace Calculator
         int[] order = new int[] { };
         private void typeWorkSheetCB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // chưa có công thức cho phần vehicle lease nên tạm thời disabled đi
-            workSheetCalculateBT.Enabled = !vehicleLeaseMI.Checked;
             if (mortgageMI.Checked)
             {
                 switch (typeWorkSheetCB.SelectedIndex)
@@ -2422,7 +2498,7 @@ namespace Calculator
                 itf[order[i]].TabIndex = 10 + i;
                 itf[order[i]].Visible = i != itf.Length - 1;
             }
-            //if (Common.IsNumber(itf[order[itf.Length - 1]].TextBoxText))
+            //if (MathService.IsNumber(itf[order[itf.Length - 1]].TextBoxText))
             //{
             //    workSheetResultTB.Text = itf[order[itf.Length - 1]].TextBoxText;
             //}
@@ -2434,7 +2510,7 @@ namespace Calculator
         private void workSheetCalculateBT_Click(object sender, EventArgs e)
         {
             if (mortgageMI.Checked) wsCalculateMethod(mortgageTF, 0);
-            //if (vehicleLeaseMI.Checked) wsCalculateMethod(VhTF, 1);    // uncomment khi nao co cong thuc
+            if (vehicleLeaseMI.Checked) wsCalculateMethod(VhTF, 1);
             if (fe_MPG_MI.Checked) wsCalculateMethod(fe_MPGTF, 2);
             if (feL100_MI.Checked) wsCalculateMethod(feL100TF, 3);
         }
@@ -2457,7 +2533,7 @@ namespace Calculator
         {
             if (!factDict.SelectValue().Contains(input.StrValue))
             {
-                factDict.Add(new FactorialObject()
+                factDict.Add(new FactorialModel()
                 {
                     Value = input.StrValue,
                     Result = output.StrValue,
@@ -2489,9 +2565,10 @@ namespace Calculator
             gridPanel.BackColor = hisDGV.BackgroundColor = staDGV.BackgroundColor = expressionTB.BackColor = gridPanel.BackColor = screenPN.BackColor;
         }
 
-        private void hisDGV_SetStatusLabel()
+        private void hisDGV_CurrentCellChanged(object sender, EventArgs e)
         {
-            countLB.Text = string.Format("Index = {0} / {1}", hisDGV.CurrentCell.RowIndex + 1, hisDGV.RowCount);
+            if (hisDGV.CurrentCell == null) return;
+            countLB.Text = string.Format("Id = {0} / {1}", hisDGV.CurrentCell.RowIndex + 1, hisDGV.RowCount);
         }
         #endregion
     }

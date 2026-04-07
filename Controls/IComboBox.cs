@@ -27,6 +27,7 @@ namespace Calculator
                     tbSearch.Location = new System.Drawing.Point(0, 0);
                     tbSearch.Visible = false;
                     tbSearch.ShortcutsEnabled = false;
+                    tbSearch.Cursor = Cursors.IBeam;
                     tbSearch.BringToFront();
                     tbSearch.TextChanged += new EventHandler(tb_TextChanged);
                     Controls.Add(tbSearch);
@@ -104,6 +105,12 @@ namespace Calculator
                     {
                         this.Select();
                     }
+                    break;
+                case Keys.Escape:
+                    this.DroppedDown = false;
+                    break;
+                case Keys.Control | Keys.A:
+                    this.tbSearch.SelectAll();
                     break;
             }
             return base.ProcessCmdKey(ref msg, keyData);

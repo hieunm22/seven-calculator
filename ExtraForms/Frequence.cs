@@ -15,7 +15,7 @@ namespace Calculator
             frqTB.SelectAll();
         }
 
-        public delegate void SendFrequence(double frq, bool isUpdate);
+        public delegate void SendFrequence(int frq, bool isUpdate);
         public event SendFrequence AddFrequence = null;
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -23,13 +23,13 @@ namespace Calculator
             int key_hc = keyData.GetHashCode();
             if (keyData == Keys.Escape)
             {
-                this.DialogResult = DialogResult.Cancel;
-                this.Close();
+                DialogResult = DialogResult.Cancel;
+                Close();
                 return base.ProcessCmdKey(ref msg, keyData);
             }
             toolTip1.Hide(frqTB);
 
-            double frqValue = 0d;
+            int frqValue = 0;
 
             switch (keyData)
             {
@@ -39,23 +39,23 @@ namespace Calculator
                     {
                         var pt = frqTB.GetPositionFromCharIndex(frqTB.Text.Length - 1);
                         toolTip1.Show("You must enter a value!", frqTB, pt.X - 5, -40, 3000);
-                        this.DialogResult = DialogResult.OK;
+                        DialogResult = DialogResult.OK;
                         return false;
                     }
                     try
                     {
-                        frqValue = double.Parse(frqTB.Text.Replace(Common.GroupSeparator, ""));
+                        frqValue = int.Parse(frqTB.Text.Replace(MathService.GroupSeparator, ""));
                     }
                     catch (Exception)
                     {
                         var pt = frqTB.GetPositionFromCharIndex(frqTB.Text.Length - 1);
                         toolTip1.Show("Input string is not valid!", frqTB, pt.X - 5, -40, 3000);
-                        this.DialogResult = DialogResult.Cancel;
+                        DialogResult = DialogResult.Cancel;
                         return false;
                     }
                     if (AddFrequence != null) AddFrequence(frqValue, IsUpdate);
-                    this.DialogResult = DialogResult.OK;
-                    this.Close();
+                    DialogResult = DialogResult.OK;
+                    Close();
                     break;
                 case Keys.Up:
                     frqTB.Text = (++frqValue).ToString();
@@ -75,7 +75,7 @@ namespace Calculator
             double frqValue = 0d;
             try
             {
-                frqValue = double.Parse(frqTB.Text.Replace(Common.GroupSeparator, ""));
+                frqValue = double.Parse(frqTB.Text.Replace(MathService.GroupSeparator, ""));
             }
             catch (FormatException fe)
             {
@@ -91,9 +91,9 @@ namespace Calculator
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (this.DialogResult != DialogResult.OK)
+            if (DialogResult != DialogResult.OK)
             {
-                this.DialogResult = DialogResult.Cancel;
+                DialogResult = DialogResult.Cancel;
             }
             base.OnClosing(e);
         }

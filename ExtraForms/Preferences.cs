@@ -3,18 +3,18 @@ using System.Windows.Forms;
 
 namespace Calculator
 {
-    public partial class Preferences : ExtraForm
+    public partial class Preferences : BaseForm
     {
         int inputMethod;
         decimal transfer;
-        bool mod = false, f3, sign, readDict, readDictChanged, storeHistory;
+        bool mod = false, sign, readDict, readDictChanged, storeHistory;
 
         public Preferences(params object[] paras)
         {
             InitializeComponent();
             LoadSettings(paras);
-            this.label1.MouseDown += MoveForm;
-            this.label2.MouseDown += MoveForm;
+            label1.MouseDown += MoveForm;
+            label2.MouseDown += MoveForm;
         }
         /// <summary>
         /// nạp cấu hình từ form chính
@@ -23,11 +23,10 @@ namespace Calculator
         private void LoadSettings(params object[] paras)
         {
             nudCollapsedSpd.Value = transfer = (int)paras[0];
-            ckbFastFact.Checked = f3 = (bool)paras[1];
-            ckbUsedSign.Checked = sign = (bool)paras[2];
-            ckbReadDict.Checked = readDict = (bool)paras[3];
-            ckbStoreHistory.Checked = storeHistory = (bool)paras[4];
-            cbbInputMethod.SelectedIndex = inputMethod = (int)paras[5];
+            ckbUsedSign.Checked = sign = (bool)paras[1];
+            ckbReadDict.Checked = readDict = (bool)paras[2];
+            ckbStoreHistory.Checked = storeHistory = (bool)paras[3];
+            cbbInputMethod.SelectedIndex = inputMethod = (int)paras[4];
         }
         /// <summary>
         /// thay đổi cấu hình trên form
@@ -47,7 +46,6 @@ namespace Calculator
                     // các giá trị checkbox, combobox,... trên form cấu hình
                     (int)nudCollapsedSpd.Value, 
                     //--------------------------------
-                    ckbFastFact.Checked, 
                     ckbUsedSign.Checked, 
                     ckbReadDict.Checked,
                     ckbStoreHistory.Checked,
@@ -55,14 +53,14 @@ namespace Calculator
                     cbbInputMethod.SelectedIndex
                     );
             }
-            this.Close();
+            Close();
         }
         /// <summary>
         /// nút cancel
         /// </summary>
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
         /// <summary>
         /// numericupdown speed
@@ -71,14 +69,6 @@ namespace Calculator
         {
             if (mod && nudCollapsedSpd.Value == transfer) { mod = false; return; }
             mod |= nudCollapsedSpd.Value != transfer;
-        }
-        /// <summary>
-        /// check chọn fast factorial
-        /// </summary>
-        private void ckbFastFact_CheckedChanged(object sender, EventArgs e)
-        {
-            if (mod && ckbFastFact.Checked == f3) { mod = false; return; }
-            mod |= f3 != ckbFastFact.Checked;
         }
         /// <summary>
         /// check chọn số nguyên có dấu
@@ -110,30 +100,19 @@ namespace Calculator
         /// </summary>
         private void countMethodCB_SelectedIndexChanged(object sender, EventArgs e)
         {
-            cb_SelectedIndexChanged(sender, inputMethod);
-        }
-        /// <summary>
-        /// hàm chung của virtual combobox selected index change
-        /// </summary>
-        /// <param name="sender">combobox</param>
-        /// <param name="index">biến toàn cục tương đương</param>
-        private void cb_SelectedIndexChanged(object sender, int index)
-        {
             ComboBox cb = sender as ComboBox;
-            if (mod && cb.SelectedIndex == index) { mod = false; return; }
-            mod |= cb.SelectedIndex != index;
+            if (mod && cb.SelectedIndex == inputMethod) { mod = false; return; }
+            mod |= cb.SelectedIndex != inputMethod;
         }
 
         private void btnDefault_Click(object sender, EventArgs e)
         {
             nudCollapsedSpd.Value = 10;
-            ckbFastFact.Checked = false;
             ckbUsedSign.Checked = true;
             ckbReadDict.Checked = true;
             ckbStoreHistory.Checked = false;
             cbbInputMethod.SelectedIndex = 0;
             mod |= nudCollapsedSpd.Value != transfer;
-            mod |= f3 != ckbFastFact.Checked;
             mod |= sign != ckbUsedSign.Checked;
             mod |= storeHistory != ckbStoreHistory.Checked;
             mod |= readDictChanged;

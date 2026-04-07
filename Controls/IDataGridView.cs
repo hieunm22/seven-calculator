@@ -74,6 +74,18 @@ namespace Calculator
                 if (IsCancelEdit) base.CancelEdit();
                 return base.EndEdit();
             }
+            // bấm home và không đang ở chế độ editmode
+            if (!IsCurrentCellInEditMode && Rows.Count > 0)
+            {
+                if (keyData == Keys.Home)
+                {
+                    CurrentCell = this[0, 0];
+                }
+                if (keyData == Keys.End)
+                {
+                    CurrentCell = this[0, Rows.Count - 1];
+                }
+            }
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -89,9 +101,8 @@ namespace Calculator
             }
             if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
             {
-                if (!IsCurrentCellInEditMode)
-                    return base.ProcessDataGridViewKey(e);
-                else return false;
+                if (IsCurrentCellInEditMode)
+                    return false;
             }
             return base.ProcessDataGridViewKey(e);
         }

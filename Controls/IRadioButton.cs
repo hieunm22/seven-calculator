@@ -11,7 +11,7 @@ namespace Calculator
             set { base.ContextMenu = value; }
         }
         /// <summary>
-        /// giá trị ở hệ xx-phân mà radio này mang tên
+        /// giá trị ở hệ xx-phân mà radio này được check
         /// </summary>
         public string Value { get; set; }
     }

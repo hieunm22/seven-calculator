@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace Calculator
 {
@@ -36,7 +35,6 @@ namespace Calculator
             this.label1 = new System.Windows.Forms.Label();
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.ckbFastFact = new System.Windows.Forms.CheckBox();
             this.ckbUsedSign = new System.Windows.Forms.CheckBox();
             this.ckbReadDict = new System.Windows.Forms.CheckBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -60,7 +58,7 @@ namespace Calculator
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnOK.Location = new System.Drawing.Point(40, 178);
+            this.btnOK.Location = new System.Drawing.Point(40, 151);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(72, 27);
             this.btnOK.TabIndex = 10;
@@ -71,7 +69,7 @@ namespace Calculator
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(135, 178);
+            this.btnCancel.Location = new System.Drawing.Point(135, 151);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(72, 27);
             this.btnCancel.TabIndex = 11;
@@ -79,25 +77,12 @@ namespace Calculator
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
             // 
-            // ckbFastFact
-            // 
-            this.ckbFastFact.AutoSize = true;
-            this.ckbFastFact.Location = new System.Drawing.Point(24, 46);
-            this.ckbFastFact.Name = "ckbFastFact";
-            this.ckbFastFact.Size = new System.Drawing.Size(93, 19);
-            this.ckbFastFact.TabIndex = 3;
-            this.ckbFastFact.Text = "&Fast factorial";
-            this.toolTip1.SetToolTip(this.ckbFastFact, "Using an approximate method to calculate a big number, \r\nso that accuracy of the " +
-        "result is less than normal method");
-            this.ckbFastFact.UseVisualStyleBackColor = true;
-            this.ckbFastFact.CheckedChanged += new System.EventHandler(this.ckbFastFact_CheckedChanged);
-            // 
             // ckbUsedSign
             // 
             this.ckbUsedSign.AutoSize = true;
             this.ckbUsedSign.Checked = true;
             this.ckbUsedSign.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckbUsedSign.Location = new System.Drawing.Point(24, 68);
+            this.ckbUsedSign.Location = new System.Drawing.Point(24, 46);
             this.ckbUsedSign.Name = "ckbUsedSign";
             this.ckbUsedSign.Size = new System.Drawing.Size(269, 19);
             this.ckbUsedSign.TabIndex = 4;
@@ -111,7 +96,7 @@ namespace Calculator
             this.ckbReadDict.AutoSize = true;
             this.ckbReadDict.Checked = true;
             this.ckbReadDict.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.ckbReadDict.Location = new System.Drawing.Point(24, 90);
+            this.ckbReadDict.Location = new System.Drawing.Point(24, 68);
             this.ckbReadDict.Name = "ckbReadDict";
             this.ckbReadDict.Size = new System.Drawing.Size(267, 19);
             this.ckbReadDict.TabIndex = 5;
@@ -130,7 +115,7 @@ namespace Calculator
             // ckbStoreHistory
             // 
             this.ckbStoreHistory.AutoSize = true;
-            this.ckbStoreHistory.Location = new System.Drawing.Point(24, 112);
+            this.ckbStoreHistory.Location = new System.Drawing.Point(24, 90);
             this.ckbStoreHistory.Name = "ckbStoreHistory";
             this.ckbStoreHistory.Size = new System.Drawing.Size(155, 19);
             this.ckbStoreHistory.TabIndex = 13;
@@ -146,7 +131,7 @@ namespace Calculator
             this.cbbInputMethod.Items.AddRange(new object[] {
             "Control-Enter                    ",
             "Enter                                   "});
-            this.cbbInputMethod.Location = new System.Drawing.Point(159, 138);
+            this.cbbInputMethod.Location = new System.Drawing.Point(159, 112);
             this.cbbInputMethod.Name = "cbbInputMethod";
             this.cbbInputMethod.Size = new System.Drawing.Size(159, 23);
             this.cbbInputMethod.TabIndex = 7;
@@ -155,7 +140,7 @@ namespace Calculator
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(21, 142);
+            this.label2.Location = new System.Drawing.Point(21, 115);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(122, 15);
             this.label2.TabIndex = 6;
@@ -163,7 +148,7 @@ namespace Calculator
             // 
             // btnDefault
             // 
-            this.btnDefault.Location = new System.Drawing.Point(230, 178);
+            this.btnDefault.Location = new System.Drawing.Point(230, 151);
             this.btnDefault.Name = "btnDefault";
             this.btnDefault.Size = new System.Drawing.Size(72, 27);
             this.btnDefault.TabIndex = 12;
@@ -200,14 +185,13 @@ namespace Calculator
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(343, 226);
+            this.ClientSize = new System.Drawing.Size(343, 196);
             this.Controls.Add(this.ckbStoreHistory);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cbbInputMethod);
             this.Controls.Add(this.ckbReadDict);
             this.Controls.Add(this.ckbUsedSign);
             this.Controls.Add(this.nudCollapsedSpd);
-            this.Controls.Add(this.ckbFastFact);
             this.Controls.Add(this.btnDefault);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
@@ -226,7 +210,6 @@ namespace Calculator
         private Label label1;
         private Button btnOK;
         private Button btnCancel;
-        private CheckBox ckbFastFact;
         private INumericUpDown nudCollapsedSpd;
         private CheckBox ckbUsedSign;
         private CheckBox ckbReadDict;

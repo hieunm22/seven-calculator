@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace Calculator
 {
-    public partial class About : ExtraForm
+    public partial class About : BaseForm
     {
         public About()
         {
@@ -16,10 +16,13 @@ namespace Calculator
         private void OnLoad()
         {
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(Application.ExecutablePath);
-            string version = fvi.FileVersion;
-            aboutLb.Text = string.Format("Seven calculator v{0} - Developed by Nguyen Minh Hieu", version);
-            this.Size = new Size(aboutLb.Location.X + aboutLb.Size.Width + pictureBox1.Location.X, this.Height);
-            btnOk.Location = new Point((this.Size.Width - btnOk.Size.Width) / 2, btnOk.Location.Y);
+            aboutLb.Text = string.Format("Seven calculator v{0} - Developed by Nguyen Minh Hieu", fvi.FileVersion);
+            Size = new Size(aboutLb.Location.X + aboutLb.Size.Width + pictureBox1.Location.X, Height);
+            btnOk.Location = new Point((Size.Width - btnOk.Size.Width) / 2, btnOk.Location.Y);
+            aboutLb.MouseDown += MoveForm;
+            iLabel2.MouseDown += MoveForm;
+            emaillb.MouseDown += MoveForm;
+            pictureBox1.MouseDown += MoveForm;
         }
 
         private void btnOk_Click(object sender, EventArgs e)

@@ -15,268 +15,6 @@ namespace Calculator
         /// </summary>
         private IContainer components = null;
 
-        #region constants, readonly
-        /// <summary>
-        /// số lần mở ngoặc tối đa
-        /// </summary>
-        private const int MAX_BRACKET_LEVEL = 25;
-        /// <summary>
-        /// list options name
-        /// </summary>
-        private readonly string[] optionName = new string[]{
-
-            #region init item members
-            "CalculatorType",
-            "UseSep",
-            "ExtraFunction",
-            "ShowHistory",
-            "MemoryNumber",
-            "ShowPreview",
-            // --------------------------
-            "TypeUnit",
-            "AutoCalculate",
-            "DateMethod",
-            // --------------------------
-            "CollapseSpeed",
-            "FastFactorial",
-            "SignInteger",
-            "ReadDictionary",
-            "StoreHistory",
-            "FastInput",
-            "CountMethod",
-            #endregion
-
-        };
-        /// <summary>
-        /// combobox item member
-        /// </summary>
-        private readonly string[][] unitTypeItemMember = new string[][]{
-
-            #region init item members
-            new string[]{
-            "Degree",
-            "Gradian",
-            "Radian"},
-            new string[]{
-            "Acres",
-            "Hectares",
-            "Square centimeter",
-            "Square feet",
-            "Square inch",
-            "Square kilometer",
-            "Square meters",
-            "Square mile",
-            "Square millimeter",
-            "Square yard"},
-            new string[]{
-            "Bit (b)",
-            "Byte (B)",
-            "Exabit (Eb)",
-            "Exabyte (EB)",
-            "Gigabit (Gb)",
-            "Gigabyte (GB)",
-            "Kilobit (Kb)",
-            "Kilobyte (KB)",
-            "Megabit (Mb)",
-            "Megabyte (MB)",
-            "Nibble",
-            "Petabit (Pb)",
-            "Petabyte (PB)",
-            "Terabit (Tb)",
-            "Terabyte (TB)",
-            "Yottabit (Yb)",
-            "Yottabyte (YB)",
-            "Zettabit (Zb)",
-            "Zettabyte (ZB)",
-            },
-            new string[]{
-            "British Thermal Unit",
-            "Calorie",
-            "Electron-volts",
-            "Foot-pound",
-            "Joule",
-            "Kilocalorie",
-            "Kilojoule"},
-            new string[]{
-            "Angstrom",
-            "Centimeters",
-            "Chain",
-            "Fathom",
-            "Feet",
-            "Hand",
-            "Inch",
-            "Kilometers",
-            "Light year",
-            "Link",
-            "Meter",
-            "Microns",
-            "Mile",
-            "Millimeters",
-            "Nanometers",
-            "Nautical miles",
-            "PICA",
-            "Rods",
-            "Span",
-            "Yard"},
-            new string[]{
-            "BTU/minute",
-            "Foot-pound/minute",
-            "Horsepower",
-            "Kilowatt",
-            "Watt"},
-            new string[]{
-            "Atmosphere",
-            "Bar",
-            "Kilo Pascal",
-            "Millimeter of mercury",
-            "Pascal",
-            "Pound per square inch (PSI)"},
-            new string[]{
-            "Degrees Celsius",
-            "Degrees Fahrenheit",
-            "Kelvin"},
-            new string[]{
-            "Day",
-            "Hour",
-            "Microsecond",
-            "Milisecond",
-            "Minute",
-            "Second",
-            "Week"},
-            new string[]{
-            "Centimeter per second",
-            "Feet per second",
-            "Kilometer per hour",
-            "Knots",
-            "Mach (at std.atm)",
-            "Meter per second",
-            "Miles per hour (mph)"},
-            new string[]{
-            "Cubic centimeter",
-            "Cubic feet",
-            "Cubic inch",
-            "Cubic meter",
-            "Cubic yard",
-            "Fluid ounce (UK)",
-            "Fluid ounce (US)",
-            "Gallon (UK)",
-            "Gallon (US)",
-            "Liter",
-            "Pint (UK)",
-            "Pint (US)",
-            "Quart (UK)",
-            "Quart (US)"},
-            new string[]{
-            "Carat",
-            "Centigram",
-            "Decigram",
-            "Dekagram",
-            "Gram",
-            "Hectogram",
-            "Kilogram",
-            "Long ton",
-            "Milligram",
-            "Ounce",
-            "Pound",
-            "Short ton",
-            "Stone",
-            "Tonne"}
-            #endregion
-
-        };
-        /// <summary>
-        /// combobox item member
-        /// </summary>
-        private readonly string[][] worksheetsLabel = new string[][]{
-
-            #region init item members
-            new string[]{
-            "Purchase price",
-            "Term (years)",
-            "Interest rate (%)",
-            "Monthly payment",
-            "Down payment"},
-            new string[]{
-            "Lease value",
-            "Payments per year",
-            "Residual value",
-            "Interest rate (%)",
-            "Periodic payment",
-            "Lease period"},
-            new string[]{
-            "Fuel used (gallons)",
-            "Distance (miles)",
-            "Fuel economy (mpg)"},
-            new string[]{
-            "Fuel used (liters)",
-            "Distance (kilometers)",
-            "Fuel economy (L/100 km)"}
-            #endregion
-
-        };
-        /// <summary>
-        /// combobox item member
-        /// </summary>
-        private readonly string[][] worksheetsComboBoxItems = new string[][]{
-
-            #region init item members
-            new string[]{
-            "Down Payment",
-            "Monthly Payment",
-            "Purchase price",
-            "Term (years)"},
-            new string[]{
-            "Lease period",
-            "Lease value",
-            "Periodic payment",
-            "Residual value"},
-            new string[]{
-            "Distance (miles)",
-            "Fuel economy (mpg)",
-            "Fuel used (gallons)"},
-            new string[]{
-            "Distance (kilometers)",
-            "Fuel economy (L/100 km)",
-            "Fuel used (liters)"}
-            #endregion
-
-        };
-        /// <summary>
-        /// độ rộng form standard/statistic không có extra function = 220
-        /// </summary>
-        private const int APP_W1 = 220;
-        /// <summary>
-        /// độ rộng form scientific/programmer không có extra function = 413
-        /// </summary>
-        private const int APP_W2 = 413;
-        /// <summary>
-        /// độ rộng form standard/statistic có extra function = 591
-        /// </summary>
-        private const int APP_W3 = 591;
-        /// <summary>
-        /// độ rộng form scientific/programmer có extra function = 784
-        /// </summary>
-        private const int APP_W4 = 784;
-
-        /// <summary>
-        /// chiều cao form standard/scientific không có history = 310
-        /// </summary>
-        private const int APP_H1 = 310;
-        /// <summary>
-        /// chiều cao form programmer không có preview = 374
-        /// </summary>
-        private const int APP_H2 = 374;
-        /// <summary>
-        /// chiều cao form standard/scientific có history = 414
-        /// </summary>
-        private const int APP_H3 = 414;
-        /// <summary>
-        /// chiều cao form programmer có preview = 455
-        /// </summary>
-        private const int APP_H4 = 455;
-
-        #endregion
-
         #region ham main
         /// <summary>
         /// The main entry point for the application.
@@ -309,7 +47,7 @@ namespace Calculator
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
             // control W
-            if (keyData == (Keys.Control | Keys.W)) this.Close(); //131159
+            if (keyData == (Keys.Control | Keys.W)) Close(); //131159
             // control c hoac control v khi dang edit textbox
             if ((keyData == (Keys.Control | Keys.C) 
                 || keyData == (Keys.Control | Keys.V) 
@@ -586,6 +324,7 @@ namespace Calculator
                         if (programmerMI.Checked) notBT_Click(notBT, null);
                         break;
                     case Keys.Shift | Keys.D1:     // ! 65585
+                    case Keys.Control | Keys.Shift | Keys.D1:     // ! 65585
                         if (scientificMI.Checked) MathFunction(btFactorial);    // n!
                         break;
                     case Keys.Shift | Keys.D3:     // # 65587
@@ -678,13 +417,13 @@ namespace Calculator
         /// </summary>
         protected override void OnClosing(CancelEventArgs e)
         {
-            if ((int)currentConfig[Config._12_ReadDictionary] == 1)
+            if ((int)currentConfig[Config._11_ReadDictionary] == 1)
             {
-                Common.SaveDictionary(factDict);
+                RegistryService.SaveDictionary(factDict);
             }
-            if (scientificMI.Checked && (int)currentConfig[Config._13_StoreHistory] == 1)
+            if (scientificMI.Checked && (int)currentConfig[Config._12_StoreHistory] == 1)
             {
-                Common.SaveHistory(historyObj);
+                RegistryService.SaveHistory(historyObj);
             }
             if (!propertiesChange) return;
 
@@ -704,14 +443,14 @@ namespace Calculator
             currentConfig[Config._01_UseSep] = digitGroupingMI.Checked ? 1 : 0;
             currentConfig[Config._03_ShowHistory] = historyMI.Checked ? 1 : 0;
             currentConfig[Config._04_MemoryNumber] = mem_num.StrValue;
-            currentConfig[Config._05_ShowPreview] = !showPreviewPaneCTMN.Visible ? 1 : 0;
+            currentConfig[Config._05_ShowPreview] = !showPreviewPanelCTMN.Visible ? 1 : 0;
             currentConfig[Config._06_TypeUnit] = typeUnitCB.SelectedIndex * (typeUnitCB.SelectedIndex >= 0 ? 1 : 0);
             currentConfig[Config._07_AutoCalculate] = autocal_date.Checked ? 1 : 0;
             currentConfig[Config._08_DateMethod] = datemethodCB.SelectedIndex * (datemethodCB.SelectedIndex >= 0 ? 1 : 0);
 
             if (!currentConfig.Equals(initConfig))
             {
-                Common.SaveToRegistryBeforeExit(optionName, currentConfig);
+                RegistryService.SaveToRegistryBeforeExit(Constants.optionName, currentConfig);
             }
         }
         #endregion
@@ -755,8 +494,8 @@ namespace Calculator
             int his = historyMI.Checked ? 1 : 0;
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
-            //this.Size = new Size(216 + (exf ? 376 : 0), 310 + 105 * his);     // dua ra ngoai de resize lai form
-            FormSizeChanged(new Size(exf ? APP_W3 : APP_W1, historyMI.Checked ? APP_H3 : APP_H1), isLoaded);
+            //Size = new Size(216 + (exf ? 376 : 0), 310 + 105 * his);     // dua ra ngoai de resize lai form
+            FormSizeChanged(new Size(exf ? Constants.APP_W3 : Constants.APP_W1, historyMI.Checked ? Constants.APP_H3 : Constants.APP_H1), isLoaded);
             if (!standardMI.Checked)
             {
                 parser.DecimalPrecision = 15;
@@ -766,7 +505,7 @@ namespace Calculator
                 if (historyMI.Checked && historyMI.Enabled) stdWithHistory();
                 else initializedForm(true);
 
-                this.hisDGV.Size = new Size(190 + (scientificMI.Checked ? 195 : 0), hisDGV.Size.Height);
+                hisDGV.Size = new Size(190 + (scientificMI.Checked ? 195 : 0), hisDGV.Size.Height);
                 VisibleComponentsToForm(0);
 
                 unitconvPN.Location = new Point(213, 12);
@@ -792,8 +531,8 @@ namespace Calculator
             int his = historyMI.Checked ? 1 : 0;
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
-            //this.Size = new Size(413 + (exf ? 376 : 0), 310 + 105 * his);
-            FormSizeChanged(new Size(exf ? APP_W4 : APP_W2, historyMI.Checked ? APP_H3 : APP_H1), isLoaded);
+            //Size = new Size(413 + (exf ? 376 : 0), 310 + 105 * his);
+            FormSizeChanged(new Size(exf ? Constants.APP_W4 : Constants.APP_W2, historyMI.Checked ? Constants.APP_H3 : Constants.APP_H1), isLoaded);
             if (!scientificMI.Checked)
             {
                 parser.DecimalPrecision = 31;
@@ -805,7 +544,7 @@ namespace Calculator
                 if (historyMI.Checked && historyMI.Enabled) sciWithHistory();
                 else scientificLoad(true);
 
-                this.hisDGV.Size = new Size(scientificMI.Checked ? 385 : 190, hisDGV.Size.Height);
+                hisDGV.Size = new Size(scientificMI.Checked ? 385 : 190, hisDGV.Size.Height);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
@@ -822,7 +561,7 @@ namespace Calculator
                     clear_num(true);
                     propertiesChange = true;
                 }
-                if ((int)currentConfig[Config._13_StoreHistory] == 1)
+                if ((int)currentConfig[Config._12_StoreHistory] == 1)
                 {
                     DisplayHistoryOnLoad(historyObj);
                 }
@@ -836,7 +575,7 @@ namespace Calculator
         {
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
-            //this.Size = new Size(413 + 374 * exf ? 1 : 0, 374);
+            //Size = new Size(413 + 374 * exf ? 1 : 0, 374);
             if (!programmerMI.Checked)
             {
                 if (bin_digit == null) InitBitNumberArray();
@@ -847,12 +586,13 @@ namespace Calculator
                 unitconvPN.Visible = unitConversionMI.Checked;
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
 
-                showPreviewPaneCTMN.Visible = previewPanelHeight == 0;
-                hidePreviewPaneCTMN.Visible = previewPanelHeight == 81;
+                showPreviewPanelCTMN.Visible = previewPanelHeight == 0;
+                hidePreviewPanelCTMN.Visible = previewPanelHeight == 81;
+                previewMI.Checked = hidePreviewPanelCTMN.Visible;
 
                 //FormSizeChanged(new Size(413 + (exf ? 371 : 0), 374 + previewPanelHeight), isLoaded);
-                FormSizeChanged(new Size(exf ? APP_W4 : APP_W2, showPreviewPaneCTMN.Visible ? APP_H2 : APP_H4), isLoaded);
-                programmerMode(showPreviewPaneCTMN.Visible);
+                FormSizeChanged(new Size(exf ? Constants.APP_W4 : Constants.APP_W2, showPreviewPanelCTMN.Visible ? Constants.APP_H2 : Constants.APP_H4), isLoaded);
+                programmerMode(showPreviewPanelCTMN.Visible);
                 
                 historyMI.Enabled = false;
                 unitconvPN.Location = new Point(408, 12);
@@ -861,7 +601,7 @@ namespace Calculator
                 gridPanel.Visible = false;
                 hisDGV.Visible = false;
                 staDGV.Visible = false;
-                bin_prvLb.Visible = !showPreviewPaneCTMN.Visible;
+                bin_prvLb.Visible = !showPreviewPanelCTMN.Visible;
 
                 if (!isLoaded)
                 {
@@ -878,8 +618,8 @@ namespace Calculator
         {
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
-            //this.Size = new Size(216 + (exf ? 374 : 0), 414);
-            FormSizeChanged(new Size(exf ? APP_W3 : APP_W1, APP_H3), isLoaded);
+            //Size = new Size(216 + (exf ? 374 : 0), 414);
+            FormSizeChanged(new Size(exf ? Constants.APP_W3 : Constants.APP_W1, Constants.APP_H3), isLoaded);
             if (!statisticsMI.Checked)
             {
                 modeMethod(statisticsMI);
@@ -920,8 +660,9 @@ namespace Calculator
             currentConfig[Config._00_CalculatorType] = mi.Index;
 
             historyOptionMI.Visible = historyMI.Enabled = !programmerMI.Checked && !statisticsMI.Checked;
+            previewMI.Visible = programmerMI.Checked;
             datasetMI.Visible = statisticsMI.Checked;
-            sepMI3.Visible = (mi != programmerMI);
+            //sepMI3.Visible = (mi != programmerMI);
             //sepCTMN.Visible = (mi != programmerMI);
             percent_bt.Enabled = mi == standardMI;
 
@@ -933,7 +674,7 @@ namespace Calculator
         /// </summary>
         private void LoadInfo()
         {
-            initConfig = Common.ReadFromRegedit(optionName);
+            initConfig = RegistryService.ReadFromRegedit(Constants.optionName);
             //getMemoryNumber();
             currentConfig = new object[initConfig.Length];
             initConfig.CopyTo(currentConfig, 0);
@@ -994,7 +735,7 @@ namespace Calculator
             datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
             autocal_date.CheckedChanged += autocal_date_CheckedChanged;
 
-            btdot.Text = Common.DecimalSeparator;
+            btdot.Text = MathService.DecimalSeparator;
             //historyObj = new string[100];
         }
         /// <summary>
@@ -1003,7 +744,7 @@ namespace Calculator
         private void FormSizeChanged(Size newS, bool isLoaded)
         {
             scr_lb.Focus();
-            if (isLoaded) { this.Size = newS; return; }
+            if (isLoaded) { Size = newS; return; }
             int old_w = Size.Width, old_h = Size.Height;
             int new_w = newS.Width, new_h = newS.Height;
             //------chi thay doi chieu rong
@@ -1017,7 +758,7 @@ namespace Calculator
                 //loopNumber = (int)(Math.Abs(new_w - old_w) / collapseSpeed);
                 loopNumber = (int)((new_w - old_w) * inc_or_dec / collapseSpeed);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(Size.Width + collapseSpeed * inc_or_dec, old_h);
+                    Size = new Size(Size.Width + collapseSpeed * inc_or_dec, old_h);
                 goto end;
             }
             //------chi thay doi chieu cao
@@ -1026,7 +767,7 @@ namespace Calculator
                 inc_or_dec = (old_h < new_h) ? 1 : -1;
                 loopNumber = (int)((new_h - old_h) * inc_or_dec / collapseSpeed);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w, Size.Height + collapseSpeed * inc_or_dec);
+                    Size = new Size(old_w, Size.Height + collapseSpeed * inc_or_dec);
                 goto end;
             }
             //------thay doi ca chieu rong va chieu cao
@@ -1038,7 +779,7 @@ namespace Calculator
             {
                 loopNumber = (int)((new_h - old_h) * inc_or_dec / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w -= verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
+                    Size = new Size(old_w -= verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
                 goto end;
             }
 
@@ -1046,9 +787,9 @@ namespace Calculator
             {
                 loopNumber = (int)((new_w - old_w) * inc_or_dec / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w += verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
+                    Size = new Size(old_w += verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
             }
-            end: if (Size.Height != new_h || Size.Width != new_w) this.Size = new Size(new_w, new_h);
+            end: if (Size.Height != new_h || Size.Width != new_w) Size = new Size(new_w, new_h);
         }
         /// <summary>
         /// form with history - control - H
@@ -1092,7 +833,7 @@ namespace Calculator
             //countLB.Text = "";
 
             //FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, 310 + 104 * his), isLoaded);
-            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, his == 1 ? APP_H3 : APP_H1), isLoaded);
+            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, his == 1 ? Constants.APP_H3 : Constants.APP_H1), isLoaded);
             if (!isLoaded) propertiesChange = true;
         }
         /// <summary>
@@ -1100,7 +841,7 @@ namespace Calculator
         /// </summary>
         private void formWithPreview(bool isLoaded)
         {
-            currentConfig[Config._05_ShowPreview] = !showPreviewPaneCTMN.Visible ? 1 : 0;
+            currentConfig[Config._05_ShowPreview] = !showPreviewPanelCTMN.Visible ? 1 : 0;
 
             prcmdkey = true;
             int exf = (dateCalculationMI.Checked || unitConversionMI.Checked ||
@@ -1108,18 +849,19 @@ namespace Calculator
 
             unitconvPN.Location = new Point(408, 12);
             unitconvPN.Size = new Size(356, 304 + previewPanelHeight);
+            previewMI.Checked = !showPreviewPanelCTMN.Visible;
 
-            programmerMode(showPreviewPaneCTMN.Visible);
+            programmerMode(showPreviewPanelCTMN.Visible);
 
             gridPanel.Visible = false;
             hisDGV.Visible = false;
             staDGV.Visible = false;
-            bin_prvLb.Visible = !showPreviewPaneCTMN.Visible;
+            bin_prvLb.Visible = !showPreviewPanelCTMN.Visible;
 
             //countLB.Text = "";
 
             //FormSizeChanged(new Size(413 + 371 * exf, 374 + previewPanelHeight), isLoaded);
-            FormSizeChanged(new Size(exf == 1 ? APP_W4 : APP_W2, hidePreviewPaneCTMN.Visible ? APP_H4 : APP_H2), isLoaded);
+            FormSizeChanged(new Size(exf == 1 ? Constants.APP_W4 : Constants.APP_W2, hidePreviewPanelCTMN.Visible ? Constants.APP_H4 : Constants.APP_H2), isLoaded);
             if (!isLoaded) propertiesChange = true;
         }
         /// <summary>
@@ -1145,7 +887,7 @@ namespace Calculator
             feL100_MI.Checked = (menuitem == feL100_MI);
 
             typeWorkSheetCB.Items.Clear();
-            if (menuitem.Parent == worksheetsMI) typeWorkSheetCB.Items.AddRange(worksheetsComboBoxItems[menuitem.Index]);
+            if (menuitem.Parent == worksheetsMI) typeWorkSheetCB.Items.AddRange(Constants.worksheetsComboBoxItems[menuitem.Index]);
             switch (menuitem.Index)
             {
                 case 0:
@@ -1175,7 +917,7 @@ namespace Calculator
 
             basicMI.Checked = false;
 
-            if (fe_MPG_MI.Checked || feL100_MI.Checked) this.AcceptButton = workSheetCalculateBT;
+            if (fe_MPG_MI.Checked || feL100_MI.Checked) AcceptButton = workSheetCalculateBT;
 
             typeWorkSheetCB.Visible = (menuitem.Parent == worksheetsMI);
 
@@ -1207,8 +949,8 @@ namespace Calculator
                 dtP_ValueChanged(dtP2, null);
             }
             autocal_date.CheckedChanged += autocal_date_CheckedChanged;
-            if (dateCalculationMI.Checked) this.AcceptButton = dateCalculationBT;
-            if (menuitem.Parent == worksheetsMI) this.AcceptButton = workSheetCalculateBT;
+            if (dateCalculationMI.Checked) AcceptButton = dateCalculationBT;
+            if (menuitem.Parent == worksheetsMI) AcceptButton = workSheetCalculateBT;
 
             prcmdkey = !typeUnitCB.Focused && !dtP1.Focused && !datemethodCB.Focused && !typeWorkSheetCB.Focused;
         }
@@ -1340,47 +1082,47 @@ namespace Calculator
         private void baseRBCheckedChanged()
         {
             bool bl = (octRB.Checked || decRB.Checked || hexRB.Checked);
-            this.num2BT.Enabled = bl;
-            this.num3BT.Enabled = bl;
-            this.num4BT.Enabled = bl;
-            this.num5BT.Enabled = bl;
-            this.num6BT.Enabled = bl;
-            this.num7BT.Enabled = bl;
+            num2BT.Enabled = bl;
+            num3BT.Enabled = bl;
+            num4BT.Enabled = bl;
+            num5BT.Enabled = bl;
+            num6BT.Enabled = bl;
+            num7BT.Enabled = bl;
 
             bl = (decRB.Checked || hexRB.Checked);
-            this.num8BT.Enabled = bl;
-            this.num9BT.Enabled = bl;
+            num8BT.Enabled = bl;
+            num9BT.Enabled = bl;
             ////
             //// base buttons
             ////
-            this.btnA.Enabled = hexRB.Checked;
-            this.btnB.Enabled = hexRB.Checked;
-            this.btnC.Enabled = hexRB.Checked;
-            this.btnD.Enabled = hexRB.Checked;
-            this.btnE.Enabled = hexRB.Checked;
-            this.btnF.Enabled = hexRB.Checked;
+            btnA.Enabled = hexRB.Checked;
+            btnB.Enabled = hexRB.Checked;
+            btnC.Enabled = hexRB.Checked;
+            btnD.Enabled = hexRB.Checked;
+            btnE.Enabled = hexRB.Checked;
+            btnF.Enabled = hexRB.Checked;
 
             #region đổi màu label preview
-            this.hex_prvLb.ForeColor = Color.Black;
-            this.dec_prvLb.ForeColor = Color.Black;
-            this.oct_prvLb.ForeColor = Color.Black;
-            this.bin_prvLb.ForeColor = Color.Black;
+            hex_prvLb.ForeColor = Color.Black;
+            dec_prvLb.ForeColor = Color.Black;
+            oct_prvLb.ForeColor = Color.Black;
+            bin_prvLb.ForeColor = Color.Black;
             
             if (hexRB.Checked)
             {
-                this.hex_prvLb.ForeColor = Color.Red;
+                hex_prvLb.ForeColor = Color.Red;
             }
             if (decRB.Checked)
             {
-                this.dec_prvLb.ForeColor = Color.Red;
+                dec_prvLb.ForeColor = Color.Red;
             }
             if (octRB.Checked)
             {
-                this.oct_prvLb.ForeColor = Color.Red;
+                oct_prvLb.ForeColor = Color.Red;
             }
             if (binRB.Checked)
             {
-                this.bin_prvLb.ForeColor = Color.Red;
+                bin_prvLb.ForeColor = Color.Red;
             }
             #endregion
         }
@@ -1390,7 +1132,7 @@ namespace Calculator
         private void SetMemoryLabelVisible()
         {
             mem_lb.Visible = mem_num != 0;
-            toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", digitGroupingMI.Checked ? Common.Group(mem_num.StrValue) : mem_num.StrValue));
+            toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", digitGroupingMI.Checked ? MathService.Group(mem_num.StrValue) : mem_num.StrValue));
         }
         /// <summary>
         /// xử lý số trên bộ nhớ
@@ -1433,6 +1175,29 @@ namespace Calculator
         /// <param name="data">chuỗi cần dán</param>
         private void PasteData(string data)
         {
+            Message msg = Message.Create(IntPtr.Zero, 1, IntPtr.Zero, IntPtr.Zero);
+            if (statisticsMI.Checked)
+            {
+                data = StandardPasteData(data);
+                string[] rows = data.Split(new char[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var row in rows)
+                {
+                    string[] rowSplit = row.Split('_');
+                    if (!confirmNumber)
+                    {
+                        screenStr = screenStr.Append(rowSplit[0]);
+                    }
+                    string sequence = rowSplit.Length == 2 ? rowSplit[1] : "1";
+                    staDGV.Rows.Add();
+                    staDGV[0, staDGV.RowCount - 1].Value = (confirmNumber ? rowSplit[0] : screenStr.ToString());
+                    staDGV[0, staDGV.RowCount - 1].ToolTipText = string.Format("Frequence: {0}", sequence);
+                    confirmNumber = true;
+                    total += double.Parse(sequence);
+                }
+                staDGV.CurrentCell = staDGV[0, staDGV.RowCount - 1];
+                DisplayCountNumber();
+                return;
+            }
             data = StandardPasteData(data);
 
             #region process data
@@ -1465,8 +1230,8 @@ namespace Calculator
 
             int len = data.Length;
             Keys[] keyData = new Keys[len];
+
             // tạo bừa thôi, hàm ProcessCmdKey có dùng cái này đâu
-            Message msg = Message.Create(IntPtr.Zero, 1, IntPtr.Zero, IntPtr.Zero);
             for (int i = 0; i < len; i++)
             {
                 #region process key pressed
@@ -1484,9 +1249,13 @@ namespace Calculator
                         break;
                     case 38: keyData[i] = (Keys)65591;
                         break;
-                    case 40: /*case 91: */keyData[i] = Keys.OemOpenBrackets;
+                    case 40:
+                    //case 91:  // [
+                        keyData[i] = Keys.OemOpenBrackets;
                         break;
-                    case 41: /*case 93: */keyData[i] = Keys.OemCloseBrackets;
+                    case 41:
+                    //case 93:  // ]
+                        keyData[i] = Keys.OemCloseBrackets;
                         break;
                     case 43: if (i > 0)
                         {
@@ -1514,7 +1283,9 @@ namespace Calculator
                         break;
                     case 64: keyData[i] = Keys.Shift | Keys.D2;
                         break;
-                    case 66: if (scientificMI.Checked) keyData[i] = Keys.Control | Keys.B;
+                    case 66:
+                        if (scientificMI.Checked) keyData[i] = Keys.Control | Keys.B;
+                        //if (programmerMI.Checked) keyData[i] = (Keys)data[i];
                         break;
                     case 71: keyData[i] = Keys.Control | Keys.G;
                         break;
@@ -1529,8 +1300,10 @@ namespace Calculator
 
                 ProcessCmdKey(ref msg, keyData[i]);
             }
-            if (programmerMI.Checked) ScreenToPanel();
-            else DisplayToScreen();
+            if (programmerMI.Checked) 
+                ScreenToPanel();
+            else 
+                DisplayToScreen();
         }
         /// <summary>
         /// xoá các ký tự thừa để paste vào cell
@@ -1542,11 +1315,11 @@ namespace Calculator
             string valueString = Convert.ToString(vl);
             valueString = valueString.Replace("\n", "=");
             valueString = Regex.Replace(valueString, @"\s", "");
-            valueString = valueString.Replace(Common.GroupSeparator, "");
+            valueString = valueString.Replace(MathService.GroupSeparator, "");
             return valueString;
         }
 
-        public static List<FactorialObject> factDict = new List<FactorialObject>();
+        public static List<FactorialModel> factDict = new List<FactorialModel>();
 
         bool isFuncClicked = false;
         /// <summary>
@@ -1598,18 +1371,18 @@ namespace Calculator
                     else curOperand = string.Format("powe({0})", parameter);
                     break;
                 case 32:
-                    if (BigNumber.IsInteger(inp_num.StrValue))
+                    if (!BigNumber.IsInteger(inp_num.StrValue))
                     {
-                        if (inp_num >= 100000 && co != null)
-                        {
-                            InitCancelOperation();
-                        }
-                        if ((int)currentConfig[Config._10_FastFactorial] == 1)
-                            curOperand = string.Format("fast({0})", parameter);
-                        else
-                            curOperand = string.Format("fact({0})", parameter);
+                        return;
                     }
-                    else return;
+                    if (inp_num >= Constants.MIN_FACTORIAL && co != null)
+                    {
+                        InitCancelOperation();
+                    }
+                    if (btFactorial.Text == Config.FAST_FACTORIAL_TEXT)
+                        curOperand = string.Format("fast({0})", parameter);
+                    else
+                        curOperand = string.Format("fact({0})", parameter);
                     break;
                 case 38:
                     curOperand = string.Format("sqr({0})", parameter);
@@ -1674,7 +1447,7 @@ namespace Calculator
                     DisplayToScreen();
                     return;
                 }
-                if (inp_num >= 1e5 && curOperand.Contains("fact"))
+                if (inp_num >= Constants.MIN_FACTORIAL && curOperand.Contains("fact"))
                 {
                     int idex = Array.IndexOf(factDict.SelectValue(), inp_num.StrValue);
                     if (idex < 0)   // khong tim thay
@@ -1747,13 +1520,13 @@ namespace Calculator
         /// </summary>
         private void NewPriorityExpression()
         {
-            priorityExpression = new string[MAX_BRACKET_LEVEL + 1][];
-            for (int i = 0; i < MAX_BRACKET_LEVEL + 1; i++)
+            priorityExpression = new string[Constants.MAX_BRACKET_LEVEL + 1][];
+            for (int i = 0; i < Constants.MAX_BRACKET_LEVEL + 1; i++)
             {
                 priorityExpression[i] = new string[7];
                 lowestOperator[i] = 7;
-                curPriority[i] = new Operator();
-                prePriority[i] = new Operator();
+                curPriority[i] = new OperatorModel();
+                prePriority[i] = new OperatorModel();
             }
         }
         /// <summary>
@@ -1788,14 +1561,14 @@ namespace Calculator
             {
                 pex = null;
                 openBrkLevel = 0;
-                prePriority = new Operator[MAX_BRACKET_LEVEL + 1];
-                curPriority = new Operator[MAX_BRACKET_LEVEL + 1];
+                prePriority = new OperatorModel[Constants.MAX_BRACKET_LEVEL + 1];
+                curPriority = new OperatorModel[Constants.MAX_BRACKET_LEVEL + 1];
                 curOperand = "0";
                 expressionTB.Text = bracketTime_lb.Text = "";
                 mainExp = new StringBuilder();
                 pre_bt = -1;
                 inv_ChkBox.Checked = fe_ChkBox.Checked = false;
-                bracketExp = new string[MAX_BRACKET_LEVEL + 1];
+                bracketExp = new string[Constants.MAX_BRACKET_LEVEL + 1];
                 NewPriorityExpression();
             }
             if (bin_digit != null)
@@ -1832,9 +1605,9 @@ namespace Calculator
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = Common.Group(screenStr);
-                    else if (octRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 3);
-                    else if (binRB.Checked || hexRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 4);
+                    if (decRB.Checked) scr_lb.Text = MathService.Group(screenStr.ToString());
+                    else if (octRB.Checked) scr_lb.Text = MathService.Group(screenStr, " ", 3);
+                    else if (binRB.Checked || hexRB.Checked) scr_lb.Text = MathService.Group(screenStr.ToString(), " ", 4);
                 }
                 else
                 {
@@ -1843,7 +1616,7 @@ namespace Calculator
             }
             else    // nhóm cho form non-programmer
             {
-                screenStr = screenStr.Replace(".", Common.DecimalSeparator).Replace(",", Common.DecimalSeparator);
+                screenStr = screenStr.Replace(".", MathService.DecimalSeparator).Replace(",", MathService.DecimalSeparator);
                 if (fe_ChkBox.Checked)
                 {
                     scr_lb.Text = ((BigNumber)screenStr.ToString()).ToString();
@@ -1855,7 +1628,7 @@ namespace Calculator
                 }
                 else
                 {
-                    scr_lb.Text = Common.Group(screenStr);
+                    scr_lb.Text = MathService.Group(screenStr.ToString());
                 }
             }
             if (hisDGV.Visible) hisDGV.Focus();
@@ -1878,19 +1651,19 @@ namespace Calculator
 
             if (!programmerMI.Checked)
             {
-                if (Common.IsNumber(screenStr.ToString())) DisplayToScreen();
+                if (MathService.IsNumber(screenStr.ToString())) DisplayToScreen();
             }
             else
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (decRB.Checked) scr_lb.Text = Common.Group(screenStr, Common.GroupSeparator, 3);
-                    if (octRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 3);
-                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = Common.Group(screenStr, " ", 4);
+                    if (decRB.Checked) scr_lb.Text = MathService.Group(screenStr, MathService.GroupSeparator, 3);
+                    if (octRB.Checked) scr_lb.Text = MathService.Group(screenStr, " ", 3);
+                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = MathService.Group(screenStr, " ", 4);
                 }
                 else
                 {
-                    if (decRB.Checked) scr_lb.Text = scr_lb.Text.Replace(Common.GroupSeparator, "");
+                    if (decRB.Checked) scr_lb.Text = scr_lb.Text.Replace(MathService.GroupSeparator, "");
                     if (octRB.Checked || binRB.Checked || hexRB.Checked)
                         scr_lb.Text = scr_lb.Text.Replace(" ", "");
                 }
@@ -1903,13 +1676,13 @@ namespace Calculator
         /// <param name="pn">panel chứa kết quả đó</param>
         private void GroupWorksheetsFunctionResult(TextBox tb, IPanel pn)
         {
-            if (Common.IsNumber(tb.Text) && pn.Visible)
+            if (MathService.IsNumber(tb.Text) && pn.Visible)
             {
                 if (digitGroupingMI.Checked)
                 {
-                    if (!tb.Text.Contains("E")) tb.Text = Common.Group(tb.Text);
+                    if (!tb.Text.Contains("E")) tb.Text = MathService.Group(tb.Text);
                 }
-                else tb.Text = tb.Text.Replace(Common.GroupSeparator, "");
+                else tb.Text = tb.Text.Replace(MathService.GroupSeparator, "");
             }
         }
         /// <summary>
@@ -1989,7 +1762,7 @@ namespace Calculator
                 // chưa có dấu thập phân thì thêm vào, không có thì thôi
                 if (confirmNumber)
                 {
-                    screenStr = new StringBuilder().AppendFormat("0{0}", Common.DecimalSeparator);
+                    screenStr = new StringBuilder().AppendFormat("0{0}", MathService.DecimalSeparator);
                     if (expAdded)
                     {
                         expressionTB.Text = mainExp.ToString().Substring(0, mainExp.Length - curOperand.Length);
@@ -1997,11 +1770,11 @@ namespace Calculator
                     }
                     else expressionTB.Text = mainExp.ToString();
                 }
-                if (!screenStr.ToString().Contains(Common.DecimalSeparator) && !screenStr.ToString().Contains("e"))
+                if (!screenStr.ToString().Contains(MathService.DecimalSeparator) && !screenStr.ToString().Contains("e"))
                 {
-                    screenStr = screenStr.Append(Common.DecimalSeparator);
-                    //if (!Common.IsNumber(curOperand))
-                    //  curOperand = curOperand.Insert(curOperand.IndexOf(")"), Common.DecimalSeparator);
+                    screenStr = screenStr.Append(MathService.DecimalSeparator);
+                    //if (!MathService.IsNumber(curOperand))
+                    //  curOperand = curOperand.Insert(curOperand.IndexOf(")"), MathService.DecimalSeparator);
                 }
                 expAdded = false;
 
@@ -2059,7 +1832,7 @@ namespace Calculator
                 string strTemp = "";
                 if (decRB.Checked)
                 {
-                    if (!confirmNumber)
+                    if (!confirmNumber && screenStr.ToString() != "0")
                     {
                         strTemp = screenStr + index.ToString();
                         if (BigNumber.Two.Pow(SizeBin - 1) >= strTemp) // strTemp chua vuot qua gia tri lon nhat
@@ -2070,7 +1843,7 @@ namespace Calculator
                 }
                 else
                 {
-                    if (!confirmNumber)
+                    if (!confirmNumber && screenStr.ToString() != "0")
                     {
                         strTemp = screenStr + index.ToString();
                     }
@@ -2110,7 +1883,7 @@ namespace Calculator
             }
             if (index == 11)    // dấu âm
             {
-                bool signNum = (int)currentConfig[Config._11_SignInteger] == 1;
+                bool signNum = (int)currentConfig[Config._10_SignInteger] == 1;
                 if (signNum)   // su dung so nguyen co dau
                 {
                     if (screenStr.StartsWith("-")) { screenStr = new StringBuilder(screenStr.ToString(1, screenStr.Length - 1)); ScreenToPanel(); }
@@ -2122,30 +1895,30 @@ namespace Calculator
                         {
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                            binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 02, SizeBin, signNum);
                             screenStr = new StringBuilder(binRB.Value);
                         }
                         if (octRB.Checked)
                         {
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
+                            octRB.Value = BinaryService.DecimalToOthers(decRB.Value, 08, SizeBin, signNum);
                             screenStr = new StringBuilder(octRB.Value);
-                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                            binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 02, SizeBin, signNum);
                         }
                         if (decRB.Checked)
                         {
                             decRB.Value = string.Format("-{0}", screenStr);
                             screenStr = new StringBuilder(decRB.Value);
-                            binRB.Value = Binary.dec_to_other(decRB.Value, 2, SizeBin, signNum);
+                            binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 2, SizeBin, signNum);
                         }
                         if (hexRB.Checked)
                         {
                             if (decRB.Value.StartsWith("-")) decRB.Value = decRB.Value.Substring(1);
                             else decRB.Value = "-" + decRB.Value;
-                            hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
+                            hexRB.Value = BinaryService.DecimalToOthers(decRB.Value, 16, SizeBin, signNum);
                             screenStr = new StringBuilder(hexRB.Value);
-                            binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                            binRB.Value = BinaryService.DecimalToOthers(decRB.Value, 02, SizeBin, signNum);
                         }
                         ScreenToPanel(true);
                     }
@@ -2159,9 +1932,9 @@ namespace Calculator
                         screenStr = new StringBuilder((BigNumber.Two.Pow(SizeBin) - decRB.Value).StrValue);
                         if (!decRB.Checked)
                         {
-                            if (binRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 02, SizeBin, signNum));
-                            if (octRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 08, SizeBin, signNum));
-                            if (hexRB.Checked) screenStr = new StringBuilder(Binary.dec_to_other(screenStr.ToString(), 16, SizeBin, signNum));
+                            if (binRB.Checked) screenStr = new StringBuilder(BinaryService.DecimalToOthers(screenStr.ToString(), 02, SizeBin, signNum));
+                            if (octRB.Checked) screenStr = new StringBuilder(BinaryService.DecimalToOthers(screenStr.ToString(), 08, SizeBin, signNum));
+                            if (hexRB.Checked) screenStr = new StringBuilder(BinaryService.DecimalToOthers(screenStr.ToString(), 16, SizeBin, signNum));
                         }
                     }
                     ScreenToPanel();
@@ -2177,7 +1950,7 @@ namespace Calculator
         /// </summary>
         private void buttonAF(string text)
         {
-            if (!confirmNumber)
+            if (!confirmNumber && screenStr.ToString() != "0")
             {
                 string strTemp = screenStr + text;
                 if (strTemp.Length <= SizeBin / 4) screenStr = new StringBuilder(strTemp);
@@ -2211,7 +1984,7 @@ namespace Calculator
                 case 15: oper = "/";
                     break;
             }
-            curPriority[0] = new Operator(oper, 6);
+            curPriority[0] = new OperatorModel(oper, 6);
             if (prePriority[0].Index >= 0)
             {
                 if (Array.IndexOf(new int[] { 12, 13, 14, 15 }, pre_bt) >= 0)    // pre_bt la cac nut co thuoc mang tren
@@ -2268,10 +2041,10 @@ namespace Calculator
             expAdded = false;
         }
 
-        int[] lowestOperator = new int[MAX_BRACKET_LEVEL + 1];
-        string[][] priorityExpression = new string[MAX_BRACKET_LEVEL + 1][];
-        Operator[] curPriority = new Operator[MAX_BRACKET_LEVEL + 1];
-        Operator[] prePriority = new Operator[MAX_BRACKET_LEVEL + 1];
+        int[] lowestOperator = new int[Constants.MAX_BRACKET_LEVEL + 1];
+        string[][] priorityExpression = new string[Constants.MAX_BRACKET_LEVEL + 1][];
+        OperatorModel[] curPriority = new OperatorModel[Constants.MAX_BRACKET_LEVEL + 1];
+        OperatorModel[] prePriority = new OperatorModel[Constants.MAX_BRACKET_LEVEL + 1];
         /// <summary>
         /// các toán tử +-*/ của form scientific
         /// </summary>
@@ -2286,7 +2059,7 @@ namespace Calculator
             if (index == 33) oper = "^";
             if (index == 43) oper = "mod";
             if (index == 34) oper = "yroot";
-            curPriority[openBrkLevel] = new Operator(oper, 6);
+            curPriority[openBrkLevel] = new OperatorModel(oper, 6);
             if (prePriority[openBrkLevel].Index >= 0)
             {
                 // neu phim truoc day la 1 phep tinh
@@ -2424,7 +2197,7 @@ namespace Calculator
             if (index == 161) oper = "^";
             if (index == 162) oper = "|";
 
-            curPriority[openBrkLevel] = new Operator(oper, 1);
+            curPriority[openBrkLevel] = new OperatorModel(oper, 1);
 
             if (prePriority[openBrkLevel].Index >= 0)
             {
@@ -2460,7 +2233,7 @@ namespace Calculator
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += curOperand;
 
 					// lấy kết quả của phép tính có thứ tự cao hơn TRƯỚC ĐÓ, trả về screenStr
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index], (int)currentConfig[Config._10_SignInteger] == 1);
                     screenStr = new StringBuilder(parser.StringResult);
 
                     // sau đó, gán biểu thức ưu tiên của phép tính TRƯỚC ĐÓ trở về rỗng
@@ -2470,7 +2243,7 @@ namespace Calculator
                     priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr.ToString();
 
                     // tính giá trị của biểu thức ưu tiên của phép tính HIỆN TẠI
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._10_SignInteger] == 1);
                     screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên là thấp nhất trong biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
@@ -2479,12 +2252,12 @@ namespace Calculator
                         if (openBrkLevel == 0)  // dang o bieu thuc chinh
                         {
                             //pex = parser.EvaluatePro(mainExp.Substring(0, mainExp.Length - 1));
-                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._11_SignInteger] == 1);
+                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._10_SignInteger] == 1);
                         }
                         else
                         {
                             //pex = parser.EvaluatePro(bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - 1));
-                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._11_SignInteger] == 1);
+                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._10_SignInteger] == 1);
                         }
                         screenStr = new StringBuilder(parser.StringResult);
                     }
@@ -2496,7 +2269,7 @@ namespace Calculator
                     priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
 
                     // tính kết quả của phép tính này, trả về screenStr
-                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._11_SignInteger] == 1);
+                    pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[Config._10_SignInteger] == 1);
                     screenStr = new StringBuilder(parser.StringResult);
 
                     // nếu phép tính hiện tại có mức ưu tiên thấp nhất trong cả biểu thức thì tính luôn cả biểu thức rồi gán vào biến screenStr
@@ -2505,11 +2278,11 @@ namespace Calculator
                         if (openBrkLevel == 0)
                         {
                             //pex = parser.EvaluatePro(mainExp.Substring(0, mainExp.Length - 1));
-                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._11_SignInteger] == 1);
+                            pex = parser.EvaluatePro(mainExp.ToString(), (int)currentConfig[Config._10_SignInteger] == 1);
                         }
                         else
                         {
-                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._11_SignInteger] == 1);
+                            pex = parser.EvaluatePro(bracketExp[openBrkLevel], (int)currentConfig[Config._10_SignInteger] == 1);
                         }
                         screenStr = new StringBuilder(parser.StringResult);
                     }
@@ -2555,7 +2328,7 @@ namespace Calculator
             while ((open = exp.IndexOf("fact(", searchIndex) + 4) >= 4)
             {
                 string subExp = "";
-                int close = Common.GetCloseBracketIndex(exp, open, ref subExp);
+                int close = MathService.GetCloseBracketIndex(exp, open, ref subExp);
                 searchIndex = close + 1;
                 parser.EvaluateSci(subExp);
                 int idex = Array.IndexOf(factDict.SelectValue(), parser.StringResult);
@@ -2661,14 +2434,15 @@ namespace Calculator
         /// <returns>tổng</returns>
         private double sum(bool isSquare)
         {
-            double sum = 0;
-            if (staDGV.RowCount == 0) return 0;
-            for (int i = 0; i < staDGV.RowCount; i++)
+            double sum = 0d;
+            for (int i = 0; i < statisticItems.Count; i++)
             {
-                double frq = double.Parse(staDGV[0, i].ToolTipText.Substring(staDGV[0, i].ToolTipText.LastIndexOf(' ')));
-                double number = double.Parse(staDGV[0, i].Value.ToString());
-                if (isSquare) sum += number * number * frq;
-                else sum += number * frq;
+                var frq = statisticItems[i].Frequence;
+                var number = statisticItems[i].Value;
+                if (isSquare)
+                    sum += number * number * frq;
+                else
+                    sum += number * frq;
             }
             return sum;
         }
@@ -2777,6 +2551,7 @@ namespace Calculator
             this.reCalculateMI = new System.Windows.Forms.MenuItem();
             this.cancelEditHisMI = new System.Windows.Forms.MenuItem();
             this.clearHistoryMI = new System.Windows.Forms.MenuItem();
+            this.previewMI = new System.Windows.Forms.MenuItem();
             this.datasetMI = new System.Windows.Forms.MenuItem();
             this.copyDatasetMI = new System.Windows.Forms.MenuItem();
             this.editDatasetMI = new System.Windows.Forms.MenuItem();
@@ -2797,8 +2572,8 @@ namespace Calculator
             this.hideHistoryCTMN = new System.Windows.Forms.MenuItem();
             this.clearHistoryCTMN = new System.Windows.Forms.MenuItem();
             this.clearDatasetCTMN = new System.Windows.Forms.MenuItem();
-            this.showPreviewPaneCTMN = new System.Windows.Forms.MenuItem();
-            this.hidePreviewPaneCTMN = new System.Windows.Forms.MenuItem();
+            this.showPreviewPanelCTMN = new System.Windows.Forms.MenuItem();
+            this.hidePreviewPanelCTMN = new System.Windows.Forms.MenuItem();
             this.helpCTMN = new System.Windows.Forms.ContextMenu();
             this.hotkeyMI = new System.Windows.Forms.MenuItem();
             this.mWorker = new System.ComponentModel.BackgroundWorker();
@@ -2893,7 +2668,7 @@ namespace Calculator
             this.toCB = new Calculator.IComboBox();
             this.typeUnitLB = new System.Windows.Forms.Label();
             this.fromCB = new Calculator.IComboBox();
-            this.typeUnitCB = new System.Windows.Forms.ComboBox();
+            this.typeUnitCB = new Calculator.IComboBox();
             this.invert_unit = new System.Windows.Forms.Button();
             this.toLB = new System.Windows.Forms.Label();
             this.toTB = new System.Windows.Forms.TextBox();
@@ -3350,7 +3125,7 @@ namespace Calculator
             // 
             // pi_bt
             // 
-            this.pi_bt.Font = new System.Drawing.Font("Tempus Sans ITC", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.pi_bt.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pi_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.pi_bt.Location = new System.Drawing.Point(56, 332);
             this.pi_bt.Name = "pi_bt";
@@ -4058,6 +3833,7 @@ namespace Calculator
             this.pasteMI,
             this.sepMI3,
             this.historyOptionMI,
+            this.previewMI,
             this.datasetMI,
             this.sepMI6,
             this.preferencesMI});
@@ -4132,9 +3908,15 @@ namespace Calculator
             this.clearHistoryMI.Text = "C&lear";
             this.clearHistoryMI.Click += new System.EventHandler(this.clearHistoryMI_Click);
             // 
+            // previewMI
+            // 
+            this.previewMI.Index = 4;
+            this.previewMI.Text = "Show Preview";
+            this.previewMI.Click += new System.EventHandler(this.previewPanelCTMN_Click);
+            // 
             // datasetMI
             // 
-            this.datasetMI.Index = 4;
+            this.datasetMI.Index = 5;
             this.datasetMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.copyDatasetMI,
             this.editDatasetMI,
@@ -4179,12 +3961,12 @@ namespace Calculator
             // 
             // sepMI6
             // 
-            this.sepMI6.Index = 5;
+            this.sepMI6.Index = 6;
             this.sepMI6.Text = "-";
             // 
             // preferencesMI
             // 
-            this.preferencesMI.Index = 6;
+            this.preferencesMI.Index = 7;
             this.preferencesMI.Shortcut = System.Windows.Forms.Shortcut.CtrlK;
             this.preferencesMI.Text = "P&references";
             this.preferencesMI.Click += new System.EventHandler(this.preferrencesMI_Click);
@@ -4226,8 +4008,8 @@ namespace Calculator
             this.hideHistoryCTMN,
             this.clearHistoryCTMN,
             this.clearDatasetCTMN,
-            this.showPreviewPaneCTMN,
-            this.hidePreviewPaneCTMN});
+            this.showPreviewPanelCTMN,
+            this.hidePreviewPanelCTMN});
             this.mainContextMenu.Popup += new System.EventHandler(this.mainContextMenu_Popup);
             // 
             // copyCTMN
@@ -4275,17 +4057,17 @@ namespace Calculator
             this.clearDatasetCTMN.Visible = false;
             this.clearDatasetCTMN.Click += new System.EventHandler(this.CAD_Click);
             // 
-            // showPreviewPaneCTMN
+            // showPreviewPanelCTMN
             // 
-            this.showPreviewPaneCTMN.Index = 7;
-            this.showPreviewPaneCTMN.Text = "&Show Preview";
-            this.showPreviewPaneCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
+            this.showPreviewPanelCTMN.Index = 7;
+            this.showPreviewPanelCTMN.Text = "&Show Preview";
+            this.showPreviewPanelCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
             // 
-            // hidePreviewPaneCTMN
+            // hidePreviewPanelCTMN
             // 
-            this.hidePreviewPaneCTMN.Index = 8;
-            this.hidePreviewPaneCTMN.Text = "&Hide Preview";
-            this.hidePreviewPaneCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
+            this.hidePreviewPanelCTMN.Index = 8;
+            this.hidePreviewPanelCTMN.Text = "&Hide Preview";
+            this.hidePreviewPanelCTMN.Click += new System.EventHandler(this.previewPanelCTMN_Click);
             // 
             // helpCTMN
             // 
@@ -4533,7 +4315,7 @@ namespace Calculator
             this.yearAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
             this.yearAddSubLB.Location = new System.Drawing.Point(12, 107);
             this.yearAddSubLB.Name = "yearAddSubLB";
-            this.yearAddSubLB.Size = new System.Drawing.Size(39, 13);
+            this.yearAddSubLB.Size = new System.Drawing.Size(38, 13);
             this.yearAddSubLB.TabIndex = 64;
             this.yearAddSubLB.Text = "Year(s)";
             // 
@@ -5368,6 +5150,7 @@ namespace Calculator
             this.hisDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
             this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.hisDGV_CellClick);
             this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.hisDGV_CellEndEdit);
+            this.hisDGV.CurrentCellChanged += new System.EventHandler(this.hisDGV_CurrentCellChanged);
             this.hisDGV.RowsAdded += new System.Windows.Forms.DataGridViewRowsAddedEventHandler(this.hisDGV_RowsAdded);
             this.hisDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
@@ -5497,7 +5280,7 @@ namespace Calculator
             this.binRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.binRB.Location = new System.Drawing.Point(7, 67);
             this.binRB.Name = "binRB";
-            this.binRB.Size = new System.Drawing.Size(42, 17);
+            this.binRB.Size = new System.Drawing.Size(41, 17);
             this.binRB.TabIndex = 119;
             this.binRB.Text = "Bin";
             this.binRB.UseVisualStyleBackColor = true;
@@ -5525,7 +5308,7 @@ namespace Calculator
             this._byteRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._byteRB.Location = new System.Drawing.Point(7, 67);
             this._byteRB.Name = "_byteRB";
-            this._byteRB.Size = new System.Drawing.Size(47, 17);
+            this._byteRB.Size = new System.Drawing.Size(46, 17);
             this._byteRB.TabIndex = 2;
             this._byteRB.Text = "Byte";
             this._byteRB.UseVisualStyleBackColor = true;
@@ -5542,7 +5325,7 @@ namespace Calculator
             this.qwordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.qwordRB.Location = new System.Drawing.Point(7, 4);
             this.qwordRB.Name = "qwordRB";
-            this.qwordRB.Size = new System.Drawing.Size(61, 17);
+            this.qwordRB.Size = new System.Drawing.Size(60, 17);
             this.qwordRB.TabIndex = 16;
             this.qwordRB.TabStop = true;
             this.qwordRB.Text = "Qword";
@@ -5650,6 +5433,7 @@ namespace Calculator
             // 
             // typeUnitCB
             // 
+            this.typeUnitCB.AllowFilter = true;
             this.typeUnitCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.typeUnitCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeUnitCB.FormattingEnabled = true;
@@ -5667,6 +5451,7 @@ namespace Calculator
             "Volume",
             "Weight / Mass"});
             this.typeUnitCB.Location = new System.Drawing.Point(12, 31);
+            this.typeUnitCB.MainDataSource = new string[0];
             this.typeUnitCB.MaxDropDownItems = 11;
             this.typeUnitCB.Name = "typeUnitCB";
             this.typeUnitCB.Size = new System.Drawing.Size(330, 21);
@@ -5795,7 +5580,7 @@ namespace Calculator
             this.workSheetCalculateBT.Location = new System.Drawing.Point(12, 210);
             this.workSheetCalculateBT.Name = "workSheetCalculateBT";
             this.workSheetCalculateBT.Size = new System.Drawing.Size(82, 22);
-            this.workSheetCalculateBT.TabIndex = 14;
+            this.workSheetCalculateBT.TabIndex = 15;
             this.workSheetCalculateBT.Text = "Calculate";
             this.workSheetCalculateBT.UseVisualStyleBackColor = true;
             this.workSheetCalculateBT.Click += new System.EventHandler(this.workSheetCalculateBT_Click);
@@ -5818,7 +5603,7 @@ namespace Calculator
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 302);
+            this.ClientSize = new System.Drawing.Size(214, 281);
             this.Controls.Add(this.datecalcPN);
             this.Controls.Add(this.num9BT_PN);
             this.Controls.Add(this.num7BT_PN);
@@ -6388,7 +6173,7 @@ namespace Calculator
             for (int i = 0; i < capacity; i++)
             {
                 itf[i] = new TextField();
-                itf[i].LabelText = worksheetsLabel[lbIndex][i];
+                itf[i].LabelText = Constants.worksheetsLabel[lbIndex][i];
                 itf[i].Location = new Point(9, 58 + 24 * i);
                 itf[i].Visible = i != capacity - 1;
                 itf[i].TextBoxGotFocus += new EventHandler(DisableKeyboard);
@@ -6721,7 +6506,7 @@ namespace Calculator
         private Label toLB;
         private ITextBox fromTB;
         private TextBox toTB;
-        private ComboBox typeUnitCB;
+        private IComboBox typeUnitCB;
         private IComboBox fromCB;
         private IComboBox toCB;
         private Button invert_unit;
@@ -6737,6 +6522,7 @@ namespace Calculator
         private MenuItem statisticsMI;
         private MenuItem sepMI1;
         private MenuItem historyMI;
+        private MenuItem previewMI;
         private MenuItem digitGroupingMI;
         private MenuItem sepMI2;
         private MenuItem basicMI;
@@ -6778,8 +6564,8 @@ namespace Calculator
         private MenuItem hideHistoryCTMN;
         private MenuItem clearDatasetCTMN;
         private MenuItem clearHistoryCTMN;
-        private MenuItem showPreviewPaneCTMN;
-        private MenuItem hidePreviewPaneCTMN;
+        private MenuItem showPreviewPanelCTMN;
+        private MenuItem hidePreviewPanelCTMN;
         //------------------------------------------------------------------
         private IRadioButton qwordRB;
         private IRadioButton dwordRB;

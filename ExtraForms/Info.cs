@@ -229,7 +229,9 @@ operator. For example, to find 5th root of 32, click 32
                     hotkey = "Q";
                     break;
                 case "n!":
-                    description = @"Calculates the factorial of the displayed number.";
+                case Config.FAST_FACTORIAL_TEXT:
+                    description = @"Calculates the factorial of the displayed number. To
+calculate fast factorial method, use <b>Inv+n!</b>.";
                     hotkey = "!";
                     break;
                 case "log":
@@ -359,7 +361,7 @@ If you want to enter a number with frequence is 1, press <b>Ctrl-Enter</b>";
             {
                 #region select by name
                 case "xcross":
-                    description = @"Calculates the mean of the values displayed in the <b>statistics grid</b>.";
+                    description = @"Calculates the mean of the statisticItems displayed in the <b>statistics grid</b>.";
                     hotkey = "A";
                     break;
                 case "x2cross":
@@ -379,7 +381,7 @@ If you want to enter a number with frequence is 1, press <b>Ctrl-Enter</b>";
                     hotkey = "Ctrl-S";
                     break;
                 case "sigmaxBT":
-                    description = @"Calculates the sum of the values displayed in the <b>statistics grid</b>.";
+                    description = @"Calculates the sum of the statisticItems displayed in the <b>statistics grid</b>.";
                     hotkey = "S";
                     break;
                 case "bracketTime_lb":

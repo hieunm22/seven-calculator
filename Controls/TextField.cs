@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace Calculator
@@ -72,31 +71,15 @@ namespace Calculator
             }
             txtField.Focus();
         }
-        /// <summary>
-        /// lay font cua textbox
-        /// </summary>
-        public Font TBFont
-        {
-            get { return txtField.Font; }
-            set { txtField.Font = value; }
-        }
-        /// <summary>
-        /// lay mau chu cua textbox
-        /// </summary>
-        public Color Fore_Color
-        {
-            get { return txtField.ForeColor; }
-            set { txtField.ForeColor = value; }
-        }
 
         public bool TBFocus()
         {
-            return txtField.Focus();//|| txtField.Focus();
+            return txtField.Focus();
         }
 
         public override string ToString()
         {
-            return LabelText;
+            return string.Format("{0} - {1}", LabelText, TabIndex);
         }
     }
 }

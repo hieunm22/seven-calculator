@@ -53,7 +53,6 @@ namespace Calculator
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pictureBox1.TabIndex = 7;
             this.pictureBox1.TabStop = false;
-            this.pictureBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             // 
             // btnOk
             // 
@@ -87,7 +86,6 @@ namespace Calculator
             this.iLabel2.Size = new System.Drawing.Size(43, 13);
             this.iLabel2.TabIndex = 11;
             this.iLabel2.Text = "Email:";
-            this.iLabel2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             // 
             // aboutLb
             // 
@@ -98,7 +96,6 @@ namespace Calculator
             this.aboutLb.Size = new System.Drawing.Size(329, 13);
             this.aboutLb.TabIndex = 10;
             this.aboutLb.Text = "Seven calculator v4.0 - Developed by Nguyen Minh Hieu";
-            this.aboutLb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             // 
             // emaillb
             // 
@@ -132,7 +129,6 @@ namespace Calculator
             this.Name = "About";
             this.ShowIcon = false;
             this.Text = "About Calculator";
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

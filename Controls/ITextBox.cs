@@ -10,8 +10,6 @@ namespace Calculator
     /// </summary>
     public class ITextBox : TextBox
     {
-        public ITextBox() { }
-
         private string suggestText = "";
         public string SuggestText
         {
@@ -22,16 +20,16 @@ namespace Calculator
                 if (suggestType == SuggestType.WatermarkText)
                 {
                     allowTextChanged = false;
-                    this.Text = value;
+                    Text = value;
                     allowTextChanged = true;
-                    this.ForeColor = SystemColors.GrayText;
-                    this.Font = new Font(Font, FontStyle.Italic);
+                    ForeColor = SystemColors.GrayText;
+                    Font = new Font(Font, FontStyle.Italic);
                 }
                 if (suggestType == SuggestType.PlaceHolder)
                 {
                     tbSuggest.Text = value;
-                    this.Font = new Font(Font, FontStyle.Regular);
-                    this.ForeColor = Color.Black;
+                    Font = new Font(Font, FontStyle.Regular);
+                    ForeColor = Color.Black;
                 }
             }
         }
@@ -48,20 +46,20 @@ namespace Calculator
                 switch (value)
                 {
                     case SuggestType.None:
-                        if (this.Controls.Contains(tbSuggest))
+                        if (Controls.Contains(tbSuggest))
                         {
-                            this.Controls.Remove(tbSuggest);
+                            Controls.Remove(tbSuggest);
                         }
                         break;
                     case SuggestType.WatermarkText:
-                        if (this.Controls.Contains(tbSuggest))
+                        if (Controls.Contains(tbSuggest))
                         {
-                            this.Controls.Remove(tbSuggest);
+                            Controls.Remove(tbSuggest);
                         }
-                        this.ForeColor = SystemColors.GrayText;
-                        this.Font = new Font(Font, FontStyle.Italic);
+                        ForeColor = SystemColors.GrayText;
+                        Font = new Font(Font, FontStyle.Italic);
                         allowTextChanged = false;
-                        this.Text = suggestText;
+                        Text = suggestText;
                         allowTextChanged = true;
                         break;
                     case SuggestType.PlaceHolder:
@@ -75,12 +73,12 @@ namespace Calculator
                         tbSuggest.Text = suggestText;
                         tbSuggest.Enter += new EventHandler(tbSuggest_GotFocus);
                         tbSuggest.GotFocus += new EventHandler(tbSuggest_GotFocus);
-                        this.Font = new Font(Font, FontStyle.Regular);
-                        this.ForeColor = Color.Black;
+                        Font = new Font(Font, FontStyle.Regular);
+                        ForeColor = Color.Black;
                         allowTextChanged = false;
-                        this.Text = "";
+                        Text = "";
                         allowTextChanged = true;
-                        this.Controls.Add(tbSuggest);
+                        Controls.Add(tbSuggest);
                         break;
                 }
             }
@@ -88,7 +86,7 @@ namespace Calculator
 
         private void tbSuggest_GotFocus(object sender, EventArgs e)
         {
-            this.Focus();
+            Focus();
         }
 
         protected override void OnTextChanged(EventArgs e)
@@ -96,7 +94,7 @@ namespace Calculator
             if (!allowTextChanged) return;
             if (suggestType == SuggestType.WatermarkText)
             {
-                this.ForeColor = SystemColors.ControlText;
+                ForeColor = SystemColors.ControlText;
             }
             else if (suggestType == SuggestType.PlaceHolder)
             {
@@ -118,7 +116,7 @@ namespace Calculator
         {
             if (suggestType == SuggestType.PlaceHolder)
             {
-                tbSuggest.Visible = (Enabled && !ReadOnly) && Text == "";
+                tbSuggest.Visible = Enabled && !ReadOnly && Text == "";
             }
             base.OnReadOnlyChanged(e);
         }
@@ -127,7 +125,7 @@ namespace Calculator
         {
             if (suggestType == SuggestType.PlaceHolder)
             {
-                tbSuggest.Font = this.Font;
+                tbSuggest.Font = Font;
                 Point pt = tbSuggest.GetPositionFromCharIndex(tbSuggest.Text.Length - 1);
                 tbSuggest.Size = new Size(pt.X + 30, pt.Y);
             }
@@ -160,13 +158,13 @@ namespace Calculator
         /// </summary>
         protected override void OnGotFocus(EventArgs e)
         {
-            if (suggestType == SuggestType.WatermarkText && this.Text == suggestText && this.ForeColor == SystemColors.GrayText)
+            if (suggestType == SuggestType.WatermarkText && Text == suggestText && ForeColor == SystemColors.GrayText)
             {
                 allowTextChanged = false;
-                this.Text = "";
+                Text = "";
                 allowTextChanged = true;
-                this.ForeColor = SystemColors.ControlText;
-                this.Font = new Font(this.Font, FontStyle.Regular);
+                ForeColor = SystemColors.ControlText;
+                Font = new Font(Font, FontStyle.Regular);
             }
             base.OnGotFocus(e);
         }
@@ -175,13 +173,13 @@ namespace Calculator
         /// </summary>
         protected override void OnLostFocus(EventArgs e)
         {
-            if (this.Text == "" && suggestType == SuggestType.WatermarkText)
+            if (Text == "" && suggestType == SuggestType.WatermarkText)
             {
                 allowTextChanged = false;
-                this.Text = suggestText;
+                Text = suggestText;
                 allowTextChanged = true;
-                this.ForeColor = SystemColors.GrayText;
-                this.Font = new Font(this.Font, FontStyle.Italic);
+                ForeColor = SystemColors.GrayText;
+                Font = new Font(Font, FontStyle.Italic);
             }
             base.OnLostFocus(e);
         }
