@@ -30,15 +30,13 @@ namespace Calculator
         /// </summary>
         private void InitializeComponent()
         {
-            this.borderPN = new System.Windows.Forms.Panel();
+            this.borderPN = new Calculator.IPanel();
             this.rtbInfo = new System.Windows.Forms.RichTextBox();
             this.borderPN.SuspendLayout();
             this.SuspendLayout();
             // 
             // borderPN
             // 
-            this.borderPN.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
-            this.borderPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.borderPN.Controls.Add(this.rtbInfo);
             this.borderPN.Dock = System.Windows.Forms.DockStyle.Fill;
             this.borderPN.Location = new System.Drawing.Point(0, 0);
@@ -51,11 +49,11 @@ namespace Calculator
             this.rtbInfo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
             this.rtbInfo.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.rtbInfo.Cursor = System.Windows.Forms.Cursors.Default;
-            this.rtbInfo.Location = new System.Drawing.Point(5, 5);
+            this.rtbInfo.Location = new System.Drawing.Point(6, 6);
             this.rtbInfo.Name = "rtbInfo";
             this.rtbInfo.ScrollBars = System.Windows.Forms.RichTextBoxScrollBars.None;
             this.rtbInfo.Size = new System.Drawing.Size(312, 88);
-            this.rtbInfo.TabIndex = 0;
+            this.rtbInfo.TabIndex = 2;
             this.rtbInfo.Text = "";
             // 
             // Info
@@ -81,7 +79,7 @@ namespace Calculator
 
         #endregion
 
-        private Panel borderPN;
+        private IPanel borderPN;
         private RichTextBox rtbInfo;
 
 

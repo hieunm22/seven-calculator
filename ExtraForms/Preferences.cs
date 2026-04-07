@@ -8,6 +8,11 @@ namespace Calculator
         public Preferences(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict)
         {
             InitializeComponent();
+            LoadSettings(_Speed, _Animate, _Fast, _IsSign, _ReadDict);
+        }
+
+        private void LoadSettings(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict)
+        {
             transfer = _Speed;
             animateCB.Checked = ani = _Animate;
             fastFactCB.Checked = f3 = _Fast;
@@ -16,8 +21,8 @@ namespace Calculator
             collapsedSpdNUD.Value = (decimal)_Speed;
         }
 
-        public delegate void PreferencesCheckChanged(int spd, bool animate, bool fast, bool sign, bool readdict, bool restart);
-        public event PreferencesCheckChanged DoCheck;
+        public delegate void PreferencesChanged(int spd, bool animate, bool fast, bool sign, bool readdict, bool restart);
+        public event PreferencesChanged DoCheck;
 
         int transfer;
         bool mod = false, ani, f3, sign, readDict, readDictChanged;

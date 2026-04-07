@@ -10,31 +10,6 @@ namespace Calculator
             InitializeComponent();
         }
 
-        public int total = 100;
-        public int count = 0;
-        private int progress = 0;
-        public int Progress
-        {
-            get { return progress; }
-            set
-            {
-                progress = value;
-                if (progressBar.InvokeRequired)
-                {
-                    SetPBProgress spbp = new SetPBProgress(SetProcess);
-                    this.Invoke(spbp, progress, count, total);
-                }
-            }
-        }
-
-        delegate void SetPBProgress(int _progress, int _ct, int _tt);
-
-        private void SetProcess(int _progress, int _ct, int _tt)
-        {
-            progressBar.Value = _progress;
-            label2.Text = string.Format("{0} / {1}", _ct - 1, _tt);
-        }
-
         private bool finished = false;
         public bool Finished
         {
@@ -73,6 +48,25 @@ namespace Calculator
                 Misc.ReleaseCapture();
                 Misc.SendMessage(Handle, 0xA1, 0x2, 1);
             }
+        }
+
+        private void CancelOperation_Load(object sender, EventArgs e)
+        {
+            timer1.Start();
+        }
+
+        string str = "";
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (str != "......")
+            {
+                str += ".";
+            }
+            else
+            {
+                str = "";
+            }
+            lbTitle.Text = string.Format("Cancel this operation request now: {0}", str);
         }
     }
 }

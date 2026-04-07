@@ -156,7 +156,84 @@ namespace Calculator
     /// Lớp ITextBox
     /// </summary>
     class ITextBox : TextBox
-    {
+    {    
+        public ITextBox()
+        {
+            InitializeComponent();
+            tb.Text = WatermarkText;
+        }
+
+        public ITextBox(string text)
+        {
+            InitializeComponent();
+            tb.Text = text;
+        }
+
+        private string watermarkText = "";
+        public string WatermarkText
+        {
+            get { return watermarkText; }
+            set
+            {
+                watermarkText = value;
+                tb.Text = watermarkText;
+            }
+        }
+
+        private void InitializeComponent()
+        {
+            tb = new TextBox();
+            tb.Location = new Point(2, 0);
+            tb.Font = new Font("Segoe UI", Font.Size);
+            tb.ForeColor = SystemColors.GrayText;
+            tb.BorderStyle = BorderStyle.None;
+            tb.AcceptsTab = false;
+            tb.ShortcutsEnabled = false;
+            tb.GotFocus += new EventHandler(lb_GotFocus);
+            GotFocus += new EventHandler(lb_GotFocus);
+            tb.MouseEnter += new EventHandler(lb_GotFocus);
+            this.Controls.Add(tb);
+        }
+
+        private void lb_GotFocus(object sender, EventArgs e)
+        {
+            this.Focus();
+        }
+
+        protected override void OnTextChanged(EventArgs e)
+        {
+            tb.Visible = Text == "";
+            if (!allowTextChanged) return;
+            base.OnTextChanged(e);
+        }
+
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            tb.Visible = (Enabled && !ReadOnly) && Text == "";
+            base.OnEnabledChanged(e);
+        }
+
+        protected override void OnReadOnlyChanged(EventArgs e)
+        {
+            tb.Visible = (Enabled && !ReadOnly) && Text == "";
+            base.OnReadOnlyChanged(e);
+        }
+
+        protected override void OnFontChanged(EventArgs e)
+        {
+            tb.Font = new Font("Segoe UI", this.Font.Size);
+            Point pt = tb.GetPositionFromCharIndex(tb.Text.Length - 1);
+            tb.Size = new Size(pt.X + 30, pt.Y);
+            base.OnFontChanged(e);
+        }
+
+        protected override void OnMultilineChanged(EventArgs e)
+        {
+            tb.Location = new Point(5, 1);
+            base.OnMultilineChanged(e);
+        }
+
+        TextBox tb;
         private bool allowTextChanged = true;
         public bool AllowTextChanged
         {
@@ -216,13 +293,7 @@ namespace Calculator
                     break;
             }
         }
-
-        protected override void OnTextChanged(EventArgs e)
-        {
-            if (!allowTextChanged) return;
-            base.OnTextChanged(e);
-        }
-    }
+}
 
     class IRadioButton : RadioButton
     {
@@ -243,6 +314,38 @@ namespace Calculator
             if (e.Delta < 0 && Value > Minimum)
             {
                 Value--;
+            }
+        }
+    }
+
+    class IDateTimePicker : DateTimePicker
+    {
+        [DefaultValue(false)]
+        public bool UsedMouseWheel
+        {
+            get { return usedMouseWheel; }
+            set { usedMouseWheel = value; }
+        }
+
+        private bool usedMouseWheel = false;
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            if (!usedMouseWheel) return;
+            DateTime added = Value.AddDays(1d * e.Delta / Math.Abs(e.Delta));
+            if (e.Delta > 0)
+            {
+                if (added.Month == Value.Month)
+                    Value = added;
+                else
+                    Value = new DateTime(Value.Year, Value.Month, 1);
+            }
+            else
+            {
+                if (added.Month == Value.Month)
+                    Value = added;
+                else
+                    Value = new DateTime(Value.Year, Value.Month, DateTime.DaysInMonth(Value.Year, Value.Month));
             }
         }
     }

@@ -12,7 +12,7 @@ namespace Calculator
             displayInfo(control);
         }
 
-        private readonly string KeyText = "Keyboard equivalent = ";
+        private const string KeyText = "Keyboard equivalent = ";
 
         public delegate void SendKeyHandler(Keys keys);
         /// <summary>
@@ -122,7 +122,7 @@ memory.";
                 //------------------------------------------------------
                 case ")":
                     description = @"Close the current level of parentheses";
-                    hotkey = ")";
+                    hotkey = "<b>)</b> or <b>]</b>";
                     break;
                 case "Inv":
                     description = @"Sets the inverse function for <b>sin</b>, <b>cos</b>, <b>tan</b>, <b>sinh</b>, <b>cosh</b>, <b>tanh</b>,
@@ -202,13 +202,13 @@ You can use <b>dms</b> only with the decimal number system.";
 limited in 64-bit number range. You can use only decimal
 digits (keys 0 through 9) in the exponent. You can use <b>Exp</b>
 only with the decimal number system.";
-                    hotkey = "E or X";
+                    hotkey = "<b>E</b> or <b>X</b>";
                     break;
                 case "xⁿ":
                     description = @"Computes x raised to the yth power. Use this button as a binary
 operator. For example, to find 2 raised to the 4th power, click
 <b>2 xⁿ 4 =</b>, which equals 16.";
-                    hotkey = "Y or ^";
+                    hotkey = "<b>Y</b> or <b>^</b>";
                     break;
                 case "ⁿ√x":
                     description = @"Calculate the yth root of x. Use this button as a binary
@@ -349,7 +349,8 @@ before performing any bitwise operation.";
                     hotkey = "D";
                     break;
                 case "Add":
-                    description = @"Enters the displayed number in the <b>statistics box</b>.";
+                    description = @"Enters the displayed number in the <b>statistics grid</b>.
+If you want to enter a number with frequence is 1, press <b>Ctrl-Enter</b>";
                     hotkey = "ENTER";
                     break;
                 #endregion
@@ -403,7 +404,7 @@ To use a different character for the decimal point, click <b>Start</b>,
 point to <b>Settings</b>, and then click <b>Control Panel</b>.
 Double-click <b>Regional and Language Options</b>, and then
 click the <b>Numbers</b> tab.";
-                    hotkey = ". or ,";
+                    hotkey = "<b>.</b> or <b>,</b>";
                     break;
                 case "btnA_PN": case "btnB_PN": case "btnC_PN": case "btnD_PN": case "btnE_PN": case "btnF_PN":
                     description = @"Enters the selected letter in the value.
@@ -437,17 +438,20 @@ number, click %, and then click =. For example 50 + 25% (of
                     description = @"Starts a new level of parentheses. The current number of
 levels appears in the box above the <b>Int</b> button. The maximum
 number of levels is 25.";
-                    hotkey = "(";
+                    hotkey = "<b>(</b> or <b>[</b>";
                     break;
                 case "openProBT":
                     description = @"Starts a new level of parentheses. The current number of
 levels appears in the box above the <b>(</b> (<b>this</b>) button. 
 The maximum number of levels is 25.";
-                    hotkey = "(";
+                    hotkey = "<b>(</b> or <b>[</b>";
                     break;
                 #endregion
             }
-            rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>", description, Environment.NewLine, KeyText, hotkey);
+            if (hotkey.Contains(" or ")) 
+                rtbInfo.Text = string.Format("{0}{1}{1}{2}{3}", description, Environment.NewLine, KeyText, hotkey);
+            else 
+                rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>", description, Environment.NewLine, KeyText, hotkey);
             FormatTheText();
             AutoFit();
         }

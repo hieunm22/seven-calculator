@@ -97,9 +97,9 @@ namespace Calculator
             this.iLabel1.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.iLabel1.Location = new System.Drawing.Point(61, 19);
             this.iLabel1.Name = "iLabel1";
-            this.iLabel1.Size = new System.Drawing.Size(300, 13);
+            this.iLabel1.Size = new System.Drawing.Size(329, 13);
             this.iLabel1.TabIndex = 10;
-            this.iLabel1.Text = "Seven calculator - Developed by Nguyen Minh Hieu";
+            this.iLabel1.Text = "Seven calculator v4.0 - Developed by Nguyen Minh Hieu";
             this.iLabel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveForm);
             // 
             // emaillb
@@ -125,7 +125,7 @@ namespace Calculator
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnOk;
-            this.ClientSize = new System.Drawing.Size(372, 102);
+            this.ClientSize = new System.Drawing.Size(397, 102);
             this.Controls.Add(this.iLabel2);
             this.Controls.Add(this.iLabel1);
             this.Controls.Add(this.emaillb);

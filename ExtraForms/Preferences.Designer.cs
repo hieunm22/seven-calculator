@@ -1,4 +1,6 @@
-﻿namespace Calculator
+﻿using System.Windows.Forms;
+
+namespace Calculator
 {
     partial class Preferences
     {
@@ -56,7 +58,7 @@
             this.btnOK.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnOK.Location = new System.Drawing.Point(78, 156);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(87, 23);
+            this.btnOK.Size = new System.Drawing.Size(87, 25);
             this.btnOK.TabIndex = 5;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
@@ -68,7 +70,7 @@
             this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnCancel.Location = new System.Drawing.Point(198, 156);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(87, 23);
+            this.btnCancel.Size = new System.Drawing.Size(87, 25);
             this.btnCancel.TabIndex = 6;
             this.btnCancel.Text = "C&ancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -185,13 +187,13 @@
 
         #endregion
 
-        private System.Windows.Forms.Label spdLB;
-        private System.Windows.Forms.Button btnOK;
-        private System.Windows.Forms.Button btnCancel;
-        private System.Windows.Forms.CheckBox fastFactCB;
+        private Label spdLB;
+        private Button btnOK;
+        private Button btnCancel;
+        private CheckBox fastFactCB;
         private INumericUpDown collapsedSpdNUD;
-        private System.Windows.Forms.CheckBox usedSignChkB;
-        private System.Windows.Forms.CheckBox animateCB;
-        private System.Windows.Forms.CheckBox readDictChkB;
+        private CheckBox usedSignChkB;
+        private CheckBox animateCB;
+        private CheckBox readDictChkB;
     }
 }

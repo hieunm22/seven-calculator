@@ -1,11 +1,11 @@
 ﻿namespace Calculator
 {
-    public class OperatorPriority
+    public class Operator
     {
         /// <summary>
         /// hàm khởi tạo mặc định
         /// </summary>
-        public OperatorPriority()
+        public Operator()
         {
             PText = "";
             Index = -1;
@@ -15,7 +15,7 @@
         /// </summary>
         /// <param name="text">text của phép tính</param>
         /// <param name="mode">mức ưu tiên của toán tử "^". 6 => scientific, 0 => programmer</param>
-        public OperatorPriority(string text, int mode)
+        public Operator(string text, int mode)
         {
             PText = text;
             switch (text)
@@ -57,9 +57,9 @@
         /// <summary>
         /// tạo bản sao cho đối tượng hiện tại
         /// </summary>
-        public OperatorPriority Clone()
+        public Operator Clone()
         {
-            OperatorPriority clone = new OperatorPriority();
+            Operator clone = new Operator();
             clone.Index = this.Index;
             clone.PText = this.PText;
             return clone;

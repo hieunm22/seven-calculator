@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Calculator
 {
@@ -863,7 +863,7 @@ namespace Calculator
             {
                 if (bb.signum == 0)
                 {
-                    throw new Exception("Cannot divide by zero");
+                    throw new DivideByZeroException("Cannot divide by zero");
                 }
                 SetZero(rr);
                 return;
@@ -1054,14 +1054,18 @@ namespace Calculator
         static void DivGetRemainder(BigNumber c1, BigNumber c2, BigNumber res)
         {
             if (Compare(c1.Abs(), c2.Abs()) < 0) { Copy(c1, res); return; }
-            //if (c1 >= 0) res = c1 - (c1 / c2).Floor() * c2;
-            //else res = c1 + (-c1 / c2).Floor() * c2;
+            if (c1.exponent - c2.exponent > numDefaultPlaces
+                || c1.exponent > numDefaultPlaces || c2.exponent > numDefaultPlaces)
+            {
+                // tạm thời thế
+                throw new Exception("Value takes a very long time to calculate");
+            }
+            //if (c1 >= 0) res = c1 - (|c1| / c2).Floor() * c2;
+            //else res = c1 + (|c1| / c2).Floor() * c2;
             BigNumber sig = new BigNumber();
             BigNumber div = new BigNumber();
             BigNumber divRound = new BigNumber();
             BigNumber mul = new BigNumber();
-            //BigNumber c1abs = new BigNumber();
-            //BigNumber c2abs = new BigNumber();
 
             #region code cu ok
             Copy(c2, sig);              // c2 = sign
@@ -1402,7 +1406,7 @@ namespace Calculator
                 sign = 1;
                 value = value.Substring(1);
             }
-            else if (value.StartsWith("-"))
+            if (value.StartsWith("-"))
             {
                 sign = -1;
                 value = value.Substring(1);

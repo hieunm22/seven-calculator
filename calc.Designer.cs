@@ -13,12 +13,6 @@ namespace Calculator
         private IContainer components = null;
 
         #region constants
-
-        private const string DictionaryPath = "FactorialDictionary.ini";
-        /// <summary>
-        /// số ký tự trên 1 dòng biểu thức phép tính
-        /// </summary>
-        private const int charPerLine = 53;
         /// <summary>
         /// số lần mở ngoặc tối đa
         /// </summary>
@@ -142,7 +136,7 @@ namespace Calculator
         /// list options name
         /// </summary>
         private readonly string[] optionName = new string[]{
-         
+
             #region init item members
             "CalculatorType",
             "DigitGrouping",
@@ -216,7 +210,7 @@ namespace Calculator
             "Fuel used (liters)"}
             #endregion
 
-        }; 
+        };
         #endregion
 
         #region ham main
@@ -257,6 +251,7 @@ namespace Calculator
             {
                 return false;
             }
+
             if (key_hc == 27)    // esc
             {
                 //pex = null;
@@ -266,7 +261,7 @@ namespace Calculator
                 return base.ProcessCmdKey(ref msg, keyData);
             }
 
-            if (prcmdkey && pex == null)
+            if (prcmdkey/* && pex == null*/)
             {
                 //if (key_hc != 65585) co = null;
                 switch (key_hc)
@@ -316,7 +311,8 @@ namespace Calculator
                     case 187: case 13:      // = hoac enter
                         if (statisticsMI.Checked) AddstaBT_Click(AddstaBT, null);
                         else equal_Click(equalBT, null);
-                        break;
+                        // return true de tranh nham voi phim AcceptButton hien tai o tren form
+                        return true;
                     case 110: case 190:   // .
                         numinput(btdot);
                         break;
@@ -359,10 +355,11 @@ namespace Calculator
                         }
                         else if (staDGV.CurrentCell != null)
                         {
+                            string curFrq = (string)staDGV[0, staDGV.CurrentCell.RowIndex].Value;
+                            curFrq = curFrq.Substring(curFrq.IndexOf(" "));
+                            total -= double.Parse(curFrq);
                             staDGV.Rows.RemoveAt(staDGV.CurrentCell.RowIndex);
                             countLB.Text = string.Format("Count = {0}", staDGV.RowCount);
-                            try { rowIndex = staDGV.CurrentCell.RowIndex; }
-                            catch { rowIndex = 0; }
                         }
                         break;
                     case 113:       // F2
@@ -407,7 +404,7 @@ namespace Calculator
                         {
                             if (!statisticsMI.Checked)
                             {
-                                if (confirm_num) math_func(changesignBT);
+                                if (confirmNumber) MathFunction(changesignBT);
                                 else numinput(changesignBT);
                             }
                             else
@@ -422,7 +419,7 @@ namespace Calculator
                         if (programmerMI.Checked) qwordRB.Checked = true;
                         break;
                     case 186:       // ; int()
-                        if (scientificMI.Checked) math_func(int_bt);
+                        if (scientificMI.Checked) MathFunction(int_bt);
                         break;
                     // cac phim A den F
                     case 65:        // A
@@ -457,32 +454,32 @@ namespace Calculator
                         if (programmerMI.Checked) rotateBT_Click(RoRBT, null);
                         break;
                     case 76:       // L log
-                        if (scientificMI.Checked) math_func(log_bt); // 10^x
+                        if (scientificMI.Checked) MathFunction(log_bt); // 10^x
                         break;
                     case 77:       // M dms
-                        if (scientificMI.Checked) math_func(dms_bt);
+                        if (scientificMI.Checked) MathFunction(dms_bt);
                         break;
                     case 78:        // N ln()
-                        if (scientificMI.Checked) math_func(ln_bt);
+                        if (scientificMI.Checked) MathFunction(ln_bt);
                         break;
                     case 79:       // O cos
-                        if (scientificMI.Checked) math_func(cos_bt);
+                        if (scientificMI.Checked) MathFunction(cos_bt);
                         break;
                     case 80:       // P pi
                         if (scientificMI.Checked) pi_bt_Click(pi_bt, null);
                         break;
                     case 81:       // Q x²
-                        if (scientificMI.Checked) math_func(x2_bt);
+                        if (scientificMI.Checked) MathFunction(x2_bt);
                         break;
                     case 82:       // R 1/x
-                        if (standardMI.Checked || scientificMI.Checked) math_func(invert_bt);
+                        if (standardMI.Checked || scientificMI.Checked) MathFunction(invert_bt);
                         break;
                     case 83:       // S sin / ∑n
-                        if (scientificMI.Checked) math_func(sin_bt);
+                        if (scientificMI.Checked) MathFunction(sin_bt);
                         if (statisticsMI.Checked) sigmaxBT_Click(sigmaxBT, null);
                         break;
                     case 84:       // T tan / σn
-                        if (scientificMI.Checked) math_func(tan_bt);
+                        if (scientificMI.Checked) MathFunction(tan_bt);
                         if (statisticsMI.Checked) sigmanBT_Click(sigmanBT, null);
                         break;
                     case 86:       // V
@@ -511,10 +508,10 @@ namespace Calculator
                         close_bracket_Click(null, null);
                         break;
                     case 65585:     // !
-                        if (scientificMI.Checked) math_func(btFactorial);    //n!
+                        if (scientificMI.Checked) MathFunction(btFactorial);    // n!
                         break;
                     case 65587:     // #
-                        if (scientificMI.Checked) math_func(x3_bt);    //n!
+                        if (scientificMI.Checked) MathFunction(x3_bt);    // x³
                         break;
                     case 65590: case 65591: case 65756: case 65724: case 65726: // ^ & | < >
                         if (programmerMI.Checked)
@@ -527,23 +524,23 @@ namespace Calculator
                         }
                         break;
                     case 65586:     // sqrt
-                        if (scientificMI.Checked || standardMI.Checked) math_func(sqrt_bt);
+                        if (scientificMI.Checked || standardMI.Checked) MathFunction(sqrt_bt);
                         break;
                     // cac to hop phim
                     case 131137:    // control A
                         if (statisticsMI.Checked) x2cross_Click(x2cross, null);
                         break;
                     case 131138:    // control B
-                        if (scientificMI.Enabled) math_func(_3vx_bt); // ³√x
+                        if (scientificMI.Checked) MathFunction(_3vx_bt); // ³√x
                         break;
-                    case 131139:    // control C
+                    case 131139: case 131117 :  // control C/control insert
                         copyCTMN_Click(copyCTMN, null); // Copy
                         break;
                     case 131140:    // control D
                         digitLoad(false);
                         break;
                     case 131143:    // control G
-                        if (scientificMI.Enabled) math_func(_10x_bt); // 10^x
+                        if (scientificMI.Checked) MathFunction(_10x_bt); // 10^x
                         break;
                     case 131148:    // control L
                         memclearBT_Click(memclearBT, null);  //MC
@@ -552,7 +549,7 @@ namespace Calculator
                         mem_process("MS"); //MS
                         break;
                     case 131151:    // control O
-                        math_func(cosh_bt);  // cosh
+                        MathFunction(cosh_bt);  // cosh
                         break;
                     case 131152:    // control P
                         mem_process("M+"); //M+
@@ -564,22 +561,25 @@ namespace Calculator
                         if (pex == null) recallMemory();
                         break;
                     case 131155:    // control S
-                        if (scientificMI.Checked) math_func(sinh_bt);  // sinh
+                        if (scientificMI.Checked) MathFunction(sinh_bt);  // sinh
                         if (statisticsMI.Checked) sigmax2BT_Click(sigmax2BT, null);
                         break;
-                    case 131156:    // control T
-                        if (scientificMI.Checked) math_func(tanh_bt);  // tanh
+                    case 131156:    // control t
+                        if (scientificMI.Checked) MathFunction(tanh_bt);  // tanh
                         if (statisticsMI.Checked) sigman_1BT_Click(sigman_1BT, null);
                         break;
-                    case 131158:    // control V
+                    case 131158: case 65581:   // control V/shift insert
                         if (pasteMI.Enabled) { getPaste(null, null); pasteCTMN_Click(pasteCTMN, null); }
                         break;
                     case 131161:    // control Y
-                        sci_operation(34);  // yx
+                        if (scientificMI.Checked) sci_operation(34);  // yx
+                        break;
+                    case 131085:    // control Enter
+                        AddStaFQ(1);
                         break;
                     case 262211:    // alt C
                         if (dateCalculationMI.Checked) dateCalculationBT_Click(dateCalculationBT, null);
-                        if (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked) 
+                        if (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked)
                             workSheetCalculateBT_Click(workSheetCalculateBT, null);
                         break;
                     #endregion
@@ -587,7 +587,7 @@ namespace Calculator
             }
             return base.ProcessCmdKey(ref msg, keyData);
         }
-        /// <summary>
+		/// <summary>
         /// lưu property vào file trước khi đóng chương trình
         /// </summary>
         protected override void OnClosing(CancelEventArgs e)
@@ -619,25 +619,29 @@ namespace Calculator
                     Misc.SaveToRegistryBeforeExit(optionName, currentConfig);
                 }
             }
-            if (dictionaryAdded && (int)initConfigValue[12] == 1)
+            if (initDictLength < Fact_Value.Length && (int)initConfigValue[12] == 1)
             {
-                //Array.Sort(fact_Value, (x, y) => ((BigNumber)x - y).signum);
-                Array.Sort(fact_Value, delegate(string bn1, string bn2)
-                {
-                    return ((BigNumber)bn1 - bn2).signum;
-                });
-                Array.Sort(factResult, delegate(string bn1, string bn2)
-                {
-                    BigNumber _bn1 = bn1;
-                    BigNumber _bn2 = bn2;
-                    return (_bn1).exponent.CompareTo((_bn2).exponent);
-                });
-                string[] dictContent = new string[fact_Value.Length];
-                for (int i = 0; i < fact_Value.Length; i++)
-                {
-                    dictContent[i] = string.Format("{0}{1}", (fact_Value[i] + ";").PadRight(15), factResult[i]);
-                }
-                System.IO.File.WriteAllLines(DictionaryPath, dictContent);
+                #region luu vao file
+                //Array.Sort(Fact_Value, (x, y) => ((BigNumber)x - y).signum);
+                //Array.Sort(Fact_Value, delegate(string bn1, string bn2)
+                //{
+                //    return ((BigNumber)bn1 - bn2).signum;
+                //});
+                //Array.Sort(FactResult, delegate(string bn1, string bn2)
+                //{
+                //    BigNumber _bn1 = bn1;
+                //    BigNumber _bn2 = bn2;
+                //    return (_bn1).exponent.CompareTo((_bn2).exponent);
+                //});
+                //string[] dictContent = new string[Fact_Value.Length];
+                //for (int i = 0; i < Fact_Value.Length; i++)
+                //{
+                //    dictContent[i] = string.Format("{0}{1}", (Fact_Value[i] + ";").PadRight(15), FactResult[i]);
+                //}
+                //File.WriteAllLines(DictionaryPath, dictContent);
+                #endregion
+
+                Misc.SaveDictionary(initDictLength, Fact_Value, FactResult);
             }
         }
         #endregion
@@ -679,23 +683,20 @@ namespace Calculator
         private void stdLoad(bool isLoaded)
         {
             int his = historyMI.Checked.GetHashCode();
-            bool exf = dateCalculationMI.Checked || unitConversionMI.Checked 
+            bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(216 + (exf ? 376 : 0), 310 + 105 * his);     // dua ra ngoai de resize lai form
-            FormSizeChanged(new Size(216 + (exf ? 374 : 0), 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(220 + (exf ? 371 : 0), 310 + 104 * his), isLoaded);
             if (!standardMI.Checked)
             {
-                if (programmerMI.Checked) enableComponentByProgrammer();
+                if (programmerMI.Checked) EnableComponentByProgrammer();
                 modeMethod(standardMI);
                 EnableKeyboardAndChangeFocus();
                 if (historyMI.Checked && historyMI.Enabled) stdWithHistory();
                 else initializedForm(true);
 
                 this.hisDGV.Size = new Size(190 + (scientificMI.Checked ? 195 : 0), hisDGV.Size.Height);
-                hideStdComponent(true);
-                hideSciComponent(false);
-                hideProComponent(false);
-                hideStaComponent(false);
+                VisibleComponentsToForm(0);
 
                 unitconvPN.Location = new Point(213, 12);
                 unitconvPN.Size = new Size(362, 241 + 103 * his);
@@ -721,16 +722,13 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(413 + (exf ? 376 : 0), 310 + 105 * his);
-            FormSizeChanged(new Size(413 + (exf ? 374 : 0), 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(413 + (exf ? 371 : 0), 310 + 104 * his), isLoaded);
             if (!scientificMI.Checked)
             {
-                if (programmerMI.Checked) enableComponentByProgrammer();
+                if (programmerMI.Checked) EnableComponentByProgrammer();
                 modeMethod(scientificMI);
                 EnableKeyboardAndChangeFocus();
-                hideStdComponent(true);
-                hideSciComponent(true);
-                hideProComponent(false);
-                hideStaComponent(false);
+                VisibleComponentsToForm(1);
 
                 if (historyMI.Checked && historyMI.Enabled) sciWithHistory();
                 else scientificLoad(true);
@@ -763,16 +761,13 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(413 + 374 * exf.GetHashCode(), 374);
-            FormSizeChanged(new Size(413 + (exf ? 374 : 0), 374), isLoaded);
+            FormSizeChanged(new Size(413 + (exf ? 371 : 0), 374), isLoaded);
             if (!programmerMI.Checked)
             {
                 if (bin_digit == null) InitBitNumberArray();
                 modeMethod(programmerMI);
                 EnableKeyboardAndChangeFocus();
-                hideStdComponent(true);
-                hideSciComponent(false);
-                hideProComponent(true);
-                hideStaComponent(false);
+                VisibleComponentsToForm(2);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
@@ -802,15 +797,12 @@ namespace Calculator
             bool exf = dateCalculationMI.Checked || unitConversionMI.Checked
                 || fe_MPG_MI.Checked || feL100_MI.Checked || mortgageMI.Checked || vehicleLeaseMI.Checked;
             //this.Size = new Size(216 + (exf ? 374 : 0), 414);
-            FormSizeChanged(new Size(216 + (exf ? 374 : 0), 414), isLoaded);
+            FormSizeChanged(new Size(220 + (exf ? 371 : 0), 414), isLoaded);
             if (!statisticsMI.Checked)
             {
                 modeMethod(statisticsMI);
                 EnableKeyboardAndChangeFocus();
-                hideStdComponent(false);
-                hideSciComponent(false);
-                hideProComponent(false);
-                hideStaComponent(true);
+                VisibleComponentsToForm(3);
                 datecalcPN.Visible = dateCalculationMI.Checked;
                 unitconvPN.Visible = unitConversionMI.Checked;
                 workSheetPN.Visible = (mortgageMI.Checked || vehicleLeaseMI.Checked || fe_MPG_MI.Checked || feL100_MI.Checked);
@@ -823,7 +815,7 @@ namespace Calculator
                 statisticsMode();
                 //ctmnEnableAndVisible();
 
-                enableComponentByProgrammer();
+                EnableComponentByProgrammer();
                 unitconvPN.Location = new Point(213, 12);
                 unitconvPN.Size = new Size(362, 344);
 
@@ -853,6 +845,8 @@ namespace Calculator
             while (hisDGV.RowCount > 0) hisDGV.Rows.RemoveAt(0);
             countLB.Text = "";
         }
+
+        int initDictLength = 0;
         /// <summary>
         /// nạp những setting từ lần sử dụng trước đó từ registry
         /// </summary>
@@ -866,6 +860,7 @@ namespace Calculator
             if ((int)initConfigValue[0] == 1) sciLoad(true);
             if ((int)initConfigValue[0] == 2) proLoad(true);
             if ((int)initConfigValue[0] == 3) staLoad(true);
+            if ((int)initConfigValue[1] == 1) digitLoad(true);
             if ((int)initConfigValue[2] == 1)
             {
                 exFunc(unitConversionMI, true);
@@ -898,7 +893,9 @@ namespace Calculator
                 if (historyMI.Enabled) formWithHistory(true);
                 historyMI.Checked = true;
             }
-            if ((int)initConfigValue[1] == 1) digitLoad(true);
+
+			mem_num = initConfigValue[4].ToString();
+            SetMemoryLabelVisible();
 
             typeUnitCB.SelectedIndexChanged -= typeUnitCB_SelectedIndexChanged;
             typeUnitCB.SelectedIndex = (int)initConfigValue[5];
@@ -912,32 +909,9 @@ namespace Calculator
 
             datemethodCB.SelectedIndexChanged += datemethodCB_SelectedIndexChanged;
             autocal_date.CheckedChanged += autocal_date_CheckedChanged;
-            
+
             btdot.Text = Misc.DecimalSeparator;
             resultCollection = new string[100];
-        }
-        /// <summary>
-        /// nạp giá trị giai thừa số lớn đã tính được trước đó vào biến
-        /// </summary>
-        private void ReadDictionary()
-        {
-            try
-            {
-                string[] lines = System.IO.File.ReadAllLines(DictionaryPath);
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    string[] split = lines[i].Split(';');
-                    Array.Resize<string>(ref fact_Value, i + 1);
-                    Array.Resize<string>(ref factResult, i + 1);
-                    fact_Value[i] = split[0].Trim();
-                    factResult[i] = split[1].Trim();
-                }
-            }
-            catch (System.IO.FileNotFoundException) { }
-            catch (Exception)
-            {
-                MessageBox.Show("The dictionary file contains invalid syntax.", "Calculator", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
         }
         /// <summary>
         /// thay đổi kích thước form giống win 7
@@ -968,23 +942,23 @@ namespace Calculator
                 goto end;
             }
             //------thay doi ca chieu rong va chieu cao
-            int verticalSpd = (old_w - new_w) / (new_h - old_h) * collapseSpeed;
+            int verticalSpd = (new_w - old_w) / (new_h - old_h) * collapseSpeed;
             verticalSpd = Math.Abs(verticalSpd);
             if (old_w > new_w)
             {
-                int inc_or_dec = (old_h < new_h) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_h - old_h) / collapseSpeed);
+                int w_inc_or_dec = (old_h < new_h) ? 1 : -1;
+                loopNumber = (int)(Math.Abs(new_h - old_h) / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w -= verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
+                    this.Size = new Size(old_w -= verticalSpd, Size.Height + w_inc_or_dec * collapseSpeed);
                 goto end;
             }
 
             if (old_w < new_w)
             {
-                int inc_or_dec = (old_w < new_w) ? 1 : -1;
-                loopNumber = (int)(Math.Abs(new_w - old_w) / collapseSpeed);
+                int h_inc_or_dec = (old_h < new_h) ? 1 : -1;
+                loopNumber = (int)(Math.Abs(new_w - old_w) / verticalSpd);
                 for (int i = 0; i < loopNumber; i++)
-                    this.Size = new Size(old_w += verticalSpd, Size.Height + inc_or_dec * collapseSpeed);
+                    this.Size = new Size(old_w += verticalSpd, Size.Height + h_inc_or_dec * collapseSpeed);
             }
             end: if (Size.Height != new_h || Size.Width != new_w) this.Size = new Size(new_w, new_h);
         }
@@ -1015,10 +989,7 @@ namespace Calculator
                     sciWithHistory();
                     if (hisDGV.RowCount == 0) hisDGV.CurrentCell = null;
                 }
-                hideProComponent(programmerMI.Checked);
-                hideStaComponent(statisticsMI.Checked);
-                hideSciComponent(scientificMI.Checked);   // phải đứng cuối
-                if (hisDGV.RowCount > 0) hisDGV.CurrentCell = hisDGV[0, rowIndex];
+                if (hisDGV.RowCount > 0) hisDGV.CurrentCell = hisDGV[0, hisDGV.CurrentCell.RowIndex];
             }
             else
             {
@@ -1032,7 +1003,7 @@ namespace Calculator
 
             //countLB.Text = "";
 
-            FormSizeChanged(new Size(216 + 197 * sci + 374 * exf, 310 + 104 * his), isLoaded);
+            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, 310 + 104 * his), isLoaded);
 
             if (!isLoaded) propertiesChange = true;
         }
@@ -1046,7 +1017,7 @@ namespace Calculator
             int pro = programmerMI.Checked ? 1 : 0;
             int sci = scientificMI.Checked ? 1 : 0;
             //FormSizeChanged(new Size(216 + (exf ? 376 : 0), 310 + 105 * his), isLoaded);
-            FormSizeChanged(new Size(590 + 197 * (sci + pro), 310 + 104 * his + 64 * pro), isLoaded);
+            FormSizeChanged(new Size(591 + 193 * (sci + pro), 310 + 104 * his + 64 * pro), isLoaded);
 
             currentConfig[2] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : 0);
             datecalcPN.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
@@ -1114,7 +1085,9 @@ namespace Calculator
             assignDefaultIndex(typeUnitCB.SelectedIndex >= 0 ? typeUnitCB.SelectedIndex : 0);
             toCombobox.SelectedIndexChanged += fromCB_SelectedIndexChanged;
 
+            autocal_date.CheckedChanged -= autocal_date_CheckedChanged;
             autocal_date.Checked = (int)currentConfig[6] == 1;
+            autocal_date.CheckedChanged += autocal_date_CheckedChanged;
             if (dateCalculationMI.Checked) this.AcceptButton = dateCalculationBT;
             if (menuitem.Parent == worksheetsMI) this.AcceptButton = workSheetCalculateBT;
 
@@ -1140,112 +1113,85 @@ namespace Calculator
         /// <summary>
         /// ẩn các control đặc biệt của form standard
         /// </summary>
-        private void hideStdComponent(bool bl)
+        private void VisibleComponentsToForm(int idex)
         {
-            #region Hide standard functions
-            ce.Visible = bl;
-            addbt.Visible = bl;
-            mulbt.Visible = bl;
-            minusbt.Visible = bl;
-            divbt.Visible = bl;
-            equalBT.Visible = bl;
-            invertbt_PN.Visible = bl;
-            percentbt_PN.Visible = bl;
-            sqrtbt_PN.Visible = bl;
+            // standard form
+            ce.Visible = idex == 0 || idex == 1 || idex == 2;
+            addbt.Visible = idex == 0 || idex == 1 || idex == 2;
+            mulbt.Visible = idex == 0 || idex == 1 || idex == 2;
+            minusbt.Visible = idex == 0 || idex == 1 || idex == 2;
+            divbt.Visible = idex == 0 || idex == 1 || idex == 2;
+            equalBT.Visible = idex == 0 || idex == 1 || idex == 2;
+            invertbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
+            percentbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
+            sqrtbt_PN.Visible = idex == 0 || idex == 1 || idex == 2;
             screenStr = "0";
-            #endregion
-        }
-        /// <summary>
-        /// ẩn các control đặc biệt của form scientific
-        /// </summary>
-        private void hideSciComponent(bool bl)
-        {
-            #region Hide scientific functions
-            anglePN.Visible = bl;
-            inv_ChkBox.Visible = bl;
-            sin_bt.Visible = bl;
-            cos_bt.Visible = bl;
-            tan_bt.Visible = bl;
-            sinh_bt.Visible = bl;
-            cosh_bt.Visible = bl;
-            tanh_bt.Visible = bl;
-            _10x_bt.Visible = bl;
-            _3vx_bt.Visible = bl;
-            nvx_bt.Visible = bl;
-            log_bt.Visible = bl;
-            ln_bt.Visible = bl;
-            exp_bt.Visible = bl;
-            pi_bt.Visible = bl;
-            fe_ChkBox.Visible = bl;
-            dms_bt.Visible = bl;
-            int_bt.Visible = bl;
-            x2_bt.Visible = bl;
-            x3_bt.Visible = bl;
-            xn_bt.Visible = bl;
-            btFactorial.Visible = bl;
-            modsciBT.Visible = bl;
-            open_bracket.Visible = bl;
-            close_bracket.Visible = bl;
-            bracketTime_lb.Visible = bl;
-            //screenStr = "0";
-            #endregion
-        }
-        /// <summary>
-        /// ẩn các control đặc biệt của form programmer
-        /// </summary>
-        private void hideProComponent(bool bl)
-        {
-            #region Hide programmer functions
-            unknownPN.Visible = bl;
-            PNbinary.Visible = bl;
-            basePN.Visible = bl;
-            modsciBT.Visible = bl;
-            RoRBT.Visible = bl;
-            RoLBT.Visible = bl;
-            RshBT.Visible = bl;
-            LshBT.Visible = bl;
-            or_BT.Visible = bl;
-            XorBT.Visible = bl;
-            notBT.Visible = bl;
-            AndBT.Visible = bl;
-            bracketTime_lb.Visible = bl;
-            openProBT.Visible = bl;
-            close_bracket.Visible = bl;
-            modproBT.Visible = bl;
-            btnA_PN.Visible = bl;
-            btnB_PN.Visible = bl;
-            btnC_PN.Visible = bl;
-            btnD_PN.Visible = bl;
-            btnE_PN.Visible = bl;
-            btnF_PN.Visible = bl;
-            if (bl) screenStr = "0";
-            #endregion
-        }
-        /// <summary>
-        /// ẩn các control đặc biệt của form programmer
-        /// </summary>
-        private void hideStaComponent(bool bl)
-        {
-            #region Hide statistics functions
-            sigman_1BT.Visible = bl;
-            sigmanBT.Visible = bl;
-            sigmaxBT.Visible = bl;
-            sigmax2BT.Visible = bl;
-            xcross.Visible = bl;
-            x2cross.Visible = bl;
-            staDGV.Visible = /*countLB.Visible = */bl;
-            CAD.Visible = bl;
-            fe_ChkBox.Visible = bl;
-            exp_bt.Visible = bl;
-            AddstaBT.Visible = bl;
-            datasetMI.Visible = bl;
-            if (bl) screenStr = "0";
-            #endregion
+
+            // scientific form
+            anglePN.Visible = idex == 1;
+            inv_ChkBox.Visible = idex == 1;
+            sin_bt.Visible = idex == 1;
+            cos_bt.Visible = idex == 1;
+            tan_bt.Visible = idex == 1;
+            sinh_bt.Visible = idex == 1;
+            cosh_bt.Visible = idex == 1;
+            tanh_bt.Visible = idex == 1;
+            _10x_bt.Visible = idex == 1;
+            _3vx_bt.Visible = idex == 1;
+            nvx_bt.Visible = idex == 1;
+            log_bt.Visible = idex == 1;
+            ln_bt.Visible = idex == 1;
+            exp_bt.Visible = idex == 1 || idex == 3;
+            pi_bt.Visible = idex == 1;
+            fe_ChkBox.Visible = idex == 1 || idex == 3;
+            dms_bt.Visible = idex == 1;
+            int_bt.Visible = idex == 1;
+            x2_bt.Visible = idex == 1;
+            x3_bt.Visible = idex == 1;
+            xn_bt.Visible = idex == 1;
+            btFactorial.Visible = idex == 1;
+            modsciBT.Visible = idex == 1 || idex == 2;
+            open_bracket.Visible = idex == 1;
+            close_bracket.Visible = idex == 1 || idex == 2;
+            bracketTime_lb.Visible = idex == 1 || idex == 2;
+
+            // programmer form
+            unknownPN.Visible = idex == 2;
+            PNbinary.Visible = idex == 2;
+            basePN.Visible = idex == 2;
+            RoRBT.Visible = idex == 2;
+            RoLBT.Visible = idex == 2;
+            RshBT.Visible = idex == 2;
+            LshBT.Visible = idex == 2;
+            or_BT.Visible = idex == 2;
+            XorBT.Visible = idex == 2;
+            notBT.Visible = idex == 2;
+            AndBT.Visible = idex == 2;
+            openProBT.Visible = idex == 2;
+            modproBT.Visible = idex == 2;
+            btnA_PN.Visible = idex == 2;
+            btnB_PN.Visible = idex == 2;
+            btnC_PN.Visible = idex == 2;
+            btnD_PN.Visible = idex == 2;
+            btnE_PN.Visible = idex == 2;
+            btnF_PN.Visible = idex == 2;
+
+            // statistics form
+            sigman_1BT.Visible = idex == 3;
+            sigmanBT.Visible = idex == 3;
+            sigmaxBT.Visible = idex == 3;
+            sigmax2BT.Visible = idex == 3;
+            xcross.Visible = idex == 3;
+            x2cross.Visible = idex == 3;
+            staDGV.Visible = /*countLB.Visible = */idex == 3;
+            CAD.Visible = idex == 3;
+            AddstaBT.Visible = idex == 3;
+            datasetMI.Visible = idex == 3;
         }
         /// <summary>
         /// enable các nút đã bị form programmer disable
         /// </summary>
-        private void enableComponentByProgrammer()
+        private void EnableComponentByProgrammer()
         {
             num2BT.Enabled = true;
             num3BT.Enabled = true;
@@ -1296,6 +1242,14 @@ namespace Calculator
             this.btnF.Enabled = hexRB.Checked;
         }
         /// <summary>
+        /// hiển thị label "M" nếu có chứa memory
+        /// </summary>
+        private void SetMemoryLabelVisible()
+        {
+            mem_lb.Visible = mem_num != 0;
+            toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", mem_num.StrValue));
+        }
+        /// <summary>
         /// xử lý số trên bộ nhớ
         /// </summary>
         private void mem_process(string method)
@@ -1308,115 +1262,118 @@ namespace Calculator
                 currentConfig[4] = mem_num.StrValue;
                 DisplayToScreen();
 
-                mem_lb.Visible = (mem_num != 0);
+                SetMemoryLabelVisible();
                 propertiesChange = true;
-                toolTip1.SetToolTip(mem_lb, string.Format("M = {0}", mem_num.StrValue));
-                confirm_num = true;
+                confirmNumber = true;
             }
         }
 
-        public static string[] fact_Value = new string[] { };
-        public static string[] factResult = new string[] { };
+        public static string[] Fact_Value = new string[] { };
+        public static string[] FactResult = new string[] { };
 
         bool isFuncClicked = false;
         /// <summary>
         /// các hàm tính nâng cao
         /// </summary>
-        private void math_func(Button bt)
+        private void MathFunction(Button bt)
         {
+            if (pex != null) return;
             BigNumber inp_num = screenStr;
-            pex = null;
             int tabIndex = bt.TabIndex;
             string parameter = screenStr;
             if (isFuncClicked || expAdded)
             {
-                parameter = prevFunc;
+                parameter = curOperand;
             }
             else if (pre_bt == 153) parameter = bracketExp[openBrkLevel];
-            int len = prevFunc.Length;
+            int len = curOperand.Length;
 
             while (parameter.StartsWith("(") && parameter.EndsWith(")"))
             {
                 parameter = parameter.Substring(1, parameter.Length - 2);
             }
 
-            int idex = Array.IndexOf(fact_Value, inp_num.StrValue);
+            int idex = Array.IndexOf(Fact_Value, inp_num.StrValue);
             switch (tabIndex)
             {
                 #region Assign function
                 // sin, cos, tan, sinh, cosh, tanh, log, int
                 case 28: case 29: case 30:
-                    prevFunc = string.Format("{0}({1})", bt.Text + parser.Angle, parameter);
+                    curOperand = string.Format("{0}({1})", bt.Text + parser.Angle, parameter);
                     break;
                 case 35: case 36: case 37: case 42: case 44:
-                    prevFunc = string.Format("{0}({1})", bt.Text, parameter);
+                    curOperand = string.Format("{0}({1})", bt.Text, parameter);
                     break;
                 case 45:
-                    if (!inv_ChkBox.Checked) prevFunc = string.Format("dms({0})", parameter);
-                    else prevFunc = string.Format("degrees({0})", parameter);
+                    if (!inv_ChkBox.Checked) curOperand = string.Format("dms({0})", parameter);
+                    else curOperand = string.Format("degrees({0})", parameter);
                     break;
                 case 11:
-                    prevFunc = string.Format("negate({0})", parameter);
+                    curOperand = string.Format("negate({0})", parameter);
                     break;
                 case 17:
-                    prevFunc = string.Format("reciproc({0})", parameter);
+                    curOperand = string.Format("reciproc({0})", parameter);
                     break;
                 case 19:
-                    prevFunc = string.Format("sqrt({0})", parameter);
+                    curOperand = string.Format("sqrt({0})", parameter);
                     break;
                 case 31:
-                    if (!inv_ChkBox.Checked) prevFunc = string.Format("ln({0})", parameter);
-                    else prevFunc = string.Format("powe({0})", parameter);
+                    if (!inv_ChkBox.Checked) curOperand = string.Format("ln({0})", parameter);
+                    else curOperand = string.Format("powe({0})", parameter);
                     break;
                 case 32:
                     if (BigNumber.IsInteger(inp_num.StrValue))
                     {
+                        if (inp_num >= 100000 && co != null)
+                        {
+                            InitCancelOperation();
+                        }
                         if ((int)currentConfig[10] == 1)
-                            prevFunc = string.Format("fast({0})", parameter);
+                            curOperand = string.Format("fast({0})", parameter);
                         else
-                            prevFunc = string.Format("fact({0})", parameter);
+                            curOperand = string.Format("fact({0})", parameter);
                     }
                     else return;
                     break;
                 case 38:
-                    prevFunc = string.Format("sqr({0})", parameter);
+                    curOperand = string.Format("sqr({0})", parameter);
                     break;
                 case 39:
-                    prevFunc = string.Format("cube({0})", parameter);
+                    curOperand = string.Format("cube({0})", parameter);
                     break;
                 case 40:
-                    prevFunc = string.Format("powten({0})", parameter);
+                    curOperand = string.Format("powten({0})", parameter);
                     break;
                 case 41:
-                    prevFunc = string.Format("cuberoot({0})", parameter);
+                    curOperand = string.Format("cuberoot({0})", parameter);
                     break;
                 #endregion
             }
 
             if (expAdded)
             {
-                mainExp = mainExp.Substring(0, mainExp.Length - len) + prevFunc;
-                bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - len) + prevFunc;
+                mainExp = mainExp.Substring(0, mainExp.Length - len) + curOperand;
+                bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - len) + curOperand;
             }
             else
             {
-                mainExp += prevFunc;
-                bracketExp[openBrkLevel] += prevFunc;
+                mainExp += curOperand;
+                bracketExp[openBrkLevel] += curOperand;
             }
 
             expAdded = true;
 
             if (inv_ChkBox.Checked) inv_ChkBox.Checked = false;
-            //if (standardMI.Checked) pex = parser.EvaluateStd(prevFunc);
+            //if (standardMI.Checked) pex = parser.EvaluateStd(curOperand);
             if (tabIndex != 32)
             {
-                pex = parser.EvaluateSci(prevFunc);
+                pex = parser.EvaluateSci(curOperand);
                 //--------------------------------------------------------------
                 if (pex == null)
                 {
                     screenStr = parser.StringResult;
                     isFuncClicked = true;
-                    confirm_num = true;
+                    confirmNumber = true;
                 }
                 else
                 {
@@ -1432,29 +1389,29 @@ namespace Calculator
             else
             {
                 #region Calculate the factorial
-                //if (bn > long.MaxValue) throw new Exception("Value is too large to calculate.");
-                if (inp_num >= 1e5 && prevFunc.Contains("fact"))
+                if ((BigNumber)inp_num > long.MaxValue) throw new Exception("Value is too large to calculate.");
+                if (inp_num >= 1e5 && curOperand.Contains("fact"))
                 {
                     if (idex < 0)   // khong tim thay
                     {
                         ShowFactorialProgress(true);
-                        if (pex == null) 
+                        if (pex == null)
                             screenStr = parser.StringResult;
-                        else 
+                        else
                             screenStr = pex.Message;
                     }
                     else            // tim thay
                     {
-                        screenStr = factResult[idex];
+                        screenStr = FactResult[idex];
                     }
                 }
                 else
                 {
                     InitCancelOperation();
-                    pex = parser.EvaluateSci(prevFunc);
+                    pex = parser.EvaluateSci(curOperand);
                     screenStr = parser.StringResult;
                 }
-                isFuncClicked = confirm_num = true;   // funcID != 32;
+                isFuncClicked = confirmNumber = true;   // funcID != 32;
                 #endregion
             }
 
@@ -1467,6 +1424,7 @@ namespace Calculator
         {
             mWorker = new BackgroundWorker();
             mWorker.WorkerSupportsCancellation = true;
+            mWorker.WorkerReportsProgress = true;
             if (isPref)
                 mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkPrevFunc);
             else
@@ -1494,8 +1452,8 @@ namespace Calculator
             {
                 priorityExpression[i] = new string[7];
                 lowestOperator[i] = 7;
-                curPriority[i] = new OperatorPriority();
-                prePriority[i] = new OperatorPriority();
+                curPriority[i] = new Operator();
+                prePriority[i] = new Operator();
             }
         }
         /// <summary>
@@ -1509,14 +1467,14 @@ namespace Calculator
                 if (prePriority[openBrkLevel].Index < 0 && pre_bt != 32) equal_Click(null, null);
                 if (prePriority[openBrkLevel].Index >= 0 && pre_bt != 32 && !c_bt)
                 {
-                    mainExp = mainExp.Substring(0, mainExp.Length - prevFunc.Length).Trim();
+                    mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length).Trim();
                     if (scientificMI.Checked) expressionTB.Text = mainExp.Trim();
                 }
             }
             scr_lb.Text = screenStr = "0";
             isFuncClicked = false;
             expAdded = false;
-            prcmdkey = confirm_num = true;
+            prcmdkey = confirmNumber = true;
 
             scr_lb.Font = new Font("Consolas", 15.75F);
             if (pex != null) expressionTB.Text = mainExp = "";
@@ -1525,9 +1483,9 @@ namespace Calculator
             {
                 pex = null;
                 openBrkLevel = 0;
-                prePriority = new OperatorPriority[maxBracketLevel + 1];
-                curPriority = new OperatorPriority[maxBracketLevel + 1];
-                prevFunc = "";
+                prePriority = new Operator[maxBracketLevel + 1];
+                curPriority = new Operator[maxBracketLevel + 1];
+                curOperand = "0";
                 expressionTB.Text = bracketTime_lb.Text = mainExp = "";
                 pre_bt = -1;
                 inv_ChkBox.Checked = fe_ChkBox.Checked = false;
@@ -1655,12 +1613,12 @@ namespace Calculator
             // neu phim truoc do khong phai la phim mo ngoac - WHY???
             if (expAdded/* && pre_bt != 152*/)
             {
-                mainExp = mainExp.Substring(0, mainExp.Length - prevFunc.Length);
+                mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length);
                 expAdded = false;
                 expressionTB.Text = mainExp.Trim();
                 if (openBrkLevel > 0)
                 {
-                    bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - prevFunc.Length);
+                    bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - curOperand.Length);
                 }
                 else
                 {
@@ -1684,7 +1642,7 @@ namespace Calculator
             string strTemp = "";
             if (index < 10 && pex == null)  // 0 đến 9
             {
-                if (!confirm_num)
+                if (!confirmNumber)
                 {
                     expAdded = false;
                     if (screenStr.Contains("e"))
@@ -1697,7 +1655,7 @@ namespace Calculator
                     else
                     {
                         if (screenStr != "0") strTemp = screenStr + index.ToString();
-                        else { confirm_num = true; pre_bt = index; return; }
+                        else { confirmNumber = true; pre_bt = index; return; }
                         if (strTemp.Length < ((standardMI.Checked || statisticsMI.Checked) ? 16 : 42)
                             && (BigNumber)strTemp < "1e32") screenStr = strTemp;
                         else return;
@@ -1710,57 +1668,67 @@ namespace Calculator
                     FixNumberWhenChange();
                     isFuncClicked = false;
                 }
-                prevFunc = screenStr;
-                //expressionTB.Text = Misc.StandardExpression(mainExp);
+                curOperand = screenStr;
                 goto breakpoint;
             }
             if (index == 10 && pex == null)    // dấu thập phân
             {
                 // chưa có dấu thập phân thì thêm vào, không có thì thôi
-                if (confirm_num)
+                if (confirmNumber)
                 {
                     screenStr = "0" + Misc.DecimalSeparator;
                     if (expAdded)
-                        expressionTB.Text = mainExp = mainExp.Substring(0, mainExp.Length - prevFunc.Length);
+                        expressionTB.Text = mainExp = mainExp.Substring(0, mainExp.Length - curOperand.Length);
                     else expressionTB.Text = mainExp;
                 }
-                if (!screenStr.Contains(Misc.DecimalSeparator) && !screenStr.Contains("e"))
+                // đang paste, dùng cho những lúc paste những số như 5.000.000.000 thì sẽ thành 5000000000 chứ không phải là 5,000000000
+                if (isInPaste)
                 {
-                    screenStr += Misc.DecimalSeparator;
-                    //if (!Misc.IsNumber(prevFunc))
-                    //  prevFunc = prevFunc.Insert(prevFunc.IndexOf(")"), Misc.DecimalSeparator);
+                    if (screenStr.Contains(Misc.DecimalSeparator))
+                    {
+                        screenStr = screenStr.Replace(Misc.DecimalSeparator, "");
+                    }
+                }
+                else
+                {
+                    if (!screenStr.Contains(Misc.DecimalSeparator) && !screenStr.Contains("e"))
+                    {
+                        screenStr += Misc.DecimalSeparator;
+                        //if (!Misc.IsNumber(curOperand))
+                        //  curOperand = curOperand.Insert(curOperand.IndexOf(")"), Misc.DecimalSeparator);
+                    }
                 }
                 expAdded = false;
 
                 FixNumberWhenChange();
-                prevFunc = screenStr;
+                curOperand = screenStr;
 
                 isFuncClicked = false;
                 goto breakpoint;
             }
             if (index == 11 && pex == null)    // nut doi dau
             {
-                if (!confirm_num)
+                if (!confirmNumber)
                 {
-                    if (screenStr.Contains("e+")) { screenStr = screenStr.Replace("e+", "e-"); prevFunc = screenStr; goto breakpoint; }
-                    if (screenStr.Contains("e-")) { screenStr = screenStr.Replace("e-", "e+"); prevFunc = screenStr; goto breakpoint; }
+                    if (screenStr.Contains("e+")) { screenStr = screenStr.Replace("e+", "e-"); curOperand = screenStr; goto breakpoint; }
+                    if (screenStr.Contains("e-")) { screenStr = screenStr.Replace("e-", "e+"); curOperand = screenStr; goto breakpoint; }
                 }
                 if (screenStr.StartsWith("-"))
                 {
                     screenStr = screenStr.Substring(1);
-                    prevFunc = screenStr;
+                    curOperand = screenStr;
                 }
                 else
                 {
                     if (screenStr != "0") screenStr = "-" + screenStr;
-                    prevFunc = string.Format("({0})", screenStr);
+                    curOperand = string.Format("({0})", screenStr);
                 }
 
                 pre_bt = index;
                 DisplayToScreen();
                 return;
             }
-            breakpoint: confirm_num = false;
+            breakpoint: confirmNumber = screenStr == "0";
             pre_bt = index;
             DisplayToScreen();
         }
@@ -1777,7 +1745,7 @@ namespace Calculator
                 string strTemp = "";
                 if (decRB.Checked)
                 {
-                    if (!confirm_num)
+                    if (!confirmNumber)
                     {
                         strTemp = screenStr + index.ToString();
                         if (BigNumber.Two.Pow(SizeBin - 1) >= strTemp) // strTemp chua vuot qua gia tri lon nhat
@@ -1788,7 +1756,7 @@ namespace Calculator
                 }
                 else
                 {
-                    if (!confirm_num)
+                    if (!confirmNumber)
                     {
                         strTemp = screenStr + index.ToString();
                     }
@@ -1867,7 +1835,8 @@ namespace Calculator
                     {
                         bin_digit[i].Text = binnum64.Substring(60 - i * 4, 4);
                     }
-                    confirm_num = true;
+                    curOperand = screenStr;
+                    confirmNumber = true;
                 }
                 else    // su dung so nguyen khong dau
                 {
@@ -1883,7 +1852,7 @@ namespace Calculator
                             if (hexRB.Checked) screenStr = Binary.dec_to_other(screenStr, 16, SizeBin, signNum);
                         }
                         ScreenToPanel();
-                        confirm_num = true;
+                        confirmNumber = true;
                         return;
                     }
                 }
@@ -1892,8 +1861,8 @@ namespace Calculator
                 return;
             }
             ScreenToPanel();
-            prevFunc = decRB.Value;
-            confirm_num = screenStr == "0";
+            curOperand = decRB.Value;
+            confirmNumber = screenStr == "0";
             pre_bt = index;
         }
         /// <summary>
@@ -1901,7 +1870,7 @@ namespace Calculator
         /// </summary>
         private void buttonAF(string text)
         {
-            if (!confirm_num)
+            if (!confirmNumber)
             {
                 string strTemp = screenStr + text;
                 if (strTemp.Length <= SizeBin / 4) screenStr = strTemp;
@@ -1911,7 +1880,7 @@ namespace Calculator
             {
                 screenStr = text;
             }
-            confirm_num = false;
+            confirmNumber = false;
             prcmdkey = true;
             ScreenToPanel();
         }
@@ -1926,9 +1895,10 @@ namespace Calculator
             if (staDGV.RowCount == 0) return 0;
             for (int i = 0; i < staDGV.RowCount; i++)
             {
+                double frq = double.Parse(staDGV[0, i].ToolTipText.Substring(staDGV[0, i].ToolTipText.LastIndexOf(' ')));
                 double number = double.Parse(staDGV[0, i].Value.ToString());
-                if (isSquare) sum += number * number;
-                else sum += number;
+                if (isSquare) sum += number * number * frq;
+                else sum += number * frq;
             }
             return sum;
         }
@@ -1945,7 +1915,7 @@ namespace Calculator
             if (index == 13) oper = "-";
             if (index == 14) oper = "*";
             if (index == 15) oper = "/";
-            curPriority[0] = new OperatorPriority(oper, 6);
+            curPriority[0] = new Operator(oper, 6);
             if (prePriority[0].Index >= 0)
             {
                 if (Array.IndexOf(new int[] { 12, 13, 14, 15 }, pre_bt) >= 0)    // pre_bt la cac nut co thuoc mang tren
@@ -1953,7 +1923,7 @@ namespace Calculator
                     mainExp = mainExp.Substring(0, mainExp.Length - 2) + oper + " ";
                     goto breakpoint;
                 }
-                if (!expAdded) mainExp += prevFunc;
+                if (!expAdded) mainExp += curOperand;
                 mainExp += " " + oper + " ";
                 rightNum = screenStr;
                 switch (prePriority[0].PText)
@@ -1970,7 +1940,7 @@ namespace Calculator
                         }
                         else
                         {
-                            pex = new Exception("Cannot divided by zero");
+                            pex = new DivideByZeroException("Cannot divided by zero");
                         }
                         break;
                 }
@@ -1979,8 +1949,8 @@ namespace Calculator
             {
                 if (isFuncClicked)
                 {
-                    if (!expAdded) mainExp += string.Format("{0} {1} ", prevFunc, oper);
-                    else mainExp = string.Format("{0} {1} ", prevFunc, oper);
+                    if (!expAdded) mainExp += string.Format("{0} {1} ", curOperand, oper);
+                    else mainExp = string.Format("{0} {1} ", curOperand, oper);
                 }
                 else
                 {
@@ -1989,20 +1959,19 @@ namespace Calculator
             }       // prePriority[0].Index >= 0
             leftNum = screenStr;
 
-            breakpoint: confirm_num = true;
+            breakpoint: confirmNumber = true;
             expressionTB.Text = mainExp.Trim();
             DisplayToScreen();
             pre_bt = index;
-            prevFunc = screenStr;
+            curOperand = screenStr;
             isFuncClicked = false;
             expAdded = false;
         }
 
         int[] lowestOperator = new int[maxBracketLevel + 1];
         string[][] priorityExpression = new string[maxBracketLevel + 1][];
-        OperatorPriority[] curPriority = new OperatorPriority[maxBracketLevel + 1];
-        OperatorPriority[] prePriority = new OperatorPriority[maxBracketLevel + 1];
-        #warning 08/04/2014 xử lý từ đây trước và hàm equal của nó
+        Operator[] curPriority = new Operator[maxBracketLevel + 1];
+        Operator[] prePriority = new Operator[maxBracketLevel + 1];
         /// <summary>
         /// các toán tử +-*/ của form scientific
         /// </summary>
@@ -2017,17 +1986,17 @@ namespace Calculator
             if (index == 33) oper = "^";
             if (index == 43) oper = "mod";
             if (index == 34) oper = "yroot";
-            curPriority[openBrkLevel] = new OperatorPriority(oper, 6);
+            curPriority[openBrkLevel] = new Operator(oper, 6);
             if (prePriority[openBrkLevel].Index >= 0)
             {
                 // neu phim truoc day la 1 phep tinh
                 if (Array.IndexOf(new int[] { 12, 13, 14, 15, 33, 34, 43 }, pre_bt) >= 0)    // pre_bt la cac nut co thuoc mang tren
                 {
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = prevFunc + oper;
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = curOperand + oper;
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] = null;
                     string format = "({0}) {1} ";
                     if (curPriority[openBrkLevel].Index <= prePriority[openBrkLevel].Index ||
-                        (mainExp[0] == '(' && mainExp[mainExp.Length - prePriority[openBrkLevel].PText.Length - 3] == ')')) 
+                        (mainExp[0] == '(' && mainExp[mainExp.Length - prePriority[openBrkLevel].PText.Length - 3] == ')'))
                             format = "{0} {1} ";
                     mainExp = string.Format(format, mainExp.Substring(0, mainExp.Length - prePriority[openBrkLevel].PText.Length - 2), oper);
                     bracketExp[openBrkLevel] = string.Format(format, bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - prePriority[openBrkLevel].PText.Length - 2), oper);
@@ -2038,42 +2007,41 @@ namespace Calculator
                 // biểu thức chính và biểu thức trong ngoặc ở level ngoặc hiện tại
                 if (!expAdded)
                 {
-                    mainExp += prevFunc;
-                    bracketExp[openBrkLevel] += prevFunc;
+                    mainExp += curOperand;
+                    bracketExp[openBrkLevel] += curOperand;
                 }
-          
+
                 // bieu thuc uu tien
                 // hien tai co muc uu tien CAO hon phep tinh truoc do
                 if (prePriority[openBrkLevel].Index < curPriority[openBrkLevel].Index)
                 {
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = prevFunc;
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = curOperand;
                 }
                 // hien tai co muc uu tien THAP hon phep tinh truoc do
                 else if (curPriority[openBrkLevel].Index < prePriority[openBrkLevel].Index)
                 {
-                    // hoan thien bieu thuc uu tien co thu tu cao hon cua phep tinh truoc do
-                    priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += prevFunc;
+                    // hoan thien bieu thuc uu tien co thu tu cao hon cua phep tinh TRUOC DO
+                    priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += curOperand;
 
-                    // lay ket qua cua phep tinh co thu tu cao hon truoc do, tra ve screenStr
+                    // lay ket qua cua phep tinh co thu tu cao hon TRUOC DO, tra ve screenStr
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index]));
                     screenStr = parser.StringResult;
 
-                    // bieu thuc uu tien cua phep tinh TRUOC DO tro ve rong
+                    // sau do, gan bieu thuc uu tien cua phep tinh TRUOC DO tro ve rong
                     priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] = null;
 
                     // bieu thuc uu tien cua phep tinh HIEN TAI them ket qua cua phep tinh co thu tu cao hon truoc do
                     priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr;
 
-                    // tinh gia tri cua bieu thuc uu tien cua phep tinh hien tai
+                    // tinh gia tri cua bieu thuc uu tien cua phep tinh HIEN TAI
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index]));
                     screenStr = parser.StringResult;
 
-                    // neu phep tinh hien tai co muc uu tien thap nhat trong bieu thuc thi tinh luon ca bieu thuc roi gan vao bien screenStr
+                    // neu phep tinh hien tai co muc uu tien la thap nhat trong bieu thuc thi tinh luon ca bieu thuc roi gan vao bien screenStr
                     if (curPriority[openBrkLevel].Index <= lowestOperator[openBrkLevel])
                     {
-                        if (openBrkLevel == 0)
+                        if (openBrkLevel == 0)  // dang o bieu thuc chinh
                         {
-                            //pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                             pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                         }
                         else
@@ -2087,8 +2055,8 @@ namespace Calculator
                 // hien tai co muc uu tien bang phep tinh truoc do
                 else
                 {
-                    // hoan thien bieu thuc uu tien hien tai
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += prevFunc;
+                    // hoan thien bieu thuc uu tien HIEN TAI
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
 
                     // tinh ket qua cua phep tinh nay, tra ve screenStr
                     pex = parser.EvaluateSci(SimplyFactorialExpression(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index]));
@@ -2099,7 +2067,6 @@ namespace Calculator
                     {
                         if (openBrkLevel == 0)  // dang o bieu thuc chinh
                         {
-                            //pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                             pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                         }
                         else
@@ -2122,11 +2089,11 @@ namespace Calculator
                 // bieu thuc chinh va bieu thuc trong ngoac
                 if (!expAdded)
                 {
-                    mainExp += prevFunc;
-                    bracketExp[openBrkLevel] += prevFunc;
-                    //priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += prevFunc;
+                    mainExp += curOperand;
+                    bracketExp[openBrkLevel] += curOperand;
+                    //priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
                 }
-                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += prevFunc + " " + oper + " ";
+                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand + " " + oper + " ";
                 mainExp += " " + oper + " ";
                 bracketExp[openBrkLevel] += " " + oper + " ";
             }       // prePriority[openBrkLevel].Index >= 0
@@ -2135,9 +2102,9 @@ namespace Calculator
             breakpoint: expressionTB.Text = mainExp.Trim();
             DisplayToScreen();
             pre_bt = index;
-            prevFunc = screenStr;
+            curOperand = screenStr;
             isFuncClicked = false;
-            confirm_num = true;
+            confirmNumber = true;
         }
         /// <summary>
         /// các toán tử +-*/ của form programmer
@@ -2157,7 +2124,7 @@ namespace Calculator
             if (index == 161) oper = "^";
             if (index == 162) oper = "|";
 
-            curPriority[openBrkLevel] = new OperatorPriority(oper, 1);
+            curPriority[openBrkLevel] = new Operator(oper, 1);
 
             if (prePriority[openBrkLevel].Index >= 0)
             {
@@ -2177,22 +2144,22 @@ namespace Calculator
                 }
 
                 // biểu thức chính và biểu thức trong ngoặc ở level ngoặc hiện tại
-                mainExp += prevFunc;
-                bracketExp[openBrkLevel] += prevFunc;
+                mainExp += curOperand;
+                bracketExp[openBrkLevel] += curOperand;
 
                 // bieu thuc uu tien
                 // hien tai co muc uu tien CAO hon phep tinh truoc do
                 if (prePriority[openBrkLevel].Index < curPriority[openBrkLevel].Index)
                 {
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = prevFunc;
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] = curOperand;
                 }
                 // hien tai co muc uu tien THAP hon phep tinh truoc do
                 else if (curPriority[openBrkLevel].Index < prePriority[openBrkLevel].Index)
                 {
-                    // hoan thien bieu thuc uu tien co thu tu cao hon cua phep tinh truoc do
-                    priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += prevFunc;
+                    // hoan thien bieu thuc uu tien co thu tu cao hon cua phep tinh TRUOC DO
+                    priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index] += curOperand;
 
-                    // lay ket qua cua phep tinh co thu tu cao hon truoc do, tra ve screenStr
+                    // lay ket qua cua phep tinh co thu tu cao hon TRUOC DO, tra ve screenStr
                     pex = parser.EvaluatePro(priorityExpression[openBrkLevel][prePriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
                     screenStr = parser.StringResult;
 
@@ -2202,7 +2169,7 @@ namespace Calculator
                     // bieu thuc uu tien cua phep tinh HIEN TAI them ket qua cua phep tinh co thu tu cao hon truoc do
                     priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += screenStr;
 
-                    // tinh gia tri cua bieu thuc uu tien cua phep tinh hien tai
+                    // tinh gia tri cua bieu thuc uu tien cua phep tinh HIEN TAI
                     pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
                     screenStr = parser.StringResult;
 
@@ -2225,8 +2192,8 @@ namespace Calculator
                 // hien tai co muc uu tien bang phep tinh truoc do
                 else
                 {
-                    // hoan thien bieu thuc uu tien hien tai
-                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += prevFunc;
+                    // hoan thien bieu thuc uu tien HIEN TAI
+                    priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand;
 
                     // tinh ket qua cua phep tinh nay, tra ve screenStr
                     pex = parser.EvaluatePro(priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index], (int)currentConfig[11] == 1);
@@ -2260,39 +2227,39 @@ namespace Calculator
                 // bieu thuc chinh, bieu thuc trong ngoac va bieu thuc uu tien
                 if (!expAdded)
                 {
-                    mainExp += prevFunc;
-                    bracketExp[openBrkLevel] += prevFunc;
+                    mainExp += curOperand;
+                    bracketExp[openBrkLevel] += curOperand;
                 }
-                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += prevFunc + oper;
+                priorityExpression[openBrkLevel][curPriority[openBrkLevel].Index] += curOperand + oper;
                 mainExp += oper;
                 bracketExp[openBrkLevel] += oper;
             }       // prePriority[openBrkLevel].Index >= 0
-            
+
             breakpoint: expAdded = false;
             DisplayToScreen();
-            //prevFunc = screenStr;
+            //curOperand = screenStr;
             pre_bt = index;
-            confirm_num = true;
+            confirmNumber = true;
         }
 
         private string SimplyFactorialExpression(string exp)
         {
+            if (!exp.Contains("fact")) return exp;
             int searchIndex = 0;
             int open = 0;
-            open = exp.IndexOf("fact(", searchIndex) + 4;
-            while (open >= 4)
+            //open = exp.IndexOf("fact(", searchIndex) + 4;
+            while ((open = exp.IndexOf("fact(", searchIndex) + 4) >= 4)
             {
-                //if (open < 4) break;
                 int close = Misc.GetCloseBracketIndex(exp, open);
                 searchIndex = close + 1;
                 string subExp = exp.Substring(open + 1, close - open - 1);
                 parser.EvaluateSci(subExp);
-                int idex = Array.IndexOf(fact_Value, parser.StringResult);
+                int idex = Array.IndexOf(Fact_Value, parser.StringResult);
                 if (idex >= 0)
                 {
-                    exp = exp.Replace(string.Format("fact({0})", subExp), factResult[idex]);
+                    exp = exp.Replace(string.Format("fact({0})", subExp), FactResult[idex]);
                 }
-                open = exp.IndexOf("fact(", searchIndex) + 4;
+                //open = exp.IndexOf("fact(", searchIndex) + 4;
             }
 
             return exp;
@@ -2309,7 +2276,7 @@ namespace Calculator
                 e.Cancel = true;
                 return;
             }
-            pex = parser.EvaluateSci(prevFunc);
+            pex = parser.EvaluateSci(curOperand);
         }
         //
         // tính giai thừa số lớn của biểu thức (sau khi ấn dấu bằng, tính lại biểu thức,...)
@@ -2356,18 +2323,16 @@ namespace Calculator
             {
                 if ((dir == 1 && hisDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && hisDGV.CurrentCell.RowIndex <= hisDGV.RowCount - 2))
                 {
-                    rowIndex = hisDGV.CurrentRow.Index - dir;
-                    hisDGV[0, rowIndex].Selected = true;
-                    evaluateExpression(rowIndex, false);
-                    prevFunc = screenStr;
+                    hisDGV[0, hisDGV.CurrentRow.Index - dir].Selected = true;
+                    evaluateExpression(hisDGV.CurrentRow.Index, false);
+                    curOperand = screenStr;
                 }
             }
             if (staDGV.CurrentCell != null && statisticsMI.Checked)
             {
                 if ((dir == 1 && staDGV.CurrentCell.RowIndex >= 1) || (dir == -1 && staDGV.CurrentCell.RowIndex <= staDGV.RowCount - 2))
                 {
-                    rowIndex = staDGV.CurrentRow.Index - dir;
-                    staDGV[0, rowIndex].Selected = true;
+                    staDGV[0, staDGV.CurrentRow.Index - dir].Selected = true;
                 }
             }
         }
@@ -2377,22 +2342,14 @@ namespace Calculator
             typeWorkSheetCB.Focus();
         }
 
-        private void parser_Transfer(int sentValue, int count, int total)
-        {
-            co.count = count;
-            co.total = total;
-            co.Progress = sentValue;
-        }
-
         private void parser_UpdateDictEvent(BigNumber input, BigNumber output)
         {
-            if (Array.IndexOf(fact_Value, input.StrValue) < 0)
+            if (Array.IndexOf(Fact_Value, input.StrValue) < 0)
             {
-                Array.Resize<string>(ref fact_Value, fact_Value.Length + 1);
-                Array.Resize<string>(ref factResult, factResult.Length + 1);
-                fact_Value[fact_Value.Length - 1] = input.StrValue;
-                factResult[factResult.Length - 1] = output.StrValue;
-                dictionaryAdded = true;
+                Array.Resize<string>(ref Fact_Value, Fact_Value.Length + 1);
+                Array.Resize<string>(ref FactResult, FactResult.Length + 1);
+                Fact_Value[Fact_Value.Length - 1] = input.StrValue;
+                FactResult[FactResult.Length - 1] = output.StrValue;
             }
         }
         #endregion
@@ -2522,9 +2479,29 @@ namespace Calculator
             this.clearDatasetCTMN = new System.Windows.Forms.MenuItem();
             this.helpCTMN = new System.Windows.Forms.ContextMenu();
             this.hotkeyMI = new System.Windows.Forms.MenuItem();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
             this.mWorker = new System.ComponentModel.BackgroundWorker();
             this.openProBT = new System.Windows.Forms.Button();
+            this.datecalcPN = new Calculator.IPanel();
+            this.tbResult1 = new System.Windows.Forms.TextBox();
+            this.tbResult2 = new System.Windows.Forms.TextBox();
+            this.calmethodLB = new System.Windows.Forms.Label();
+            this.secondDate = new System.Windows.Forms.Label();
+            this.dtP2 = new Calculator.IDateTimePicker();
+            this.subrb = new System.Windows.Forms.RadioButton();
+            this.dtP1 = new Calculator.IDateTimePicker();
+            this.addrb = new System.Windows.Forms.RadioButton();
+            this.lbResult2 = new System.Windows.Forms.Label();
+            this.firstDate = new System.Windows.Forms.Label();
+            this.autocal_date = new System.Windows.Forms.CheckBox();
+            this.lbResult1 = new System.Windows.Forms.Label();
+            this.dateCalculationBT = new System.Windows.Forms.Button();
+            this.datemethodCB = new System.Windows.Forms.ComboBox();
+            this.yearAddSubLB = new System.Windows.Forms.Label();
+            this.monthAddSubLB = new System.Windows.Forms.Label();
+            this.dayAddSubLB = new System.Windows.Forms.Label();
+            this.periodsDateUD = new Calculator.INumericUpDown();
+            this.periodsMonthUD = new Calculator.INumericUpDown();
+            this.periodsYearUD = new Calculator.INumericUpDown();
             this.num9BT_PN = new Calculator.IPanel();
             this.num9BT = new System.Windows.Forms.Button();
             this.num7BT_PN = new Calculator.IPanel();
@@ -2601,27 +2578,10 @@ namespace Calculator
             this.typeWorkSheetCB = new System.Windows.Forms.ComboBox();
             this.workSheetCalculateBT = new System.Windows.Forms.Button();
             this.workSheetResultTB = new System.Windows.Forms.TextBox();
-            this.datecalcPN = new Calculator.IPanel();
-            this.tbResult1 = new System.Windows.Forms.TextBox();
-            this.tbResult2 = new System.Windows.Forms.TextBox();
-            this.calmethodLB = new System.Windows.Forms.Label();
-            this.secondDate = new System.Windows.Forms.Label();
-            this.dtP2 = new System.Windows.Forms.DateTimePicker();
-            this.subrb = new System.Windows.Forms.RadioButton();
-            this.dtP1 = new System.Windows.Forms.DateTimePicker();
-            this.addrb = new System.Windows.Forms.RadioButton();
-            this.addSubResultLB = new System.Windows.Forms.Label();
-            this.firstDate = new System.Windows.Forms.Label();
-            this.autocal_date = new System.Windows.Forms.CheckBox();
-            this.dateDifferenceLB = new System.Windows.Forms.Label();
-            this.dateCalculationBT = new System.Windows.Forms.Button();
-            this.datemethodCB = new System.Windows.Forms.ComboBox();
-            this.yearAddSubLB = new System.Windows.Forms.Label();
-            this.monthAddSubLB = new System.Windows.Forms.Label();
-            this.dayAddSubLB = new System.Windows.Forms.Label();
-            this.periodsDateUD = new Calculator.INumericUpDown();
-            this.periodsMonthUD = new Calculator.INumericUpDown();
-            this.periodsYearUD = new Calculator.INumericUpDown();
+            this.datecalcPN.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).BeginInit();
             this.num9BT_PN.SuspendLayout();
             this.num7BT_PN.SuspendLayout();
             this.num8BT_PN.SuspendLayout();
@@ -2649,14 +2609,10 @@ namespace Calculator
             this.unknownPN.SuspendLayout();
             this.unitconvPN.SuspendLayout();
             this.workSheetPN.SuspendLayout();
-            this.datecalcPN.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).BeginInit();
             this.SuspendLayout();
-            // 
+            //
             // num1BT
-            // 
+            //
             this.num1BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num1BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num1BT.Location = new System.Drawing.Point(12, 194);
@@ -2670,9 +2626,9 @@ namespace Calculator
             this.num1BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num1BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num1BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num0BT
-            // 
+            //
             this.num0BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num0BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num0BT.Location = new System.Drawing.Point(12, 226);
@@ -2686,9 +2642,9 @@ namespace Calculator
             this.num0BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num0BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num0BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // addbt
-            // 
+            //
             this.addbt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.addbt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.addbt.Location = new System.Drawing.Point(129, 226);
@@ -2702,9 +2658,9 @@ namespace Calculator
             this.addbt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.addbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.addbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // minusbt
-            // 
+            //
             this.minusbt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.minusbt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.minusbt.Location = new System.Drawing.Point(129, 194);
@@ -2718,9 +2674,9 @@ namespace Calculator
             this.minusbt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.minusbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.minusbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mulbt
-            // 
+            //
             this.mulbt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mulbt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.mulbt.Location = new System.Drawing.Point(129, 162);
@@ -2735,9 +2691,9 @@ namespace Calculator
             this.mulbt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mulbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mulbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // divbt
-            // 
+            //
             this.divbt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.divbt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.divbt.Location = new System.Drawing.Point(129, 130);
@@ -2751,9 +2707,9 @@ namespace Calculator
             this.divbt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.divbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.divbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // equalBT
-            // 
+            //
             this.equalBT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.equalBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.equalBT.Location = new System.Drawing.Point(168, 194);
@@ -2767,9 +2723,9 @@ namespace Calculator
             this.equalBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.equalBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.equalBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // backspacebt
-            // 
+            //
             this.backspacebt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.backspacebt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.backspacebt.Location = new System.Drawing.Point(12, 98);
@@ -2784,9 +2740,9 @@ namespace Calculator
             this.backspacebt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.backspacebt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.backspacebt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // ce
-            // 
+            //
             this.ce.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ce.ForeColor = System.Drawing.SystemColors.ControlText;
             this.ce.Location = new System.Drawing.Point(51, 98);
@@ -2800,9 +2756,9 @@ namespace Calculator
             this.ce.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.ce.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.ce.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // changesignBT
-            // 
+            //
             this.changesignBT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.changesignBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.changesignBT.Location = new System.Drawing.Point(129, 98);
@@ -2816,9 +2772,9 @@ namespace Calculator
             this.changesignBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.changesignBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.changesignBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // memclearBT
-            // 
+            //
             this.memclearBT.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.memclearBT.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.memclearBT.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -2833,9 +2789,9 @@ namespace Calculator
             this.memclearBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.memclearBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.memclearBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mem_store
-            // 
+            //
             this.mem_store.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.mem_store.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mem_store.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -2850,9 +2806,9 @@ namespace Calculator
             this.mem_store.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_store.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mem_store.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mem_recall
-            // 
+            //
             this.mem_recall.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.mem_recall.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mem_recall.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -2867,9 +2823,9 @@ namespace Calculator
             this.mem_recall.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_recall.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mem_recall.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // clearbt
-            // 
+            //
             this.clearbt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.clearbt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.clearbt.Location = new System.Drawing.Point(90, 98);
@@ -2883,9 +2839,9 @@ namespace Calculator
             this.clearbt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.clearbt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.clearbt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mem_add_bt
-            // 
+            //
             this.mem_add_bt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.mem_add_bt.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mem_add_bt.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -2900,9 +2856,9 @@ namespace Calculator
             this.mem_add_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_add_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mem_add_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mem_minus_bt
-            // 
+            //
             this.mem_minus_bt.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.mem_minus_bt.Font = new System.Drawing.Font("Tahoma", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.mem_minus_bt.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -2917,13 +2873,13 @@ namespace Calculator
             this.mem_minus_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_minus_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.mem_minus_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // toolTip1
-            // 
+            //
             this.toolTip1.IsBalloon = true;
-            // 
+            //
             // close_bracket
-            // 
+            //
             this.close_bracket.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.close_bracket.ForeColor = System.Drawing.SystemColors.ControlText;
             this.close_bracket.Location = new System.Drawing.Point(56, 332);
@@ -2937,9 +2893,9 @@ namespace Calculator
             this.close_bracket.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.close_bracket.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.close_bracket.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // open_bracket
-            // 
+            //
             this.open_bracket.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.open_bracket.ForeColor = System.Drawing.SystemColors.ControlText;
             this.open_bracket.Location = new System.Drawing.Point(56, 332);
@@ -2953,9 +2909,9 @@ namespace Calculator
             this.open_bracket.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.open_bracket.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.open_bracket.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // _10x_bt
-            // 
+            //
             this._10x_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._10x_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this._10x_bt.Location = new System.Drawing.Point(56, 332);
@@ -2969,9 +2925,9 @@ namespace Calculator
             this._10x_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._10x_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this._10x_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // nvx_bt
-            // 
+            //
             this.nvx_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.nvx_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.nvx_bt.Location = new System.Drawing.Point(56, 332);
@@ -2985,9 +2941,9 @@ namespace Calculator
             this.nvx_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.nvx_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.nvx_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // xn_bt
-            // 
+            //
             this.xn_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.xn_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.xn_bt.Location = new System.Drawing.Point(56, 332);
@@ -3001,9 +2957,9 @@ namespace Calculator
             this.xn_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.xn_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.xn_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // log_bt
-            // 
+            //
             this.log_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.log_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.log_bt.Location = new System.Drawing.Point(56, 332);
@@ -3017,9 +2973,9 @@ namespace Calculator
             this.log_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.log_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.log_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // _3vx_bt
-            // 
+            //
             this._3vx_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._3vx_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this._3vx_bt.Location = new System.Drawing.Point(56, 332);
@@ -3033,9 +2989,9 @@ namespace Calculator
             this._3vx_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._3vx_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this._3vx_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // x3_bt
-            // 
+            //
             this.x3_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.x3_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.x3_bt.Location = new System.Drawing.Point(56, 332);
@@ -3049,9 +3005,9 @@ namespace Calculator
             this.x3_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.x3_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.x3_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // x2_bt
-            // 
+            //
             this.x2_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.x2_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.x2_bt.Location = new System.Drawing.Point(56, 332);
@@ -3065,9 +3021,9 @@ namespace Calculator
             this.x2_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.x2_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.x2_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // pi_bt
-            // 
+            //
             this.pi_bt.Font = new System.Drawing.Font("Tempus Sans ITC", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.pi_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.pi_bt.Location = new System.Drawing.Point(56, 332);
@@ -3081,9 +3037,9 @@ namespace Calculator
             this.pi_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.pi_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.pi_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // exp_bt
-            // 
+            //
             this.exp_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.exp_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.exp_bt.Location = new System.Drawing.Point(56, 332);
@@ -3097,9 +3053,9 @@ namespace Calculator
             this.exp_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.exp_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.exp_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // modsciBT
-            // 
+            //
             this.modsciBT.Font = new System.Drawing.Font("Segoe UI", 6.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.modsciBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.modsciBT.Location = new System.Drawing.Point(56, 332);
@@ -3113,9 +3069,9 @@ namespace Calculator
             this.modsciBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.modsciBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.modsciBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // ln_bt
-            // 
+            //
             this.ln_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.ln_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.ln_bt.Location = new System.Drawing.Point(56, 332);
@@ -3129,9 +3085,9 @@ namespace Calculator
             this.ln_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.ln_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.ln_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // dms_bt
-            // 
+            //
             this.dms_bt.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.dms_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.dms_bt.Location = new System.Drawing.Point(56, 332);
@@ -3145,9 +3101,9 @@ namespace Calculator
             this.dms_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.dms_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.dms_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // tanh_bt
-            // 
+            //
             this.tanh_bt.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.tanh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.tanh_bt.Location = new System.Drawing.Point(56, 332);
@@ -3161,9 +3117,9 @@ namespace Calculator
             this.tanh_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.tanh_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.tanh_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // cosh_bt
-            // 
+            //
             this.cosh_bt.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.cosh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.cosh_bt.Location = new System.Drawing.Point(56, 332);
@@ -3177,9 +3133,9 @@ namespace Calculator
             this.cosh_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.cosh_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.cosh_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // int_bt
-            // 
+            //
             this.int_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.int_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.int_bt.Location = new System.Drawing.Point(56, 332);
@@ -3193,9 +3149,9 @@ namespace Calculator
             this.int_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.int_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.int_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // tan_bt
-            // 
+            //
             this.tan_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.tan_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.tan_bt.Location = new System.Drawing.Point(56, 332);
@@ -3209,9 +3165,9 @@ namespace Calculator
             this.tan_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.tan_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.tan_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sinh_bt
-            // 
+            //
             this.sinh_bt.Font = new System.Drawing.Font("Segoe UI", 7.25F);
             this.sinh_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sinh_bt.Location = new System.Drawing.Point(56, 332);
@@ -3225,9 +3181,9 @@ namespace Calculator
             this.sinh_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sinh_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sinh_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btFactorial
-            // 
+            //
             this.btFactorial.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btFactorial.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btFactorial.Location = new System.Drawing.Point(56, 332);
@@ -3241,9 +3197,9 @@ namespace Calculator
             this.btFactorial.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btFactorial.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btFactorial.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // XorBT
-            // 
+            //
             this.XorBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.XorBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.XorBT.Location = new System.Drawing.Point(99, 332);
@@ -3257,9 +3213,9 @@ namespace Calculator
             this.XorBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.XorBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.XorBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // notBT
-            // 
+            //
             this.notBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.notBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.notBT.Location = new System.Drawing.Point(99, 332);
@@ -3273,9 +3229,9 @@ namespace Calculator
             this.notBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.notBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.notBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // AndBT
-            // 
+            //
             this.AndBT.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.AndBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.AndBT.Location = new System.Drawing.Point(99, 332);
@@ -3289,9 +3245,9 @@ namespace Calculator
             this.AndBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.AndBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.AndBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // RshBT
-            // 
+            //
             this.RshBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.RshBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.RshBT.Location = new System.Drawing.Point(99, 332);
@@ -3305,9 +3261,9 @@ namespace Calculator
             this.RshBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.RshBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.RshBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // RoRBT
-            // 
+            //
             this.RoRBT.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.RoRBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.RoRBT.Location = new System.Drawing.Point(99, 332);
@@ -3321,9 +3277,9 @@ namespace Calculator
             this.RoRBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.RoRBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.RoRBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // LshBT
-            // 
+            //
             this.LshBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.LshBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.LshBT.Location = new System.Drawing.Point(99, 332);
@@ -3337,9 +3293,9 @@ namespace Calculator
             this.LshBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.LshBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.LshBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // or_BT
-            // 
+            //
             this.or_BT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.or_BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.or_BT.Location = new System.Drawing.Point(99, 332);
@@ -3353,9 +3309,9 @@ namespace Calculator
             this.or_BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.or_BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.or_BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // RoLBT
-            // 
+            //
             this.RoLBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.RoLBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.RoLBT.Location = new System.Drawing.Point(99, 332);
@@ -3369,9 +3325,9 @@ namespace Calculator
             this.RoLBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.RoLBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.RoLBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // modproBT
-            // 
+            //
             this.modproBT.Font = new System.Drawing.Font("Segoe UI", 6.75F);
             this.modproBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.modproBT.Location = new System.Drawing.Point(99, 332);
@@ -3385,9 +3341,9 @@ namespace Calculator
             this.modproBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.modproBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.modproBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sigmax2BT
-            // 
+            //
             this.sigmax2BT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigmax2BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmax2BT.Image = ((System.Drawing.Image)(resources.GetObject("sigmax2BT.Image")));
@@ -3401,9 +3357,9 @@ namespace Calculator
             this.sigmax2BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sigmax2BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sigmax2BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sigman_1BT
-            // 
+            //
             this.sigman_1BT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigman_1BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigman_1BT.Image = ((System.Drawing.Image)(resources.GetObject("sigman_1BT.Image")));
@@ -3417,9 +3373,9 @@ namespace Calculator
             this.sigman_1BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sigman_1BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sigman_1BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // AddstaBT
-            // 
+            //
             this.AddstaBT.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.AddstaBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.AddstaBT.Location = new System.Drawing.Point(141, 332);
@@ -3433,9 +3389,9 @@ namespace Calculator
             this.AddstaBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.AddstaBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.AddstaBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // xcross
-            // 
+            //
             this.xcross.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.xcross.ForeColor = System.Drawing.SystemColors.ControlText;
             this.xcross.Image = ((System.Drawing.Image)(resources.GetObject("xcross.Image")));
@@ -3449,9 +3405,9 @@ namespace Calculator
             this.xcross.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.xcross.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.xcross.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sigmaxBT
-            // 
+            //
             this.sigmaxBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigmaxBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmaxBT.Image = ((System.Drawing.Image)(resources.GetObject("sigmaxBT.Image")));
@@ -3465,9 +3421,9 @@ namespace Calculator
             this.sigmaxBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sigmaxBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sigmaxBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sigmanBT
-            // 
+            //
             this.sigmanBT.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sigmanBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sigmanBT.Image = ((System.Drawing.Image)(resources.GetObject("sigmanBT.Image")));
@@ -3481,9 +3437,9 @@ namespace Calculator
             this.sigmanBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sigmanBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sigmanBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // CAD
-            // 
+            //
             this.CAD.Font = new System.Drawing.Font("Segoe UI", 7.5F);
             this.CAD.ForeColor = System.Drawing.SystemColors.ControlText;
             this.CAD.Location = new System.Drawing.Point(141, 332);
@@ -3497,9 +3453,9 @@ namespace Calculator
             this.CAD.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.CAD.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.CAD.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // x2cross
-            // 
+            //
             this.x2cross.BackColor = System.Drawing.SystemColors.Control;
             this.x2cross.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.x2cross.ForeColor = System.Drawing.SystemColors.ControlText;
@@ -3514,9 +3470,9 @@ namespace Calculator
             this.x2cross.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.x2cross.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.x2cross.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // inv_ChkBox
-            // 
+            //
             this.inv_ChkBox.Appearance = System.Windows.Forms.Appearance.Button;
             this.inv_ChkBox.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.inv_ChkBox.Location = new System.Drawing.Point(186, 332);
@@ -3531,9 +3487,9 @@ namespace Calculator
             this.inv_ChkBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.inv_ChkBox.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.inv_ChkBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // dnBT
-            // 
+            //
             this.dnBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.dnBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dnBT.Location = new System.Drawing.Point(167, 2);
@@ -3547,9 +3503,9 @@ namespace Calculator
             this.dnBT.Click += new System.EventHandler(this.directionBT_Click);
             this.dnBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.dnBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // upBT
-            // 
+            //
             this.upBT.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.upBT.Font = new System.Drawing.Font("Segoe UI", 5.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.upBT.Location = new System.Drawing.Point(147, 2);
@@ -3563,9 +3519,9 @@ namespace Calculator
             this.upBT.Click += new System.EventHandler(this.directionBT_Click);
             this.upBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.upBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // fe_ChkBox
-            // 
+            //
             this.fe_ChkBox.Appearance = System.Windows.Forms.Appearance.Button;
             this.fe_ChkBox.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.fe_ChkBox.Location = new System.Drawing.Point(186, 331);
@@ -3580,9 +3536,9 @@ namespace Calculator
             this.fe_ChkBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.fe_ChkBox.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.fe_ChkBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // bracketTime_lb
-            // 
+            //
             this.bracketTime_lb.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.bracketTime_lb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.bracketTime_lb.Location = new System.Drawing.Point(13, 332);
@@ -3593,9 +3549,9 @@ namespace Calculator
             this.bracketTime_lb.TextChanged += new System.EventHandler(this.bracketTime_lb_TextChanged);
             this.bracketTime_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FocusAndMoveForm);
             this.bracketTime_lb.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // cos_bt
-            // 
+            //
             this.cos_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.cos_bt.Location = new System.Drawing.Point(55, 332);
             this.cos_bt.Name = "cos_bt";
@@ -3609,9 +3565,9 @@ namespace Calculator
             this.cos_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.cos_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.cos_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sin_bt
-            // 
+            //
             this.sin_bt.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sin_bt.Location = new System.Drawing.Point(56, 332);
             this.sin_bt.Name = "sin_bt";
@@ -3624,16 +3580,16 @@ namespace Calculator
             this.sin_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sin_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sin_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // mainMenu
-            // 
+            //
             this.mainMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.viewMI,
             this.editMI,
             this.helpMI});
-            // 
+            //
             // viewMI
-            // 
+            //
             this.viewMI.Index = 0;
             this.viewMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.standardMI,
@@ -3649,89 +3605,89 @@ namespace Calculator
             this.dateCalculationMI,
             this.worksheetsMI});
             this.viewMI.Text = "&View";
-            // 
+            //
             // standardMI
-            // 
+            //
             this.standardMI.Index = 0;
             this.standardMI.RadioCheck = true;
             this.standardMI.Shortcut = System.Windows.Forms.Shortcut.Alt1;
             this.standardMI.Text = "S&tandard";
             this.standardMI.Click += new System.EventHandler(this.standardMI_Click);
-            // 
+            //
             // scientificMI
-            // 
+            //
             this.scientificMI.Index = 1;
             this.scientificMI.RadioCheck = true;
             this.scientificMI.Shortcut = System.Windows.Forms.Shortcut.Alt2;
             this.scientificMI.Text = "&Scientific";
             this.scientificMI.Click += new System.EventHandler(this.scientificMI_Click);
-            // 
+            //
             // programmerMI
-            // 
+            //
             this.programmerMI.Index = 2;
             this.programmerMI.RadioCheck = true;
             this.programmerMI.Shortcut = System.Windows.Forms.Shortcut.Alt3;
             this.programmerMI.Text = "&Programmer";
             this.programmerMI.Click += new System.EventHandler(this.programmerMI_Click);
-            // 
+            //
             // statisticsMI
-            // 
+            //
             this.statisticsMI.Index = 3;
             this.statisticsMI.RadioCheck = true;
             this.statisticsMI.Shortcut = System.Windows.Forms.Shortcut.Alt4;
             this.statisticsMI.Text = "St&atistics";
             this.statisticsMI.Click += new System.EventHandler(this.statisticsMI_Click);
-            // 
+            //
             // sepMI1
-            // 
+            //
             this.sepMI1.Index = 4;
             this.sepMI1.Text = "-";
-            // 
+            //
             // historyMI
-            // 
+            //
             this.historyMI.Index = 5;
             this.historyMI.Shortcut = System.Windows.Forms.Shortcut.CtrlH;
             this.historyMI.Text = "Histor&y";
             this.historyMI.Click += new System.EventHandler(this.historyMI_Click);
-            // 
+            //
             // digitGroupingMI
-            // 
+            //
             this.digitGroupingMI.Index = 6;
             this.digitGroupingMI.Text = "D&igit grouping";
             this.digitGroupingMI.Click += new System.EventHandler(this.digitGroupingMI_Click);
-            // 
+            //
             // sepMI2
-            // 
+            //
             this.sepMI2.Index = 7;
             this.sepMI2.Text = "-";
-            // 
+            //
             // basicMI
-            // 
+            //
             this.basicMI.Checked = true;
             this.basicMI.Index = 8;
             this.basicMI.RadioCheck = true;
             this.basicMI.Shortcut = System.Windows.Forms.Shortcut.CtrlF4;
             this.basicMI.Text = "&Basic";
             this.basicMI.Click += new System.EventHandler(this.basicMI_Click);
-            // 
+            //
             // unitConversionMI
-            // 
+            //
             this.unitConversionMI.Index = 9;
             this.unitConversionMI.RadioCheck = true;
             this.unitConversionMI.Shortcut = System.Windows.Forms.Shortcut.CtrlU;
             this.unitConversionMI.Text = "&Unit conversion";
             this.unitConversionMI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // dateCalculationMI
-            // 
+            //
             this.dateCalculationMI.Index = 10;
             this.dateCalculationMI.RadioCheck = true;
             this.dateCalculationMI.Shortcut = System.Windows.Forms.Shortcut.CtrlE;
             this.dateCalculationMI.Text = "&Date calculation";
             this.dateCalculationMI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // worksheetsMI
-            // 
+            //
             this.worksheetsMI.Index = 11;
             this.worksheetsMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.mortgageMI,
@@ -3739,37 +3695,37 @@ namespace Calculator
             this.fe_MPG_MI,
             this.feL100_MI});
             this.worksheetsMI.Text = "&Worksheets";
-            // 
+            //
             // mortgageMI
-            // 
+            //
             this.mortgageMI.Index = 0;
             this.mortgageMI.RadioCheck = true;
             this.mortgageMI.Text = "&Mortgage";
             this.mortgageMI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // vehicleLeaseMI
-            // 
+            //
             this.vehicleLeaseMI.Index = 1;
             this.vehicleLeaseMI.RadioCheck = true;
             this.vehicleLeaseMI.Text = "&Vehicle lease";
             this.vehicleLeaseMI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // fe_MPG_MI
-            // 
+            //
             this.fe_MPG_MI.Index = 2;
             this.fe_MPG_MI.RadioCheck = true;
             this.fe_MPG_MI.Text = "&Fuel economy (mpg)";
             this.fe_MPG_MI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // feL100_MI
-            // 
+            //
             this.feL100_MI.Index = 3;
             this.feL100_MI.RadioCheck = true;
             this.feL100_MI.Text = "F&uel economy (L/100 km)";
             this.feL100_MI.Click += new System.EventHandler(this.extraFunctionMI_Click);
-            // 
+            //
             // editMI
-            // 
+            //
             this.editMI.Index = 1;
             this.editMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.copyMI,
@@ -3782,27 +3738,27 @@ namespace Calculator
             this.editMI.Shortcut = System.Windows.Forms.Shortcut.CtrlC;
             this.editMI.Text = "&Edit";
             this.editMI.Popup += new System.EventHandler(this.getPaste);
-            // 
+            //
             // copyMI
-            // 
+            //
             this.copyMI.Index = 0;
             this.copyMI.Text = "&Copy";
             this.copyMI.Click += new System.EventHandler(this.copyCTMN_Click);
-            // 
+            //
             // pasteMI
-            // 
+            //
             this.pasteMI.Enabled = false;
             this.pasteMI.Index = 1;
             this.pasteMI.Text = "&Paste";
             this.pasteMI.Click += new System.EventHandler(this.pasteCTMN_Click);
-            // 
+            //
             // sepMI3
-            // 
+            //
             this.sepMI3.Index = 2;
             this.sepMI3.Text = "-";
-            // 
+            //
             // historyOptionMI
-            // 
+            //
             this.historyOptionMI.Index = 3;
             this.historyOptionMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.copyHistoryMI,
@@ -3812,46 +3768,46 @@ namespace Calculator
             this.clearHistoryMI});
             this.historyOptionMI.Text = "&History";
             this.historyOptionMI.Popup += new System.EventHandler(this.historyAndDatasetOptionMI_Popup);
-            // 
+            //
             // copyHistoryMI
-            // 
+            //
             this.copyHistoryMI.Enabled = false;
             this.copyHistoryMI.Index = 0;
             this.copyHistoryMI.Text = "Copy h&istory";
             this.copyHistoryMI.Click += new System.EventHandler(this.copyHistoryMI_Click);
-            // 
+            //
             // editHistoryMI
-            // 
+            //
             this.editHistoryMI.Enabled = false;
             this.editHistoryMI.Index = 1;
             this.editHistoryMI.Shortcut = System.Windows.Forms.Shortcut.F2;
             this.editHistoryMI.Text = "&Edit";
             this.editHistoryMI.Click += new System.EventHandler(this.editHistoryMI_Click);
-            // 
+            //
             // reCalculateMI
-            // 
+            //
             this.reCalculateMI.Index = 2;
             this.reCalculateMI.Text = "Re&calculate";
             this.reCalculateMI.Visible = false;
             this.reCalculateMI.Click += new System.EventHandler(this.reCalculate_Click);
-            // 
+            //
             // cancelEditHisMI
-            // 
+            //
             this.cancelEditHisMI.Enabled = false;
             this.cancelEditHisMI.Index = 3;
             this.cancelEditHisMI.Text = "Ca&ncel edit";
             this.cancelEditHisMI.Click += new System.EventHandler(this.cancelEditHisMI_Click);
-            // 
+            //
             // clearHistoryMI
-            // 
+            //
             this.clearHistoryMI.Enabled = false;
             this.clearHistoryMI.Index = 4;
             this.clearHistoryMI.Shortcut = System.Windows.Forms.Shortcut.CtrlShiftD;
             this.clearHistoryMI.Text = "C&lear";
             this.clearHistoryMI.Click += new System.EventHandler(this.clearHistoryMI_Click);
-            // 
+            //
             // datasetMI
-            // 
+            //
             this.datasetMI.Index = 4;
             this.datasetMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.copyDatasetMI,
@@ -3861,81 +3817,81 @@ namespace Calculator
             this.clearDatasetMI});
             this.datasetMI.Text = "&Dataset";
             this.datasetMI.Popup += new System.EventHandler(this.historyAndDatasetOptionMI_Popup);
-            // 
+            //
             // copyDatasetMI
-            // 
+            //
             this.copyDatasetMI.Index = 0;
             this.copyDatasetMI.Text = "Copy D&ataset";
             this.copyDatasetMI.Click += new System.EventHandler(this.copyDatasetMI_Click);
-            // 
+            //
             // editDatasetMI
-            // 
+            //
             this.editDatasetMI.Index = 1;
             this.editDatasetMI.Shortcut = System.Windows.Forms.Shortcut.F2;
             this.editDatasetMI.Text = "&Edit";
             this.editDatasetMI.Click += new System.EventHandler(this.editDatasetMI_Click);
-            // 
+            //
             // commitDSMI
-            // 
+            //
             this.commitDSMI.Index = 2;
             this.commitDSMI.Text = "C&ommit";
             this.commitDSMI.Visible = false;
             this.commitDSMI.Click += new System.EventHandler(this.commitDSMI_Click);
-            // 
+            //
             // cancelEditDSMI
-            // 
+            //
             this.cancelEditDSMI.Enabled = false;
             this.cancelEditDSMI.Index = 3;
             this.cancelEditDSMI.Text = "Ca&ncel edit";
             this.cancelEditDSMI.Click += new System.EventHandler(this.cancelEditDSMI_Click);
-            // 
+            //
             // clearDatasetMI
-            // 
+            //
             this.clearDatasetMI.Index = 4;
             this.clearDatasetMI.Text = "C&lear";
             this.clearDatasetMI.Click += new System.EventHandler(this.CAD_Click);
-            // 
+            //
             // sepMI6
-            // 
+            //
             this.sepMI6.Index = 5;
             this.sepMI6.Text = "-";
-            // 
+            //
             // preferrencesMI
-            // 
+            //
             this.preferrencesMI.Index = 6;
             this.preferrencesMI.Shortcut = System.Windows.Forms.Shortcut.CtrlK;
             this.preferrencesMI.Text = "&Preferences";
             this.preferrencesMI.Click += new System.EventHandler(this.preferrencesMI_Click);
-            // 
+            //
             // helpMI
-            // 
+            //
             this.helpMI.Index = 2;
             this.helpMI.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.helpTopicsTSMI,
             this.sepMI5,
             this.aboutMI});
             this.helpMI.Text = "&Help";
-            // 
+            //
             // helpTopicsTSMI
-            // 
+            //
             this.helpTopicsTSMI.Index = 0;
             this.helpTopicsTSMI.Shortcut = System.Windows.Forms.Shortcut.F1;
             this.helpTopicsTSMI.Text = "&View Help";
             this.helpTopicsTSMI.Click += new System.EventHandler(this.helpTopicsMI_Click);
-            // 
+            //
             // sepMI5
-            // 
+            //
             this.sepMI5.Index = 1;
             this.sepMI5.Text = "-";
-            // 
+            //
             // aboutMI
-            // 
+            //
             this.aboutMI.Index = 2;
             this.aboutMI.Text = "&About Calculator";
             this.aboutMI.Click += new System.EventHandler(this.aboutMI_Click);
-            // 
+            //
             // mainContextMenu
-            // 
+            //
             this.mainContextMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.copyCTMN,
             this.pasteCTMN,
@@ -3945,84 +3901,71 @@ namespace Calculator
             this.clearHistoryCTMN,
             this.clearDatasetCTMN});
             this.mainContextMenu.Popup += new System.EventHandler(this.mainContextMenu_Popup);
-            // 
+            //
             // copyCTMN
-            // 
+            //
             this.copyCTMN.Index = 0;
             this.copyCTMN.Text = "&Copy";
             this.copyCTMN.Click += new System.EventHandler(this.copyCTMN_Click);
-            // 
+            //
             // pasteCTMN
-            // 
+            //
             this.pasteCTMN.Enabled = false;
             this.pasteCTMN.Index = 1;
             this.pasteCTMN.Text = "&Paste";
             this.pasteCTMN.Click += new System.EventHandler(this.pasteCTMN_Click);
-            // 
+            //
             // sepCTMN
-            // 
+            //
             this.sepCTMN.Index = 2;
             this.sepCTMN.Text = "-";
-            // 
+            //
             // showHistoryCTMN
-            // 
+            //
             this.showHistoryCTMN.Index = 3;
             this.showHistoryCTMN.Text = "&Show history";
             this.showHistoryCTMN.Click += new System.EventHandler(this.historyMI_Click);
-            // 
+            //
             // hideHistoryCTMN
-            // 
+            //
             this.hideHistoryCTMN.Index = 4;
             this.hideHistoryCTMN.Text = "&Hide history";
             this.hideHistoryCTMN.Visible = false;
             this.hideHistoryCTMN.Click += new System.EventHandler(this.historyMI_Click);
-            // 
+            //
             // clearHistoryCTMN
-            // 
+            //
             this.clearHistoryCTMN.Index = 5;
             this.clearHistoryCTMN.Text = "C&lear history";
             this.clearHistoryCTMN.Visible = false;
             this.clearHistoryCTMN.Click += new System.EventHandler(this.clearHistoryMI_Click);
-            // 
+            //
             // clearDatasetCTMN
-            // 
+            //
             this.clearDatasetCTMN.Index = 6;
             this.clearDatasetCTMN.Text = "C&lear Dataset";
             this.clearDatasetCTMN.Visible = false;
             this.clearDatasetCTMN.Click += new System.EventHandler(this.CAD_Click);
-            // 
+            //
             // helpCTMN
-            // 
+            //
             this.helpCTMN.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.hotkeyMI});
-            // 
+            //
             // hotkeyMI
-            // 
+            //
             this.hotkeyMI.Index = 0;
             this.hotkeyMI.Text = "What is this?";
             this.hotkeyMI.Click += new System.EventHandler(this.hotkeyMI_Click);
-            // 
-            // radioButton1
-            // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.radioButton1.Location = new System.Drawing.Point(99, 437);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(94, 17);
-            this.radioButton1.TabIndex = 251;
-            this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "radioButton1";
-            this.radioButton1.UseVisualStyleBackColor = true;
-            this.radioButton1.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // mWorker
-            // 
+            //
             this.mWorker.WorkerSupportsCancellation = true;
             this.mWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.mWorker_DoWorkPrevFunc);
             this.mWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.mWorker_RunWorkerCompleted);
-            // 
+            //
             // openProBT
-            // 
+            //
             this.openProBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.openProBT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.openProBT.Location = new System.Drawing.Point(56, 332);
@@ -4036,9 +3979,293 @@ namespace Calculator
             this.openProBT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.openProBT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.openProBT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
+            // datecalcPN
+            //
+            this.datecalcPN.BackColor = System.Drawing.Color.White;
+            this.datecalcPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.datecalcPN.Controls.Add(this.tbResult1);
+            this.datecalcPN.Controls.Add(this.tbResult2);
+            this.datecalcPN.Controls.Add(this.calmethodLB);
+            this.datecalcPN.Controls.Add(this.secondDate);
+            this.datecalcPN.Controls.Add(this.dtP2);
+            this.datecalcPN.Controls.Add(this.subrb);
+            this.datecalcPN.Controls.Add(this.dtP1);
+            this.datecalcPN.Controls.Add(this.addrb);
+            this.datecalcPN.Controls.Add(this.lbResult2);
+            this.datecalcPN.Controls.Add(this.firstDate);
+            this.datecalcPN.Controls.Add(this.autocal_date);
+            this.datecalcPN.Controls.Add(this.lbResult1);
+            this.datecalcPN.Controls.Add(this.dateCalculationBT);
+            this.datecalcPN.Controls.Add(this.datemethodCB);
+            this.datecalcPN.Controls.Add(this.yearAddSubLB);
+            this.datecalcPN.Controls.Add(this.monthAddSubLB);
+            this.datecalcPN.Controls.Add(this.dayAddSubLB);
+            this.datecalcPN.Controls.Add(this.periodsDateUD);
+            this.datecalcPN.Controls.Add(this.periodsMonthUD);
+            this.datecalcPN.Controls.Add(this.periodsYearUD);
+            this.datecalcPN.Location = new System.Drawing.Point(234, 12);
+            this.datecalcPN.Name = "datecalcPN";
+            this.datecalcPN.Size = new System.Drawing.Size(356, 241);
+            this.datecalcPN.TabIndex = 32;
+            this.datecalcPN.Visible = false;
+            this.datecalcPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // tbResult1
+            //
+            this.tbResult1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbResult1.Location = new System.Drawing.Point(12, 108);
+            this.tbResult1.Name = "tbResult1";
+            this.tbResult1.ReadOnly = true;
+            this.tbResult1.Size = new System.Drawing.Size(330, 22);
+            this.tbResult1.TabIndex = 208;
+            this.tbResult1.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // tbResult2
+            //
+            this.tbResult2.BackColor = System.Drawing.SystemColors.Control;
+            this.tbResult2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.tbResult2.Location = new System.Drawing.Point(12, 159);
+            this.tbResult2.Name = "tbResult2";
+            this.tbResult2.ReadOnly = true;
+            this.tbResult2.Size = new System.Drawing.Size(330, 22);
+            this.tbResult2.TabIndex = 209;
+            this.tbResult2.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // calmethodLB
+            //
+            this.calmethodLB.AutoSize = true;
+            this.calmethodLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.calmethodLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.calmethodLB.Location = new System.Drawing.Point(12, 8);
+            this.calmethodLB.Name = "calmethodLB";
+            this.calmethodLB.Size = new System.Drawing.Size(193, 13);
+            this.calmethodLB.TabIndex = 74;
+            this.calmethodLB.Text = "Select the date calculation you want";
+            this.calmethodLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // secondDate
+            //
+            this.secondDate.AutoSize = true;
+            this.secondDate.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.secondDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.secondDate.Location = new System.Drawing.Point(214, 67);
+            this.secondDate.Name = "secondDate";
+            this.secondDate.Size = new System.Drawing.Size(19, 13);
+            this.secondDate.TabIndex = 60;
+            this.secondDate.Text = "To";
+            this.secondDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // dtP2
+            //
+            this.dtP2.Checked = false;
+            this.dtP2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dtP2.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtP2.Location = new System.Drawing.Point(243, 63);
+            this.dtP2.Name = "dtP2";
+            this.dtP2.Size = new System.Drawing.Size(99, 22);
+            this.dtP2.TabIndex = 202;
+            this.dtP2.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
+            this.dtP2.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // subrb
+            //
+            this.subrb.AutoSize = true;
+            this.subrb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.subrb.Location = new System.Drawing.Point(254, 64);
+            this.subrb.Name = "subrb";
+            this.subrb.Size = new System.Drawing.Size(68, 17);
+            this.subrb.TabIndex = 202;
+            this.subrb.Text = "Subtract";
+            this.subrb.UseVisualStyleBackColor = true;
+            this.subrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
+            //
+            // dtP1
+            //
+            this.dtP1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dtP1.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtP1.Location = new System.Drawing.Point(60, 63);
+            this.dtP1.Name = "dtP1";
+            this.dtP1.Size = new System.Drawing.Size(99, 22);
+            this.dtP1.TabIndex = 201;
+            this.dtP1.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
+            this.dtP1.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // addrb
+            //
+            this.addrb.AutoSize = true;
+            this.addrb.Checked = true;
+            this.addrb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.addrb.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.addrb.Location = new System.Drawing.Point(176, 64);
+            this.addrb.Name = "addrb";
+            this.addrb.Size = new System.Drawing.Size(46, 17);
+            this.addrb.TabIndex = 202;
+            this.addrb.TabStop = true;
+            this.addrb.Text = "Add";
+            this.addrb.UseVisualStyleBackColor = true;
+            this.addrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
+            //
+            // lbResult2
+            //
+            this.lbResult2.AutoSize = true;
+            this.lbResult2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbResult2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.lbResult2.Location = new System.Drawing.Point(12, 140);
+            this.lbResult2.Name = "lbResult2";
+            this.lbResult2.Size = new System.Drawing.Size(92, 13);
+            this.lbResult2.TabIndex = 67;
+            this.lbResult2.Text = "Difference (days)";
+            this.lbResult2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // firstDate
+            //
+            this.firstDate.AutoSize = true;
+            this.firstDate.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.firstDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.firstDate.Location = new System.Drawing.Point(12, 67);
+            this.firstDate.Name = "firstDate";
+            this.firstDate.Size = new System.Drawing.Size(33, 13);
+            this.firstDate.TabIndex = 59;
+            this.firstDate.Text = "From";
+            this.firstDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // autocal_date
+            //
+            this.autocal_date.AutoSize = true;
+            this.autocal_date.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.autocal_date.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.autocal_date.Location = new System.Drawing.Point(12, 205);
+            this.autocal_date.Name = "autocal_date";
+            this.autocal_date.Size = new System.Drawing.Size(101, 17);
+            this.autocal_date.TabIndex = 210;
+            this.autocal_date.Text = "A&uto Calculate";
+            this.autocal_date.UseVisualStyleBackColor = true;
+            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_date_CheckedChanged);
+            this.autocal_date.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // lbResult1
+            //
+            this.lbResult1.AutoSize = true;
+            this.lbResult1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbResult1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.lbResult1.Location = new System.Drawing.Point(12, 90);
+            this.lbResult1.Name = "lbResult1";
+            this.lbResult1.Size = new System.Drawing.Size(207, 13);
+            this.lbResult1.TabIndex = 64;
+            this.lbResult1.Text = "Difference (years, months, weeks, days)";
+            this.lbResult1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
+            //
+            // dateCalculationBT
+            //
+            this.dateCalculationBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dateCalculationBT.Location = new System.Drawing.Point(260, 201);
+            this.dateCalculationBT.Name = "dateCalculationBT";
+            this.dateCalculationBT.Size = new System.Drawing.Size(82, 22);
+            this.dateCalculationBT.TabIndex = 211;
+            this.dateCalculationBT.TabStop = false;
+            this.dateCalculationBT.Text = "&Calculate";
+            this.dateCalculationBT.UseVisualStyleBackColor = true;
+            this.dateCalculationBT.Click += new System.EventHandler(this.dateCalculationBT_Click);
+            this.dateCalculationBT.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // datemethodCB
+            //
+            this.datemethodCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.datemethodCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.datemethodCB.FormattingEnabled = true;
+            this.datemethodCB.Items.AddRange(new object[] {
+            "Calculate the difference between two dates",
+            "Add or subtract days to a specified date",
+            "Convert to lunar date from a solar date"});
+            this.datemethodCB.Location = new System.Drawing.Point(12, 31);
+            this.datemethodCB.Name = "datemethodCB";
+            this.datemethodCB.Size = new System.Drawing.Size(330, 21);
+            this.datemethodCB.TabIndex = 200;
+            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.datemethodCB_SelectedIndexChanged);
+            this.datemethodCB.Enter += new System.EventHandler(this.DisableKeyboard);
+            this.datemethodCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
+            //
+            // yearAddSubLB
+            //
+            this.yearAddSubLB.AutoSize = true;
+            this.yearAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.yearAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.yearAddSubLB.Location = new System.Drawing.Point(12, 107);
+            this.yearAddSubLB.Name = "yearAddSubLB";
+            this.yearAddSubLB.Size = new System.Drawing.Size(39, 13);
+            this.yearAddSubLB.TabIndex = 64;
+            this.yearAddSubLB.Text = "Year(s)";
+            //
+            // monthAddSubLB
+            //
+            this.monthAddSubLB.AutoSize = true;
+            this.monthAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.monthAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.monthAddSubLB.Location = new System.Drawing.Point(125, 107);
+            this.monthAddSubLB.Name = "monthAddSubLB";
+            this.monthAddSubLB.Size = new System.Drawing.Size(53, 13);
+            this.monthAddSubLB.TabIndex = 64;
+            this.monthAddSubLB.Text = "Month(s)";
+            //
+            // dayAddSubLB
+            //
+            this.dayAddSubLB.AutoSize = true;
+            this.dayAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.dayAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
+            this.dayAddSubLB.Location = new System.Drawing.Point(243, 107);
+            this.dayAddSubLB.Name = "dayAddSubLB";
+            this.dayAddSubLB.Size = new System.Drawing.Size(37, 13);
+            this.dayAddSubLB.TabIndex = 64;
+            this.dayAddSubLB.Text = "Day(s)";
+            //
+            // periodsDateUD
+            //
+            this.periodsDateUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.periodsDateUD.Location = new System.Drawing.Point(284, 105);
+            this.periodsDateUD.Maximum = new decimal(new int[] {
+            730000,
+            0,
+            0,
+            0});
+            this.periodsDateUD.Name = "periodsDateUD";
+            this.periodsDateUD.Size = new System.Drawing.Size(58, 22);
+            this.periodsDateUD.TabIndex = 205;
+            this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // periodsMonthUD
+            //
+            this.periodsMonthUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.periodsMonthUD.Location = new System.Drawing.Point(181, 105);
+            this.periodsMonthUD.Maximum = new decimal(new int[] {
+            24000,
+            0,
+            0,
+            0});
+            this.periodsMonthUD.Name = "periodsMonthUD";
+            this.periodsMonthUD.Size = new System.Drawing.Size(44, 22);
+            this.periodsMonthUD.TabIndex = 204;
+            this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
+            // periodsYearUD
+            //
+            this.periodsYearUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.periodsYearUD.Location = new System.Drawing.Point(60, 105);
+            this.periodsYearUD.Maximum = new decimal(new int[] {
+            2000,
+            0,
+            0,
+            0});
+            this.periodsYearUD.Name = "periodsYearUD";
+            this.periodsYearUD.Size = new System.Drawing.Size(44, 22);
+            this.periodsYearUD.TabIndex = 203;
+            this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
+            this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
+            //
             // num9BT_PN
-            // 
+            //
             this.num9BT_PN.AllowDrawBorder = false;
             this.num9BT_PN.ContextMenu = this.helpCTMN;
             this.num9BT_PN.Controls.Add(this.num9BT);
@@ -4048,9 +4275,9 @@ namespace Calculator
             this.num9BT_PN.TabIndex = 252;
             this.num9BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num9BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num9BT
-            // 
+            //
             this.num9BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num9BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num9BT.Location = new System.Drawing.Point(0, 0);
@@ -4064,9 +4291,9 @@ namespace Calculator
             this.num9BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num9BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num9BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num7BT_PN
-            // 
+            //
             this.num7BT_PN.AllowDrawBorder = false;
             this.num7BT_PN.ContextMenu = this.helpCTMN;
             this.num7BT_PN.Controls.Add(this.num7BT);
@@ -4076,9 +4303,9 @@ namespace Calculator
             this.num7BT_PN.TabIndex = 252;
             this.num7BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num7BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num7BT
-            // 
+            //
             this.num7BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num7BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num7BT.Location = new System.Drawing.Point(0, 0);
@@ -4092,9 +4319,9 @@ namespace Calculator
             this.num7BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num7BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num7BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num8BT_PN
-            // 
+            //
             this.num8BT_PN.AllowDrawBorder = false;
             this.num8BT_PN.ContextMenu = this.helpCTMN;
             this.num8BT_PN.Controls.Add(this.num8BT);
@@ -4104,9 +4331,9 @@ namespace Calculator
             this.num8BT_PN.TabIndex = 252;
             this.num8BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num8BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num8BT
-            // 
+            //
             this.num8BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num8BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num8BT.Location = new System.Drawing.Point(0, 0);
@@ -4120,9 +4347,9 @@ namespace Calculator
             this.num8BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num8BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num8BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num6BT_PN
-            // 
+            //
             this.num6BT_PN.AllowDrawBorder = false;
             this.num6BT_PN.ContextMenu = this.helpCTMN;
             this.num6BT_PN.Controls.Add(this.num6BT);
@@ -4132,9 +4359,9 @@ namespace Calculator
             this.num6BT_PN.TabIndex = 252;
             this.num6BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num6BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num6BT
-            // 
+            //
             this.num6BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num6BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num6BT.Location = new System.Drawing.Point(0, 0);
@@ -4148,9 +4375,9 @@ namespace Calculator
             this.num6BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num6BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num6BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num5BT_PN
-            // 
+            //
             this.num5BT_PN.AllowDrawBorder = false;
             this.num5BT_PN.ContextMenu = this.helpCTMN;
             this.num5BT_PN.Controls.Add(this.num5BT);
@@ -4160,9 +4387,9 @@ namespace Calculator
             this.num5BT_PN.TabIndex = 252;
             this.num5BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num5BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num5BT
-            // 
+            //
             this.num5BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num5BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num5BT.Location = new System.Drawing.Point(0, 0);
@@ -4176,9 +4403,9 @@ namespace Calculator
             this.num5BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num5BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num5BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num3BT_PN
-            // 
+            //
             this.num3BT_PN.AllowDrawBorder = false;
             this.num3BT_PN.ContextMenu = this.helpCTMN;
             this.num3BT_PN.Controls.Add(this.num3BT);
@@ -4188,9 +4415,9 @@ namespace Calculator
             this.num3BT_PN.TabIndex = 252;
             this.num3BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num3BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num3BT
-            // 
+            //
             this.num3BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num3BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num3BT.Location = new System.Drawing.Point(0, 0);
@@ -4204,9 +4431,9 @@ namespace Calculator
             this.num3BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num3BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num3BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num4BT_PN
-            // 
+            //
             this.num4BT_PN.AllowDrawBorder = false;
             this.num4BT_PN.ContextMenu = this.helpCTMN;
             this.num4BT_PN.Controls.Add(this.num4BT);
@@ -4216,9 +4443,9 @@ namespace Calculator
             this.num4BT_PN.TabIndex = 252;
             this.num4BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num4BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num4BT
-            // 
+            //
             this.num4BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num4BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num4BT.Location = new System.Drawing.Point(0, 0);
@@ -4232,9 +4459,9 @@ namespace Calculator
             this.num4BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num4BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num4BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // num2BT_PN
-            // 
+            //
             this.num2BT_PN.AllowDrawBorder = false;
             this.num2BT_PN.ContextMenu = this.helpCTMN;
             this.num2BT_PN.Controls.Add(this.num2BT);
@@ -4244,9 +4471,9 @@ namespace Calculator
             this.num2BT_PN.TabIndex = 252;
             this.num2BT_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.num2BT_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // num2BT
-            // 
+            //
             this.num2BT.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.num2BT.ForeColor = System.Drawing.SystemColors.ControlText;
             this.num2BT.Location = new System.Drawing.Point(0, 0);
@@ -4260,9 +4487,9 @@ namespace Calculator
             this.num2BT.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.num2BT.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.num2BT.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // percentbt_PN
-            // 
+            //
             this.percentbt_PN.AllowDrawBorder = false;
             this.percentbt_PN.ContextMenu = this.helpCTMN;
             this.percentbt_PN.Controls.Add(this.percent_bt);
@@ -4272,9 +4499,9 @@ namespace Calculator
             this.percentbt_PN.TabIndex = 252;
             this.percentbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.percentbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // percent_bt
-            // 
+            //
             this.percent_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.percent_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.percent_bt.Location = new System.Drawing.Point(0, 0);
@@ -4288,9 +4515,9 @@ namespace Calculator
             this.percent_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.percent_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.percent_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btdot_PN
-            // 
+            //
             this.btdot_PN.AllowDrawBorder = false;
             this.btdot_PN.ContextMenu = this.helpCTMN;
             this.btdot_PN.Controls.Add(this.btdot);
@@ -4300,9 +4527,9 @@ namespace Calculator
             this.btdot_PN.TabIndex = 252;
             this.btdot_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btdot_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btdot
-            // 
+            //
             this.btdot.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btdot.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btdot.Location = new System.Drawing.Point(0, 0);
@@ -4316,9 +4543,9 @@ namespace Calculator
             this.btdot.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btdot.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btdot.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // invertbt_PN
-            // 
+            //
             this.invertbt_PN.AllowDrawBorder = false;
             this.invertbt_PN.ContextMenu = this.helpCTMN;
             this.invertbt_PN.Controls.Add(this.invert_bt);
@@ -4328,9 +4555,9 @@ namespace Calculator
             this.invertbt_PN.TabIndex = 252;
             this.invertbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.invertbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // invert_bt
-            // 
+            //
             this.invert_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.invert_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.invert_bt.Location = new System.Drawing.Point(0, 0);
@@ -4344,9 +4571,9 @@ namespace Calculator
             this.invert_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.invert_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.invert_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // sqrtbt_PN
-            // 
+            //
             this.sqrtbt_PN.AllowDrawBorder = false;
             this.sqrtbt_PN.ContextMenu = this.helpCTMN;
             this.sqrtbt_PN.Controls.Add(this.sqrt_bt);
@@ -4356,9 +4583,9 @@ namespace Calculator
             this.sqrtbt_PN.TabIndex = 252;
             this.sqrtbt_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.sqrtbt_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // sqrt_bt
-            // 
+            //
             this.sqrt_bt.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.sqrt_bt.ForeColor = System.Drawing.SystemColors.ControlText;
             this.sqrt_bt.Location = new System.Drawing.Point(0, 0);
@@ -4372,9 +4599,9 @@ namespace Calculator
             this.sqrt_bt.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.sqrt_bt.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.sqrt_bt.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnF_PN
-            // 
+            //
             this.btnF_PN.AllowDrawBorder = false;
             this.btnF_PN.ContextMenu = this.helpCTMN;
             this.btnF_PN.Controls.Add(this.btnF);
@@ -4384,9 +4611,9 @@ namespace Calculator
             this.btnF_PN.TabIndex = 252;
             this.btnF_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnF_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnF
-            // 
+            //
             this.btnF.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnF.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnF.Location = new System.Drawing.Point(0, 0);
@@ -4400,9 +4627,9 @@ namespace Calculator
             this.btnF.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnF.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnF.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnC_PN
-            // 
+            //
             this.btnC_PN.AllowDrawBorder = false;
             this.btnC_PN.ContextMenu = this.helpCTMN;
             this.btnC_PN.Controls.Add(this.btnC);
@@ -4412,9 +4639,9 @@ namespace Calculator
             this.btnC_PN.TabIndex = 252;
             this.btnC_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnC_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnC
-            // 
+            //
             this.btnC.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnC.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnC.Location = new System.Drawing.Point(0, 0);
@@ -4428,9 +4655,9 @@ namespace Calculator
             this.btnC.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnC.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnC.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnE_PN
-            // 
+            //
             this.btnE_PN.AllowDrawBorder = false;
             this.btnE_PN.ContextMenu = this.helpCTMN;
             this.btnE_PN.Controls.Add(this.btnE);
@@ -4440,9 +4667,9 @@ namespace Calculator
             this.btnE_PN.TabIndex = 252;
             this.btnE_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnE_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnE
-            // 
+            //
             this.btnE.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnE.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnE.Location = new System.Drawing.Point(0, 0);
@@ -4456,9 +4683,9 @@ namespace Calculator
             this.btnE.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnE.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnE.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnB_PN
-            // 
+            //
             this.btnB_PN.AllowDrawBorder = false;
             this.btnB_PN.ContextMenu = this.helpCTMN;
             this.btnB_PN.Controls.Add(this.btnB);
@@ -4468,9 +4695,9 @@ namespace Calculator
             this.btnB_PN.TabIndex = 252;
             this.btnB_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnB_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnB
-            // 
+            //
             this.btnB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnB.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnB.Location = new System.Drawing.Point(0, 0);
@@ -4484,9 +4711,9 @@ namespace Calculator
             this.btnB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnB.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnD_PN
-            // 
+            //
             this.btnD_PN.AllowDrawBorder = false;
             this.btnD_PN.ContextMenu = this.helpCTMN;
             this.btnD_PN.Controls.Add(this.btnD);
@@ -4496,9 +4723,9 @@ namespace Calculator
             this.btnD_PN.TabIndex = 252;
             this.btnD_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnD_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnD
-            // 
+            //
             this.btnD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnD.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnD.Location = new System.Drawing.Point(0, 0);
@@ -4512,9 +4739,9 @@ namespace Calculator
             this.btnD.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnD.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnD.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // btnA_PN
-            // 
+            //
             this.btnA_PN.AllowDrawBorder = false;
             this.btnA_PN.ContextMenu = this.helpCTMN;
             this.btnA_PN.Controls.Add(this.btnA);
@@ -4524,9 +4751,9 @@ namespace Calculator
             this.btnA_PN.TabIndex = 252;
             this.btnA_PN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.btnA_PN.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // btnA
-            // 
+            //
             this.btnA.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.btnA.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnA.Location = new System.Drawing.Point(0, 0);
@@ -4540,18 +4767,18 @@ namespace Calculator
             this.btnA.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.btnA.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
             this.btnA.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ButtonMouseUp);
-            // 
+            //
             // PNbinary
-            // 
+            //
             this.PNbinary.BackColor = System.Drawing.Color.Transparent;
             this.PNbinary.Location = new System.Drawing.Point(186, 397);
             this.PNbinary.Name = "PNbinary";
             this.PNbinary.Size = new System.Drawing.Size(385, 60);
             this.PNbinary.TabIndex = 214;
             this.PNbinary.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // anglePN
-            // 
+            //
             this.anglePN.Controls.Add(this.graRB);
             this.anglePN.Controls.Add(this.degRB);
             this.anglePN.Controls.Add(this.radRB);
@@ -4560,9 +4787,9 @@ namespace Calculator
             this.anglePN.Size = new System.Drawing.Size(190, 28);
             this.anglePN.TabIndex = 128;
             this.anglePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FocusAndMoveForm);
-            // 
+            //
             // graRB
-            // 
+            //
             this.graRB.AutoSize = true;
             this.graRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.graRB.Location = new System.Drawing.Point(134, 6);
@@ -4574,9 +4801,9 @@ namespace Calculator
             this.graRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.graRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.graRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // degRB
-            // 
+            //
             this.degRB.AutoSize = true;
             this.degRB.Checked = true;
             this.degRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -4590,9 +4817,9 @@ namespace Calculator
             this.degRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.degRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.degRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // radRB
-            // 
+            //
             this.radRB.AutoSize = true;
             this.radRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radRB.Location = new System.Drawing.Point(71, 6);
@@ -4604,9 +4831,9 @@ namespace Calculator
             this.radRB.CheckedChanged += new System.EventHandler(this.angelPN_CheckedChanged);
             this.radRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.radRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // gridPanel
-            // 
+            //
             this.gridPanel.BackColor = System.Drawing.Color.White;
             this.gridPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.gridPanel.Controls.Add(this.dnBT);
@@ -4620,9 +4847,9 @@ namespace Calculator
             this.gridPanel.TabIndex = 186;
             this.gridPanel.TabStop = true;
             this.gridPanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // countLB
-            // 
+            //
             this.countLB.AutoSize = true;
             this.countLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.countLB.Location = new System.Drawing.Point(4, 4);
@@ -4631,9 +4858,9 @@ namespace Calculator
             this.countLB.TabIndex = 2;
             this.countLB.Text = "Count = 0";
             this.countLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // hisDGV
-            // 
+            //
             this.hisDGV.AllowCellClick = true;
             this.hisDGV.AllowCellDoubleClick = true;
             this.hisDGV.AllowCellStateChanged = true;
@@ -4673,21 +4900,20 @@ namespace Calculator
             this.hisDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
             this.hisDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
             this.hisDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
-            this.hisDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.historyDGV_CellStateChanged);
             this.hisDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.hisDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // Column1
-            // 
+            //
             this.Column1.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
             dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
             this.Column1.DefaultCellStyle = dataGridViewCellStyle1;
             this.Column1.HeaderText = "Column1";
             this.Column1.Name = "Column1";
             this.Column1.ReadOnly = true;
-            // 
+            //
             // staDGV
-            // 
+            //
             this.staDGV.AllowCellClick = false;
             this.staDGV.AllowCellDoubleClick = true;
             this.staDGV.AllowCellStateChanged = false;
@@ -4721,19 +4947,18 @@ namespace Calculator
             this.staDGV.TabStop = false;
             this.staDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.staDGV_CellBeginEdit);
             this.staDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.staDGV_CellEndEdit);
-            this.staDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.staDGV_CellStateChanged);
             this.staDGV.DoubleClick += new System.EventHandler(this.dGV_DoubleClick);
             this.staDGV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // Column2
-            // 
+            //
             this.Column2.HeaderText = "Column2";
             this.Column2.Name = "Column2";
             this.Column2.ReadOnly = true;
             this.Column2.Width = 190;
-            // 
+            //
             // screenPN
-            // 
+            //
             this.screenPN.BackColor = System.Drawing.Color.White;
             this.screenPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.screenPN.ContextMenu = this.mainContextMenu;
@@ -4748,9 +4973,9 @@ namespace Calculator
             this.screenPN.BackColorChanged += new System.EventHandler(this.screenPN_BackColorChanged);
             this.screenPN.SizeChanged += new System.EventHandler(this.screenPN_SizeChanged);
             this.screenPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // expressionTB
-            // 
+            //
             this.expressionTB.AllowTextChanged = true;
             this.expressionTB.BackColor = System.Drawing.Color.Transparent;
             this.expressionTB.ContextMenu = this.mainContextMenu;
@@ -4762,9 +4987,9 @@ namespace Calculator
             this.expressionTB.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.expressionTB.TextChanged += new System.EventHandler(this.expressionTB_TextChanged);
             this.expressionTB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // mem_lb
-            // 
+            //
             this.mem_lb.AutoSize = true;
             this.mem_lb.BackColor = System.Drawing.Color.Transparent;
             this.mem_lb.Location = new System.Drawing.Point(1, 26);
@@ -4775,9 +5000,9 @@ namespace Calculator
             this.mem_lb.Visible = false;
             this.mem_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
             this.mem_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // scr_lb
-            // 
+            //
             this.scr_lb.BackColor = System.Drawing.Color.Transparent;
             this.scr_lb.Font = new System.Drawing.Font("Consolas", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.scr_lb.Location = new System.Drawing.Point(13, 0);
@@ -4789,9 +5014,9 @@ namespace Calculator
             this.scr_lb.TextChanged += new System.EventHandler(this.scr_lb_TextChanged);
             this.scr_lb.GotFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
             this.scr_lb.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
+            //
             // basePN
-            // 
+            //
             this.basePN.Controls.Add(this.hexRB);
             this.basePN.Controls.Add(this.decRB);
             this.basePN.Controls.Add(this.octRB);
@@ -4801,9 +5026,9 @@ namespace Calculator
             this.basePN.Size = new System.Drawing.Size(73, 91);
             this.basePN.TabIndex = 212;
             this.basePN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FocusAndMoveForm);
-            // 
+            //
             // hexRB
-            // 
+            //
             this.hexRB.AutoSize = true;
             this.hexRB.ContextMenu = this.helpCTMN;
             this.hexRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
@@ -4817,9 +5042,9 @@ namespace Calculator
             this.hexRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
             this.hexRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.hexRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // decRB
-            // 
+            //
             this.decRB.AutoSize = true;
             this.decRB.Checked = true;
             this.decRB.ContextMenu = this.helpCTMN;
@@ -4835,9 +5060,9 @@ namespace Calculator
             this.decRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
             this.decRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.decRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // octRB
-            // 
+            //
             this.octRB.AutoSize = true;
             this.octRB.ContextMenu = this.helpCTMN;
             this.octRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
@@ -4851,9 +5076,9 @@ namespace Calculator
             this.octRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
             this.octRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.octRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // binRB
-            // 
+            //
             this.binRB.AutoSize = true;
             this.binRB.ContextMenu = this.helpCTMN;
             this.binRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
@@ -4867,9 +5092,9 @@ namespace Calculator
             this.binRB.CheckedChanged += new System.EventHandler(this.baseRB_CheckedChanged);
             this.binRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.binRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // unknownPN
-            // 
+            //
             this.unknownPN.Controls.Add(this._byteRB);
             this.unknownPN.Controls.Add(this.qwordRB);
             this.unknownPN.Controls.Add(this.dwordRB);
@@ -4879,9 +5104,9 @@ namespace Calculator
             this.unknownPN.Size = new System.Drawing.Size(73, 91);
             this.unknownPN.TabIndex = 213;
             this.unknownPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FocusAndMoveForm);
-            // 
+            //
             // _byteRB
-            // 
+            //
             this._byteRB.AutoSize = true;
             this._byteRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._byteRB.Location = new System.Drawing.Point(7, 67);
@@ -4893,9 +5118,9 @@ namespace Calculator
             this._byteRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this._byteRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._byteRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // qwordRB
-            // 
+            //
             this.qwordRB.AutoSize = true;
             this.qwordRB.Checked = true;
             this.qwordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -4909,9 +5134,9 @@ namespace Calculator
             this.qwordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this.qwordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.qwordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // dwordRB
-            // 
+            //
             this.dwordRB.AutoSize = true;
             this.dwordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.dwordRB.Location = new System.Drawing.Point(7, 25);
@@ -4923,9 +5148,9 @@ namespace Calculator
             this.dwordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this.dwordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this.dwordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // _wordRB
-            // 
+            //
             this._wordRB.AutoSize = true;
             this._wordRB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this._wordRB.Location = new System.Drawing.Point(7, 46);
@@ -4937,9 +5162,9 @@ namespace Calculator
             this._wordRB.CheckedChanged += new System.EventHandler(this.architectureRB_CheckedChanged);
             this._wordRB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
             this._wordRB.MouseEnter += new System.EventHandler(this.Button_MouseEnter);
-            // 
+            //
             // unitconvPN
-            // 
+            //
             this.unitconvPN.BackColor = System.Drawing.Color.White;
             this.unitconvPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.unitconvPN.Controls.Add(this.toCombobox);
@@ -4960,9 +5185,9 @@ namespace Calculator
             this.unitconvPN.SizeChanged += new System.EventHandler(this.unitconvGB_SizeChanged);
             this.unitconvPN.Enter += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
             this.unitconvPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // toCombobox
-            // 
+            //
             this.toCombobox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.toCombobox.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.toCombobox.FormattingEnabled = true;
@@ -4972,9 +5197,9 @@ namespace Calculator
             this.toCombobox.TabIndex = 14;
             this.toCombobox.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
             this.toCombobox.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // typeUnitLB
-            // 
+            //
             this.typeUnitLB.AutoSize = true;
             this.typeUnitLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeUnitLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
@@ -4984,9 +5209,9 @@ namespace Calculator
             this.typeUnitLB.TabIndex = 8;
             this.typeUnitLB.Text = "Select the type of unit you want to convert";
             this.typeUnitLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // fromCB
-            // 
+            //
             this.fromCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.fromCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.fromCB.FormattingEnabled = true;
@@ -4997,9 +5222,9 @@ namespace Calculator
             this.fromCB.TabIndex = 11;
             this.fromCB.SelectedIndexChanged += new System.EventHandler(this.fromCB_SelectedIndexChanged);
             this.fromCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // typeUnitCB
-            // 
+            //
             this.typeUnitCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.typeUnitCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeUnitCB.FormattingEnabled = true;
@@ -5023,9 +5248,9 @@ namespace Calculator
             this.typeUnitCB.SelectedIndexChanged += new System.EventHandler(this.typeUnitCB_SelectedIndexChanged);
             this.typeUnitCB.Enter += new System.EventHandler(this.DisableKeyboard);
             this.typeUnitCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
-            // 
+            //
             // invert_unit
-            // 
+            //
             this.invert_unit.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.invert_unit.Location = new System.Drawing.Point(11, 208);
             this.invert_unit.Name = "invert_unit";
@@ -5035,9 +5260,9 @@ namespace Calculator
             this.invert_unit.UseVisualStyleBackColor = true;
             this.invert_unit.Click += new System.EventHandler(this.invert_unit_Click);
             this.invert_unit.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // toLB
-            // 
+            //
             this.toLB.AutoSize = true;
             this.toLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.toLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
@@ -5047,9 +5272,9 @@ namespace Calculator
             this.toLB.TabIndex = 7;
             this.toLB.Text = "To";
             this.toLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // toTB
-            // 
+            //
             this.toTB.BackColor = System.Drawing.SystemColors.Control;
             this.toTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.toTB.Location = new System.Drawing.Point(12, 154);
@@ -5058,9 +5283,9 @@ namespace Calculator
             this.toTB.Size = new System.Drawing.Size(330, 22);
             this.toTB.TabIndex = 12;
             this.toTB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // fromLB
-            // 
+            //
             this.fromLB.AutoSize = true;
             this.fromLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.fromLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
@@ -5071,9 +5296,9 @@ namespace Calculator
             this.fromLB.Text = "From";
             this.fromLB.Enter += new System.EventHandler(this.DisableKeyboard);
             this.fromLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // fromTB
-            // 
+            //
             this.fromTB.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.fromTB.ForeColor = System.Drawing.SystemColors.GrayText;
             this.fromTB.Location = new System.Drawing.Point(12, 77);
@@ -5086,9 +5311,9 @@ namespace Calculator
             this.fromTB.Enter += new System.EventHandler(this.DisableKeyboard);
             this.fromTB.GotFocus += new System.EventHandler(this.fromTB_GotFocus);
             this.fromTB.LostFocus += new System.EventHandler(this.fromTB_LostFocus);
-            // 
+            //
             // workSheetPN
-            // 
+            //
             this.workSheetPN.BackColor = System.Drawing.Color.White;
             this.workSheetPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.workSheetPN.Controls.Add(this.typeMorgageLB);
@@ -5101,9 +5326,9 @@ namespace Calculator
             this.workSheetPN.TabIndex = 34;
             this.workSheetPN.Visible = false;
             this.workSheetPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // typeMorgageLB
-            // 
+            //
             this.typeMorgageLB.AutoSize = true;
             this.typeMorgageLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeMorgageLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
@@ -5113,9 +5338,9 @@ namespace Calculator
             this.typeMorgageLB.TabIndex = 8;
             this.typeMorgageLB.Text = "Select the value you want to calculate";
             this.typeMorgageLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
+            //
             // typeWorkSheetCB
-            // 
+            //
             this.typeWorkSheetCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.typeWorkSheetCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.typeWorkSheetCB.FormattingEnabled = true;
@@ -5131,9 +5356,9 @@ namespace Calculator
             this.typeWorkSheetCB.TabIndex = 9;
             this.typeWorkSheetCB.SelectedIndexChanged += new System.EventHandler(this.typeWorkSheetCB_SelectedIndexChanged);
             this.typeWorkSheetCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // workSheetCalculateBT
-            // 
+            //
             this.workSheetCalculateBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.workSheetCalculateBT.Location = new System.Drawing.Point(12, 210);
             this.workSheetCalculateBT.Name = "workSheetCalculateBT";
@@ -5143,9 +5368,9 @@ namespace Calculator
             this.workSheetCalculateBT.UseVisualStyleBackColor = true;
             this.workSheetCalculateBT.Click += new System.EventHandler(this.workSheetCalculateBT_Click);
             this.workSheetCalculateBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // workSheetResultTB
-            // 
+            //
             this.workSheetResultTB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.workSheetResultTB.ForeColor = System.Drawing.SystemColors.GrayText;
             this.workSheetResultTB.Location = new System.Drawing.Point(177, 212);
@@ -5156,294 +5381,13 @@ namespace Calculator
             this.workSheetResultTB.TabIndex = 15;
             this.workSheetResultTB.GotFocus += new System.EventHandler(this.resultTextBox_GotFocus);
             this.workSheetResultTB.LostFocus += new System.EventHandler(this.EnableKeyboardAndChangeFocus);
-            // 
-            // datecalcPN
-            // 
-            this.datecalcPN.BackColor = System.Drawing.Color.White;
-            this.datecalcPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.datecalcPN.Controls.Add(this.tbResult1);
-            this.datecalcPN.Controls.Add(this.tbResult2);
-            this.datecalcPN.Controls.Add(this.calmethodLB);
-            this.datecalcPN.Controls.Add(this.secondDate);
-            this.datecalcPN.Controls.Add(this.dtP2);
-            this.datecalcPN.Controls.Add(this.subrb);
-            this.datecalcPN.Controls.Add(this.dtP1);
-            this.datecalcPN.Controls.Add(this.addrb);
-            this.datecalcPN.Controls.Add(this.addSubResultLB);
-            this.datecalcPN.Controls.Add(this.firstDate);
-            this.datecalcPN.Controls.Add(this.autocal_date);
-            this.datecalcPN.Controls.Add(this.dateDifferenceLB);
-            this.datecalcPN.Controls.Add(this.dateCalculationBT);
-            this.datecalcPN.Controls.Add(this.datemethodCB);
-            this.datecalcPN.Controls.Add(this.yearAddSubLB);
-            this.datecalcPN.Controls.Add(this.monthAddSubLB);
-            this.datecalcPN.Controls.Add(this.dayAddSubLB);
-            this.datecalcPN.Controls.Add(this.periodsDateUD);
-            this.datecalcPN.Controls.Add(this.periodsMonthUD);
-            this.datecalcPN.Controls.Add(this.periodsYearUD);
-            this.datecalcPN.Location = new System.Drawing.Point(234, 12);
-            this.datecalcPN.Name = "datecalcPN";
-            this.datecalcPN.Size = new System.Drawing.Size(356, 241);
-            this.datecalcPN.TabIndex = 32;
-            this.datecalcPN.Visible = false;
-            this.datecalcPN.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // tbResult1
-            // 
-            this.tbResult1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbResult1.Location = new System.Drawing.Point(12, 108);
-            this.tbResult1.Name = "tbResult1";
-            this.tbResult1.ReadOnly = true;
-            this.tbResult1.Size = new System.Drawing.Size(330, 22);
-            this.tbResult1.TabIndex = 208;
-            this.tbResult1.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // tbResult2
-            // 
-            this.tbResult2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tbResult2.Location = new System.Drawing.Point(12, 159);
-            this.tbResult2.Name = "tbResult2";
-            this.tbResult2.ReadOnly = true;
-            this.tbResult2.Size = new System.Drawing.Size(330, 22);
-            this.tbResult2.TabIndex = 209;
-            this.tbResult2.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // calmethodLB
-            // 
-            this.calmethodLB.AutoSize = true;
-            this.calmethodLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.calmethodLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.calmethodLB.Location = new System.Drawing.Point(12, 8);
-            this.calmethodLB.Name = "calmethodLB";
-            this.calmethodLB.Size = new System.Drawing.Size(165, 13);
-            this.calmethodLB.TabIndex = 74;
-            this.calmethodLB.Text = "Select the date input you want";
-            this.calmethodLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // secondDate
-            // 
-            this.secondDate.AutoSize = true;
-            this.secondDate.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.secondDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.secondDate.Location = new System.Drawing.Point(214, 67);
-            this.secondDate.Name = "secondDate";
-            this.secondDate.Size = new System.Drawing.Size(19, 13);
-            this.secondDate.TabIndex = 60;
-            this.secondDate.Text = "To";
-            this.secondDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // dtP2
-            // 
-            this.dtP2.Checked = false;
-            this.dtP2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dtP2.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtP2.Location = new System.Drawing.Point(243, 63);
-            this.dtP2.Name = "dtP2";
-            this.dtP2.Size = new System.Drawing.Size(99, 22);
-            this.dtP2.TabIndex = 202;
-            this.dtP2.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
-            this.dtP2.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // subrb
-            // 
-            this.subrb.AutoSize = true;
-            this.subrb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.subrb.Location = new System.Drawing.Point(254, 64);
-            this.subrb.Name = "subrb";
-            this.subrb.Size = new System.Drawing.Size(68, 17);
-            this.subrb.TabIndex = 202;
-            this.subrb.Text = "Subtract";
-            this.subrb.UseVisualStyleBackColor = true;
-            this.subrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
-            // 
-            // dtP1
-            // 
-            this.dtP1.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dtP1.Format = System.Windows.Forms.DateTimePickerFormat.Short;
-            this.dtP1.Location = new System.Drawing.Point(60, 63);
-            this.dtP1.Name = "dtP1";
-            this.dtP1.Size = new System.Drawing.Size(99, 22);
-            this.dtP1.TabIndex = 201;
-            this.dtP1.ValueChanged += new System.EventHandler(this.dtP_ValueChanged);
-            this.dtP1.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // addrb
-            // 
-            this.addrb.AutoSize = true;
-            this.addrb.Checked = true;
-            this.addrb.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.addrb.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.addrb.Location = new System.Drawing.Point(176, 64);
-            this.addrb.Name = "addrb";
-            this.addrb.Size = new System.Drawing.Size(46, 17);
-            this.addrb.TabIndex = 202;
-            this.addrb.TabStop = true;
-            this.addrb.Text = "Add";
-            this.addrb.UseVisualStyleBackColor = true;
-            this.addrb.CheckedChanged += new System.EventHandler(this.add_sub_CheckChanged);
-            // 
-            // addSubResultLB
-            // 
-            this.addSubResultLB.AutoSize = true;
-            this.addSubResultLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.addSubResultLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.addSubResultLB.Location = new System.Drawing.Point(12, 140);
-            this.addSubResultLB.Name = "addSubResultLB";
-            this.addSubResultLB.Size = new System.Drawing.Size(92, 13);
-            this.addSubResultLB.TabIndex = 67;
-            this.addSubResultLB.Text = "Difference (days)";
-            this.addSubResultLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // firstDate
-            // 
-            this.firstDate.AutoSize = true;
-            this.firstDate.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.firstDate.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.firstDate.Location = new System.Drawing.Point(12, 67);
-            this.firstDate.Name = "firstDate";
-            this.firstDate.Size = new System.Drawing.Size(33, 13);
-            this.firstDate.TabIndex = 59;
-            this.firstDate.Text = "From";
-            this.firstDate.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // autocal_date
-            // 
-            this.autocal_date.AutoSize = true;
-            this.autocal_date.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.autocal_date.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.autocal_date.Location = new System.Drawing.Point(12, 205);
-            this.autocal_date.Name = "autocal_date";
-            this.autocal_date.Size = new System.Drawing.Size(101, 17);
-            this.autocal_date.TabIndex = 210;
-            this.autocal_date.Text = "A&uto Calculate";
-            this.autocal_date.UseVisualStyleBackColor = true;
-            this.autocal_date.CheckedChanged += new System.EventHandler(this.autocal_date_CheckedChanged);
-            this.autocal_date.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // dateDifferenceLB
-            // 
-            this.dateDifferenceLB.AutoSize = true;
-            this.dateDifferenceLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dateDifferenceLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.dateDifferenceLB.Location = new System.Drawing.Point(12, 90);
-            this.dateDifferenceLB.Name = "dateDifferenceLB";
-            this.dateDifferenceLB.Size = new System.Drawing.Size(207, 13);
-            this.dateDifferenceLB.TabIndex = 64;
-            this.dateDifferenceLB.Text = "Difference (years, months, weeks, days)";
-            this.dateDifferenceLB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
-            // dateCalculationBT
-            // 
-            this.dateCalculationBT.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dateCalculationBT.Location = new System.Drawing.Point(260, 201);
-            this.dateCalculationBT.Name = "dateCalculationBT";
-            this.dateCalculationBT.Size = new System.Drawing.Size(82, 22);
-            this.dateCalculationBT.TabIndex = 211;
-            this.dateCalculationBT.TabStop = false;
-            this.dateCalculationBT.Text = "&Calculate";
-            this.dateCalculationBT.UseVisualStyleBackColor = true;
-            this.dateCalculationBT.Click += new System.EventHandler(this.dateCalculationBT_Click);
-            this.dateCalculationBT.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // datemethodCB
-            // 
-            this.datemethodCB.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.datemethodCB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.datemethodCB.FormattingEnabled = true;
-            this.datemethodCB.Items.AddRange(new object[] {
-            "Calculate the difference between two dates",
-            "Add or subtract days to a specified date"});
-            this.datemethodCB.Location = new System.Drawing.Point(12, 31);
-            this.datemethodCB.Name = "datemethodCB";
-            this.datemethodCB.Size = new System.Drawing.Size(330, 21);
-            this.datemethodCB.TabIndex = 200;
-            this.datemethodCB.SelectedIndexChanged += new System.EventHandler(this.datemethodCB_SelectedIndexChanged);
-            this.datemethodCB.Enter += new System.EventHandler(this.DisableKeyboard);
-            this.datemethodCB.MouseDown += new System.Windows.Forms.MouseEventHandler(this.typeCB_MouseDown);
-            // 
-            // yearAddSubLB
-            // 
-            this.yearAddSubLB.AutoSize = true;
-            this.yearAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.yearAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.yearAddSubLB.Location = new System.Drawing.Point(12, 107);
-            this.yearAddSubLB.Name = "yearAddSubLB";
-            this.yearAddSubLB.Size = new System.Drawing.Size(39, 13);
-            this.yearAddSubLB.TabIndex = 64;
-            this.yearAddSubLB.Text = "Year(s)";
-            // 
-            // monthAddSubLB
-            // 
-            this.monthAddSubLB.AutoSize = true;
-            this.monthAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.monthAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.monthAddSubLB.Location = new System.Drawing.Point(125, 107);
-            this.monthAddSubLB.Name = "monthAddSubLB";
-            this.monthAddSubLB.Size = new System.Drawing.Size(53, 13);
-            this.monthAddSubLB.TabIndex = 64;
-            this.monthAddSubLB.Text = "Month(s)";
-            // 
-            // dayAddSubLB
-            // 
-            this.dayAddSubLB.AutoSize = true;
-            this.dayAddSubLB.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.dayAddSubLB.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(31)))), ((int)(((byte)(57)))), ((int)(((byte)(121)))));
-            this.dayAddSubLB.Location = new System.Drawing.Point(243, 107);
-            this.dayAddSubLB.Name = "dayAddSubLB";
-            this.dayAddSubLB.Size = new System.Drawing.Size(37, 13);
-            this.dayAddSubLB.TabIndex = 64;
-            this.dayAddSubLB.Text = "Day(s)";
-            // 
-            // periodsDateUD
-            // 
-            this.periodsDateUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsDateUD.Location = new System.Drawing.Point(284, 105);
-            this.periodsDateUD.Maximum = new decimal(new int[] {
-            730000,
-            0,
-            0,
-            0});
-            this.periodsDateUD.Name = "periodsDateUD";
-            this.periodsDateUD.Size = new System.Drawing.Size(58, 22);
-            this.periodsDateUD.TabIndex = 205;
-            this.periodsDateUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsDateUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // periodsMonthUD
-            // 
-            this.periodsMonthUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsMonthUD.Location = new System.Drawing.Point(181, 105);
-            this.periodsMonthUD.Maximum = new decimal(new int[] {
-            24000,
-            0,
-            0,
-            0});
-            this.periodsMonthUD.Name = "periodsMonthUD";
-            this.periodsMonthUD.Size = new System.Drawing.Size(44, 22);
-            this.periodsMonthUD.TabIndex = 204;
-            this.periodsMonthUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsMonthUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
-            // periodsYearUD
-            // 
-            this.periodsYearUD.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.periodsYearUD.Location = new System.Drawing.Point(60, 105);
-            this.periodsYearUD.Maximum = new decimal(new int[] {
-            2000,
-            0,
-            0,
-            0});
-            this.periodsYearUD.Name = "periodsYearUD";
-            this.periodsYearUD.Size = new System.Drawing.Size(44, 22);
-            this.periodsYearUD.TabIndex = 203;
-            this.periodsYearUD.ValueChanged += new System.EventHandler(this.periods_ValueChanged);
-            this.periodsYearUD.Enter += new System.EventHandler(this.DisableKeyboard);
-            // 
+            //
             // calc
-            // 
+            //
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 241);
+            this.ClientSize = new System.Drawing.Size(214, 282);
+            this.Controls.Add(this.datecalcPN);
             this.Controls.Add(this.num9BT_PN);
             this.Controls.Add(this.num7BT_PN);
             this.Controls.Add(this.num8BT_PN);
@@ -5464,7 +5408,6 @@ namespace Calculator
             this.Controls.Add(this.btnA_PN);
             this.Controls.Add(this.PNbinary);
             this.Controls.Add(this.anglePN);
-            this.Controls.Add(this.radioButton1);
             this.Controls.Add(this.gridPanel);
             this.Controls.Add(this.screenPN);
             this.Controls.Add(this.bracketTime_lb);
@@ -5530,7 +5473,6 @@ namespace Calculator
             this.Controls.Add(this.fe_ChkBox);
             this.Controls.Add(this.unitconvPN);
             this.Controls.Add(this.workSheetPN);
-            this.Controls.Add(this.datecalcPN);
             this.Cursor = System.Windows.Forms.Cursors.Default;
             this.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -5545,6 +5487,11 @@ namespace Calculator
             this.Load += new System.EventHandler(this.calc_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.EnableKeyboardAndChangeFocus);
+            this.datecalcPN.ResumeLayout(false);
+            this.datecalcPN.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).EndInit();
             this.num9BT_PN.ResumeLayout(false);
             this.num7BT_PN.ResumeLayout(false);
             this.num8BT_PN.ResumeLayout(false);
@@ -5579,13 +5526,7 @@ namespace Calculator
             this.unitconvPN.PerformLayout();
             this.workSheetPN.ResumeLayout(false);
             this.workSheetPN.PerformLayout();
-            this.datecalcPN.ResumeLayout(false);
-            this.datecalcPN.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsDateUD)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsMonthUD)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.periodsYearUD)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -5602,35 +5543,35 @@ namespace Calculator
             this.mem_store.Location = new Point(90, 66);
             this.mem_add_bt.Location = new Point(129, 66);
             this.mem_minus_bt.Location = new Point(168, 66);
-			
+
             this.backspacebt.Location = new Point(12, 98);
             this.ce.Location = new Point(51, 98);
             this.clearbt.Location = new Point(90, 98);
             this.changesignBT.Location = new Point(129, 98);
             this.sqrtbt_PN.Location = new Point(168, 98);
-			
+
             this.num7BT_PN.Location = new Point(12, 130);
             this.num8BT_PN.Location = new Point(51, 130);
             this.num9BT_PN.Location = new Point(90, 130);
             this.divbt.Location = new Point(129, 130);
             this.percentbt_PN.Location = new Point(168, 130);
-			
+
             this.num4BT_PN.Location = new Point(12, 162);
             this.num5BT_PN.Location = new Point(51, 162);
             this.num6BT_PN.Location = new Point(90, 162);
             this.mulbt.Location = new Point(129, 162);
             this.invertbt_PN.Location = new Point(168, 162);
-			
+
             this.num1BT.Location = new Point(12, 194);
             this.num2BT_PN.Location = new Point(51, 194);
             this.num3BT_PN.Location = new Point(90, 194);
             this.minusbt.Location = new Point(129, 194);
             this.equalBT.Location = new Point(168, 194);
-			
+
             this.num0BT.Location = new Point(12, 226);
             this.btdot_PN.Location = new Point(90, 226);
             this.addbt.Location = new Point(129, 226);
-			
+
             this.mem_lb.Visible = (mem_num != 0);
 
             this.screenPN.Location = new Point(12, 12);
@@ -5722,8 +5663,6 @@ namespace Calculator
             //
             this.screenPN.Location = new Point(12, 12);
             this.screenPN.Size = new Size(385, 47);
-
-            hideSciComponent(true);
             //
             // Calculator
             //
@@ -5863,8 +5802,6 @@ namespace Calculator
             this.screenPN.Location = new Point(12, 116);
             this.screenPN.Size = new Size(385, 47);
 
-            hideSciComponent(true);
-
             this.gridPanel.Location = new Point(12, 12);
             this.gridPanel.Size = new Size(385, gridPanel.Size.Height);
             this.gridPanel.Visible = true;
@@ -5892,21 +5829,21 @@ namespace Calculator
             this.or_BT.Location = new Point(90, 225);
             this.LshBT.Location = new Point(90, 257);
             this.notBT.Location = new Point(90, 289);
-			
+
             this.modproBT.Location = new Point(129, 129);
             this.close_bracket.Location = new Point(129, 161);
             this.RoRBT.Location = new Point(129, 193);
             this.XorBT.Location = new Point(129, 225);
             this.RshBT.Location = new Point(129, 257);
             this.AndBT.Location = new Point(129, 289);
-			
+
             this.btnA_PN.Location = new Point(168, 129);
             this.btnB_PN.Location = new Point(168, 161);
             this.btnC_PN.Location = new Point(168, 193);
             this.btnD_PN.Location = new Point(168, 225);
             this.btnE_PN.Location = new Point(168, 257);
             this.btnF_PN.Location = new Point(168, 289);
-			
+
             this.memclearBT.Location = new Point(207, 129);
             this.backspacebt.Location = new Point(207, 161);
             this.num7BT_PN.Location = new Point(207, 193);
@@ -5926,14 +5863,14 @@ namespace Calculator
             this.num6BT_PN.Location = new Point(285, 225);
             this.num3BT_PN.Location = new Point(285, 257);
             this.btdot_PN.Location = new Point(285, 289);
-			
+
             this.mem_add_bt.Location = new Point(324, 129);
             this.changesignBT.Location = new Point(324, 161);
             this.divbt.Location = new Point(324, 193);
             this.mulbt.Location = new Point(324, 225);
             this.minusbt.Location = new Point(324, 257);
             this.addbt.Location = new Point(324, 289);
-			
+
             this.mem_minus_bt.Location = new Point(363, 129);
             this.sqrtbt_PN.Location = new Point(363, 161);
 			this.percentbt_PN.Location = new Point(363, 193);
@@ -5950,7 +5887,7 @@ namespace Calculator
             this.sqrt_bt.Enabled = false;
             this.invert_bt.Enabled = false;
             this.btdot.Enabled = false;
-			
+
 
             baseRBCheckedChanged();
             //copyHistoryMI.Enabled = false;
@@ -6108,7 +6045,7 @@ namespace Calculator
 
             screenPN.ContextMenu = gridPanel.ContextMenu = mainContextMenu;
 
-            //hideStdComponent(true);
+            //VisibleComponentsToForm(true);
             //hideSciComponent(scientificMI.Checked);
             //hideProComponent(programmerMI.Checked);
             //hideStaComponent(statisticsMI.Checked);
@@ -6125,7 +6062,7 @@ namespace Calculator
 
             NewPriorityExpression();
 
-            parser.Transfer += new Parser.SendValue(parser_Transfer);
+            //parser.Transfer += new Parser.SendValue(parser_Transfer);
             parser.UpdateDictEvent += new Parser.UpdateDictionary(parser_UpdateDictEvent);
             hisDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
             staDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
@@ -6258,7 +6195,7 @@ namespace Calculator
         /// </summary>
         private void DisableKeyboard(object sender, MouseEventArgs e)
         {
-            DisableKeyboard(null, null);
+            DisableKeyboard(sender, e as EventArgs);
         }
         /// <summary>
         /// Bật tính năng bắt sự kiện phím của chương trình và thay đổi
@@ -6421,15 +6358,15 @@ namespace Calculator
         private Button dateCalculationBT;
         private CheckBox autocal_date;
         private ComboBox datemethodCB;
-        private DateTimePicker dtP2;
+        private IDateTimePicker dtP1;
+        private IDateTimePicker dtP2;
         private INumericUpDown periodsYearUD;
         private INumericUpDown periodsMonthUD;
         private INumericUpDown periodsDateUD;
         private IPanel datecalcPN;
-        private DateTimePicker dtP1;
-        private Label addSubResultLB;
+        private Label lbResult2;
         private Label calmethodLB;
-        private Label dateDifferenceLB;
+        private Label lbResult1;
         private Label dayAddSubLB;
         private Label firstDate;
         private Label monthAddSubLB;
@@ -6551,7 +6488,6 @@ namespace Calculator
         private Button x2cross;
         private Label countLB;
         //------------------------------------------------------------------
-        private RadioButton radioButton1;
         private BackgroundWorker mWorker;
         //------------------------------------------------------------------
         private IPanel workSheetPN;

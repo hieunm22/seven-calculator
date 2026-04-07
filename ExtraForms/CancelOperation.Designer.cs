@@ -28,18 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.btnCancel = new System.Windows.Forms.Button();
             this.lbTitle = new System.Windows.Forms.Label();
             this.hiddenButton = new System.Windows.Forms.Button();
-            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.label2 = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // btnCancel
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnCancel.Location = new System.Drawing.Point(191, 87);
+            this.btnCancel.Location = new System.Drawing.Point(186, 48);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(82, 27);
             this.btnCancel.TabIndex = 3;
@@ -52,11 +53,11 @@
             // 
             this.lbTitle.AutoSize = true;
             this.lbTitle.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.lbTitle.Location = new System.Drawing.Point(119, 18);
+            this.lbTitle.Location = new System.Drawing.Point(27, 20);
             this.lbTitle.Name = "lbTitle";
-            this.lbTitle.Size = new System.Drawing.Size(202, 13);
+            this.lbTitle.Size = new System.Drawing.Size(207, 13);
             this.lbTitle.TabIndex = 1;
-            this.lbTitle.Text = "Cancel this operation request now";
+            this.lbTitle.Text = "Cancel this operation request now:";
             this.lbTitle.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // hiddenButton
@@ -68,16 +69,6 @@
             this.hiddenButton.Text = "hiddenButton";
             this.hiddenButton.UseVisualStyleBackColor = true;
             // 
-            // progressBar
-            // 
-            this.progressBar.Location = new System.Drawing.Point(15, 50);
-            this.progressBar.Maximum = 1000;
-            this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(444, 23);
-            this.progressBar.Step = 1;
-            this.progressBar.TabIndex = 2;
-            this.progressBar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
-            // 
             // label2
             // 
             this.label2.AutoSize = true;
@@ -87,15 +78,20 @@
             this.label2.TabIndex = 4;
             this.label2.Text = "label2";
             // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            // 
             // CancelOperation
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(471, 123);
+            this.ClientSize = new System.Drawing.Size(451, 86);
             this.ControlBox = false;
             this.Controls.Add(this.label2);
-            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.lbTitle);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.hiddenButton);
@@ -108,6 +104,7 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Cancel Operation";
+            this.Load += new System.EventHandler(this.CancelOperation_Load);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -119,7 +116,7 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Label lbTitle;
         private System.Windows.Forms.Button hiddenButton;
-        private System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Timer timer1;
     }
 }
