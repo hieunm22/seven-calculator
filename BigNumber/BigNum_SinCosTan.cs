@@ -1,4 +1,5 @@
 using System;
+
 namespace Calculator
 {
     public partial class BigNumber
@@ -6,36 +7,34 @@ namespace Calculator
         /// <summary>
         /// tìm sinx
         /// </summary>
-        /// <param name="n">x</param>
+        /// <param name="src">x</param>
         private BigNumber Sinx(BigNumber src)
         {
-            //n = n - (2 * BigNumber.BN_PI) * (n / 2 / BigNumber.BN_PI).Floor();
+            //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
             BigNumber src_Temp = src;
-            if (src > 2 * BigNumber.BN_PI)
+            if (src.Abs() > "6.28318530717958647692528676655900576")
             {
-                src_Temp = src - (2 * BigNumber.BN_PI) * (src / 6.3).Floor();
+                src_Temp = src - src.signum * (2 * BN_PI) * (src / "6.28318530717958647692528676655900576").Floor();
             }
-            if (src < -2 * BigNumber.BN_PI)
-            {
-                src_Temp = src + (2 * BigNumber.BN_PI) * (src / 6.3).Floor();
-            }
-            BigNumber result = src_Temp, fx = 0, f_comma_x = 0;
-            int n = 1;
+            BigNumber result = src_Temp, f_comma_x = 0;
+            BigNumber lastFactorial = 6;
+            int n = 1, sign = -1;
             do
             {
-                fx = new BigNumber("-1").Pow(n) / BigNumber.fastFactorial((2 * n + 1).ToString());    //fx=(-1)^n / (2n+1)!
-                //fx = fx / BigNumber.fastFactorial((2 * n + 1).ToString());   //fx=(-1)^n / (2n+1)!
-                f_comma_x = (fx * src_Temp.Pow(2 * n + 1, 31)).Round(40);   //f'(x)
+                //fx = ((n & 1) == 0 ? 1 : -1) / lastFactorial;  //fx=(-1)^n / (2n+1)!
+                //fx = sign / lastFactorial;  //fx=(-1)^n / (2n+1)!
+                f_comma_x = (sign / lastFactorial * src_Temp.Pow(2 * n + 1, 31)).Round(40);       //f'(x)
                 result = (result + f_comma_x).Round(40);
                 n++;
+                lastFactorial = lastFactorial * (2 * n) * (2 * n + 1);
+				sign = -sign;
             }
-            while (f_comma_x.Abs() > 1E-45);
+            while (f_comma_x.Abs() > 1E-40);
             return result;
         }
         /// <summary>
         /// Sin(x)
         /// </summary>
-        /// <param name="x">x</param>
         public BigNumber Sin()
         {
             return Sinx(this);
@@ -46,7 +45,7 @@ namespace Calculator
         /// <param name="x">x</param>
         private BigNumber Cosx(BigNumber x)
         {
-            return Sinx(BigNumber.BN_PI / 2 - x);
+            return Sinx(BN_PI / 2 - x);
         }
         /// <summary>
         /// Cos(x)
@@ -58,29 +57,19 @@ namespace Calculator
         /// <summary>
         /// tìm tanx
         /// </summary>
-        /// <param name="x">x</param>
-        private BigNumber Tanx(BigNumber x)
+        /// <param name="src">x</param>
+        private BigNumber Tanx(BigNumber src)
         {
-            BigNumber src_Temp = x;
-            if (x > 2 * BigNumber.BN_PI)
+            BigNumber src_Temp = src;
+            if (src.Abs() > "6,28318530717958647692528676655900576")
             {
-                src_Temp = x - (2 * BigNumber.BN_PI) * (x / 6.3).Floor();
+                src_Temp = src - src.signum * (2 * BN_PI) * (src / 2 / "6,28318530717958647692528676655900576").Floor();
             }
-            if (x < -2 * BigNumber.BN_PI)
-            {
-                src_Temp = x + (2 * BigNumber.BN_PI) * (x / 6.3).Floor();
-            }
+            // epsilon = | |src| - pi/2 |, neu epsilon qua nho thi tra ve exception
+            BigNumber epsilon = (src_Temp.Abs() - BN_PI / 2).Abs();
 
-            //Parser par = new Parser();
-            //string expression = string.Format("{0} % {1}", x.StringValue, (BigNumber.BN_PI * 2).StringValue);
-            //par.EvaluateSci(expression);
-            //x = par.strResult;
-
-            // epsilon = | |x| - pi/2 |, neu epsilon qua nho thi tra ve exception
-            BigNumber epsilon = (src_Temp.Abs() - BigNumber.BN_PI / 2).Abs();
-
-            if (epsilon < "1E-45") throw new Exception("Invalid parameter for this function");
-            else return Sinx(src_Temp) / Cosx(src_Temp);
+            if (epsilon < "1E-35") throw new Exception("Invalid parameter for this function");
+            return Sinx(src_Temp) / Cosx(src_Temp);
         }
         /// <summary>
         /// Tan(x)
@@ -92,30 +81,38 @@ namespace Calculator
         /// <summary>
         /// tìm arcsinx
         /// </summary>
-        /// <param name="n">x</param>
+        /// <param name="src">x</param>
         private BigNumber ArcSinx(BigNumber src)
         {
-            //n = n - (2 * BigNumber.BN_PI) * (n / 2 / BigNumber.BN_PI).Floor();
-            if (src.Abs() > 1)
+            //n = n - (6,28318530717958647692528676655900576) * (n / 2 / BN_PI).Floor();
+            if (src.Abs() > One__)
             {
-                throw new Exception("Invalid argument in arcsin function");
+                throw new Exception("Invalid argument in arcsin/arccos function");
             }
-            BigNumber result = src, fx = 0, f_comma_x = 0;
-            int n = 1;
-            do
+            BigNumber result = src, fx = 0.5, f_comma_x = 0, xPow = src;    //f'(x)
+            if (src.Abs() < 0.8)
             {
-                fx = (superFactorial(2 * n - 1) / superFactorial(2 * n)); //fx=(2n-1)!! / (2n)!!
-                f_comma_x = (fx * src.Pow(2 * n + 1) / (2 * n + 1));  //f'(x)
-                result = (result + f_comma_x);
-                n++;
+                int n = 1;
+                do
+                {
+                    xPow = xPow * src * src;
+                    f_comma_x = (fx * xPow / (2 * n + 1));
+                    result += f_comma_x;
+                    n++;
+                    fx = fx * (2 * n - 1) / (2 * n);	//fx=(2n-1)!! / (2n)!!
+                }
+                while (f_comma_x.Abs() > 1e-35);
+                return result.Round(31);
             }
-            while (f_comma_x.Abs() > 1E-45);
-            return result.Round(31);
+            BigNumber source = (1 - src * src).Sqrt(numDefaultPlaces);
+            result = ArcSinx(source);
+            result = "1,57079632679489661923132169163975" - result;
+            result.signum = src.signum;
+            return result;
         }
         /// <summary>
         /// Arcsin(x)
         /// </summary>
-        /// <param name="x">x</param>
         public BigNumber ArcSin()
         {
             return ArcSinx(this);
@@ -123,15 +120,14 @@ namespace Calculator
         /// <summary>
         /// tìm arccosx
         /// </summary>
-        /// <param name="n">x</param>
+        /// <param name="src">x</param>
         private BigNumber ArcCosx(BigNumber src)
         {
-            return BigNumber.BN_PI / 2 - ArcSinx(src); ;
+            return "1,57079632679489661923132169163975" - ArcSinx(src);
         }
         /// <summary>
         /// Arccos(x)
         /// </summary>
-        /// <param name="x">x</param>
         public BigNumber ArcCos()
         {
             return ArcCosx(this);
@@ -139,7 +135,7 @@ namespace Calculator
         /// <summary>
         /// tìm arctanx
         /// </summary>
-        /// <param name="n">x</param>
+        /// <param name="src">x</param>
         private BigNumber ArcTanx(BigNumber src)
         {
             return ArcSinx(src / (src * src + 1).Sqrt());
@@ -147,95 +143,86 @@ namespace Calculator
         /// <summary>
         /// Arctan(x)
         /// </summary>
-        /// <param name="x">x</param>
         public BigNumber ArcTan()
         {
             return ArcTanx(this);
         }
 
-        static private BigNumber factorial(BigNumber src)
+        #region Binary Split Algorithm
+        static BigNumber factorial(string str)
         {
-            BigNumber resultLong = BigNumber.One, max = src.Floor();
-            if (IsInteger(src))
-            {
-                for (BigNumber i = 1; i <= max; i = i + 1)
-                {
-                    resultLong = resultLong * i;
-                }
-            }
-            return resultLong;
+            long n = long.Parse(str);
+            BigNumber p = 1, r = 1;
+            loop(n, ref p, ref r);
+            //int kkk = BitCount(n);
+            return r * Two__.Pow(BitCount(n));
         }
+
+        static void loop(long n, ref BigNumber p, ref BigNumber r)
+        {
+            if (n <= 2) return;
+            loop(n / 2, ref p, ref r);
+            //BigNumber part = partProduct(n / 2 + 1 + ((n / 2) & 1), n - 1 + (n & 1));
+            p = p * partProduct(n / 2 + 1 + ((n / 2) & 1), n - 1 + (n & 1));
+            r = r * p;
+        }
+
+        static BigNumber partProduct(long n, long m)
+        {
+            if (m <= (n + 1)) return n;
+            if (m == (n + 2)) return (BigNumber)n * m;
+            long k = (n + m) / 2;
+            if ((k & 1) != 1) k = k - 1;
+            return partProduct(n, k) * partProduct(k + 2, m);
+        }
+
+        static long BitCount(long v)
+        {
+            long w = v;
+            w -= (0xaaaaaaaa & w) >> 1;
+            w = (w & 0x33333333) + ((w >> 2) & 0x33333333);
+            w = w + (w >> 4) & 0x0f0f0f0f;
+            w += w >> 8;
+            w += w >> 16;
+            return v - (w & 0xff);
+        }
+        #endregion
+
         /// <summary>
         /// tính giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác cao, nhưng mất nhiều thời gian
         /// </summary>
-        /// <param name="x"></param>
-        static public BigNumber Factorial(BigNumber xx)
+        public BigNumber Factorial()
         {
-            return factorial(xx);
-        }
-
-        static private string fastFactorial(string inp_num)
-        {
-            double dou = double.Parse(inp_num);
-            decimal resultlong = 1;
-            long somu = 0, dauvao = long.Parse(inp_num);
-            if (dou - (long)dou == 0)
-            {
-                for (long i = 1; i <= dauvao; i++)
-                {
-                    resultlong *= i;
-                    if (dou > 27)
-                    {
-                        while (resultlong > (decimal)15)
-                        {
-                            resultlong /= (decimal)10;
-                            somu++;
-                        }
-                    }
-                }
-            }
-            else return "1";
-
-            return string.Format("{0}E{1}", Math.Round(resultlong, 25), somu);
+            return factorial(this.IntString);
         }
         /// <summary>
         /// tính nhanh giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác thấp
         /// </summary>
-        /// <param name="x">số cần tính giai thừa</param>
-        static public string FastFactorial(BigNumber xx)
+        static private string fastFactorial(string inp_num)
         {
-            return fastFactorial(xx.StringValue);
-        }
-
-        public BigNumber FactorialValue
-        {
-            get
+            BigNumber x = inp_num;
+            x = 2 * x + 1;
+            if (x >= 10000)
             {
-                if (calc.F3)
-                {
-                    return FastFactorial(this);
-                }
-                else
-                {
-                    return Factorial(this);
-                }
+                x = (2 * BN_PI).LogE() + (x / 2).LogE() * x - x - (1 - 7 / (30 * x * x)) / (6 * x);
+                x = x / 2 / Ten__.LogE();
+                BigNumber ex = x.Floor();
+                x = Ten__.Pow(x - ex);
+
+                try { x.exponent = int.Parse(ex.IntString) + 1; }
+                catch { throw new Exception("Result is too large"); }
+
+                x = x.Round(23);
+                return x.StrValue;
             }
+            return factorial(inp_num).StrValue;
         }
         /// <summary>
-        /// superFactorial(int n) = n!! = 1*3*5*7*... or 2*4*6*8*...
+        /// tính nhanh giai thừa của 1 số lớn, kết quả của phép tính với độ chính xác thấp
         /// </summary>
-        private BigNumber superFactorial(int n)
+        public string FastFactorial()
         {
-            BigNumber result = 1;
-            if (n % 2 == 0)
-            {
-                result = result * factorial(n / 2) * BigNumber.Two.Pow(n / 2);
-            }
-            else
-            {
-                result = factorial(n) / superFactorial(n - 1);
-            }
-            return result;
+            return fastFactorial(this.StrValue);
         }
     }
 }

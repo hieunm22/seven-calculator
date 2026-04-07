@@ -23,7 +23,8 @@
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
     <OldToolsVersion>3.5</OldToolsVersion>
-    <TargetFrameworkProfile />
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -65,18 +66,17 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="About.cs">
+    <Compile Include="ExtraForms\About.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="About.Designer.cs">
+    <Compile Include="ExtraForms\About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
     <Compile Include="BigNumber\BigNum.cs" />
@@ -90,20 +90,37 @@
     <Compile Include="calc.Designer.cs">
       <DependentUpon>calc.cs</DependentUpon>
     </Compile>
-    <Compile Include="OverrideControl.cs">
+    <Compile Include="ExtraForms\CancelOperation.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExtraForms\CancelOperation.Designer.cs">
+      <DependentUpon>CancelOperation.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Classes\CustomControl.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Classes\Miscellaneous.cs" />
     <Compile Include="Classes\Parser.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="About.resx">
+    <Compile Include="ExtraForms\Info.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ExtraForms\Info.Designer.cs">
+      <DependentUpon>Info.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="ExtraForms\About.resx">
       <DependentUpon>About.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="calc.resx">
       <DependentUpon>calc.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExtraForms\CancelOperation.resx">
+      <DependentUpon>CancelOperation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ExtraForms\Info.resx">
+      <DependentUpon>Info.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

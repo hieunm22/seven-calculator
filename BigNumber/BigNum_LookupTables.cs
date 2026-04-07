@@ -1,12 +1,8 @@
-using System.Collections;
-
 namespace Calculator
 {
     public partial class BigNumber
     {
         #region UnpackLookup
-
-        static Hashtable hexLookup = new Hashtable();
 
         // lookup tables for extracting LSB nibbles from paked byte
         static readonly byte[] s_LsbLookup =
@@ -482,7 +478,7 @@ namespace Calculator
              22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,
              44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,
              66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,
-             88,89,90,91,92,93,94,95,96,97,98,99,
+             88,89,90,91,92,93,94,95,96,97,98,99
         };
 
         static readonly byte[] s_MsbLookupMult =
@@ -941,34 +937,35 @@ namespace Calculator
              99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
              99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
              99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
-             99,99,99,99,99,99,99,99,99,99,99,99,
+             99,99,99,99,99,99,99,99,99,99,99,99
         };
 
         #endregion
 
         #region CONSTANTS
 
-        static readonly public BigNumber Zero  = "0";   // éo hiểu sao thằng ml này toàn bị gán "5"
-        static readonly public BigNumber One   = "1";
-        static readonly public BigNumber Two   = "2";
+        //static readonly public BigNumber Zero_ = "0";   // éo hiểu sao thằng ml này toàn bị gán "5"
+        static readonly public BigNumber One__ = "1";
+        static readonly public BigNumber Two__ = "2";
         static readonly public BigNumber Three = "3";
-      //static readonly public BigNumber Four  = "4";
-        static readonly public BigNumber Five  = "5";
-      //static readonly public BigNumber Six   = "6";
-      //static readonly public BigNumber Seven = "7";
-      //static readonly public BigNumber Eight = "8";
-      //static readonly public BigNumber Nine  = "9";
-        static readonly public BigNumber Ten   = "10";
+        static readonly public BigNumber Five_ = "5";
+        static readonly public BigNumber Ten__ = "10";
 
 
-        static readonly double PiHalf                 = 1.570796326794896619231321691639751442098584;//699687;
-      //pi=3.1415926535897932384626433832795028841971 = 40 chu so sau dau phay + so 3 la 41
-        static readonly public BigNumber BN_lc_log10R = "0.4342944819032518276511289189166050822943";//97005803666566114453783165864649208870774729224949338431748318706106744766303733641679287159";
-        static readonly public BigNumber BN_PI        = "3.1415926535897932384626433832795028841971";//6939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955";
-        static readonly public BigNumber BN_E         = "2.7182818284590452353602874713526624977572";//47093699959574966967627724076630353547594571382178525166427427466391932003059921817413596629";
-        static readonly public BigNumber BN_lc_log2   = "0.6931471805599453094172321214581765680755";//00134360255254120680009493393621969694715605863326996418687542001481020570685733685520235758";
-        static readonly public BigNumber BN_lc_log10  = "2.3025850929940456840179914546843642076011";//0148862877297603332790096757260967735248023599720508959829834196778404228624863340952546508";
-        static readonly public BigNumber BN_exp_log2R = "1.4426950408889634"; //"1.44269504089";    /* ~ 1 / ln(2) */
+        private const double PiHalf = 1.570796326794896619231321691639751442098584; //699687;
+        //pi=3.1415926535897932384626433832795028841971 = 40 chu so sau dau phay + so 3 la 41
+        static readonly public BigNumber BN_lc_log10R = "0.4342944819032518276511289189166050822943";
+        //97005803666566114453783165864649208870774729224949338431748318706106744766303733641679287159";
+        static readonly public BigNumber BN_PI        = "3,1415926535897932384626433832795028841971";
+        //6939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955";
+        //static readonly public BigNumber BN_E         = "2,7182818284590452353602874713526624977572";
+        //47093699959574966967627724076630353547594571382178525166427427466391932003059921817413596629";
+        static readonly public BigNumber BN_lc_log2   = "0.6931471805599453094172321214581765680755";
+        //00134360255254120680009493393621969694715605863326996418687542001481020570685733685520235758";
+        static readonly public BigNumber BN_lc_log10  = "2.3025850929940456840179914546843642076011";
+        //0148862877297603332790096757260967735248023599720508959829834196778404228624863340952546508";
+        static readonly public BigNumber BN_exp_log2R = "1.4426950408889634073599246810019";
+        //"1.4426950408889634";    /* ~ 1 / ln(2) */
 
         #endregion
     }

@@ -7,14 +7,14 @@ namespace Calculator
     {
         static void Abs(BigNumber d, BigNumber s)
         {
-            BigNumber.Copy(s, d);
+            Copy(s, d);
             if (d.signum != 0) d.signum = 1;
         }
 
         static void Neg(BigNumber s, BigNumber d)
         {
-            BigNumber.Copy(s, d);
-            if (d.signum != 0) d.signum = (sbyte)-(d.signum);
+            Copy(s, d);
+            if (d.signum != 0) d.signum = (sbyte)(-d.signum);
         }
 
         static private void IntPow(int places, BigNumber src, int mexp, BigNumber dst)
@@ -24,7 +24,7 @@ namespace Calculator
 
             if (mexp == 0)
             {
-                BigNumber.Copy(BigNumber.One, dst);
+                Copy(One__, dst);
                 return;
             }
             else
@@ -43,7 +43,7 @@ namespace Calculator
 
             if (src.signum == 0)
             {
-                BigNumber.SetZero(dst);
+                SetZero(dst);
                 return;
             }
 
@@ -53,8 +53,8 @@ namespace Calculator
 
             local_precision = places + 8;
 
-            BigNumber.Copy(BigNumber.One, B);
-            BigNumber.Copy(src, C);
+            Copy(One__, B);
+            Copy(src, C);
 
             while (true)
             {
@@ -63,26 +63,24 @@ namespace Calculator
 
                 if (ii != 0)                       /* exponent -was- odd */
                 {
-                    BigNumber.Mul(B, C, A);
-                    BigNumber.Round(A, B, local_precision);
+                    Mul(B, C, A);
+                    Round(A, B, local_precision);
 
-                    if (nexp == 0)
-                        break;
+                    if (nexp == 0) break;
                 }
 
-                BigNumber.Mul(C, C, A);
-                BigNumber.Round(A, C, local_precision);
+                Mul(C, C, A);
+                Round(A, C, local_precision);
             }
 
             if (signflag > 0)
             {
-                BigNumber.Reciprocal(B, dst, places);
+                Reciprocal(B, dst, places);
             }
             else
             {
-                BigNumber.Round(B, dst, places);
+                Round(B, dst, places);
             }
-
         }
 
         static public void Power(BigNumber xx, BigNumber yy, BigNumber rr, int places)
@@ -90,17 +88,17 @@ namespace Calculator
             int iflag;
             BigNumber tmp8 = new BigNumber();
             BigNumber tmp9 = new BigNumber();
-            int M_size_flag = BigNumber.GetSizeofInt();
+            int M_size_flag = 4;
 
             if (yy.signum == 0)
             {
-                BigNumber.Copy(BigNumber.One, rr);
+                Copy(One__, rr);
                 return;
             }
 
             if (xx.signum == 0)
             {
-                BigNumber.SetZero(rr);
+                SetZero(rr);
                 return;
             }
 
@@ -121,9 +119,9 @@ namespace Calculator
 
                 if (iflag > 0)
                 {
-                    String sbuf = BigNumber.ToIntString(yy);
-                    int Exp = Convert.ToInt32(sbuf);
-                    BigNumber.IntPow(places, xx, Exp, rr);
+                    String sbuf = ToIntString(yy);
+                    int exp = Convert.ToInt32(sbuf);
+                    IntPow(places, xx, exp, rr);
                     return;
                 }
             }
@@ -131,33 +129,53 @@ namespace Calculator
             tmp8 = new BigNumber();
             tmp9 = new BigNumber();
 
-            BigNumber.LogE(xx, tmp9, (places + 8));
-            BigNumber.Mul(tmp9, yy, tmp8);
-            BigNumber.Exp(tmp8, rr, places);
+            LogE(xx, tmp9, (places + 8));
+            Mul(tmp9, yy, tmp8);
+            Exp(tmp8, rr, places);
         }
-        
+        /// <summary>
+        /// DEG
+        /// </summary>
         static public void DEG(BigNumber xx, BigNumber rr)
         {
             //12.3456789 = 12°34'56.789"
-            BigNumber dd = "0", mm = 0, ss = 0.0, mTemp = BigNumber.Zero, sTemp = "0";
-            BigNumber.Copy(rr, dd);
-            if (!BigNumber.IsInteger(rr))
+            BigNumber dd = "0", mm = 0, ss = 0.0, mTemp = "0";
+            Copy(rr, dd);
+            if (!IsInteger(rr))
             {
-                BigNumber.Floor(dd, rr);
-                BigNumber.Sub(rr, dd, mTemp);
-                BigNumber.Copy(mTemp.mantissa[0], mm);
+                Floor(dd, rr);
+                Sub(rr, dd, mTemp);
 
-                BigNumber.Copy(mTemp.mantissa[1], ss);
+                string mT = mTemp.ToFullString().Substring(2);
+                Copy(mT.Substring(0, 2), mm);
+                Copy(mT.Substring(2, 2), ss);
+
                 if (mTemp.mantissa[2] != 0)
                 {
+                    byte[] man = new byte[18];
                     ss.dataLength = mTemp.dataLength - 2;
-                    Array.Copy(mTemp.mantissa, 2, ss.mantissa, 1, ss.dataLength - 2);
+                    if (mTemp.StrValue.Length % 2 != 0) mT += 0;
+                    for (int i = 2; i < mT.Length / 2; i++)
+                    {
+                        man[i - 2] = byte.Parse(mT.Substring(2 * i, 2));
+                    }
+                    // tìm hạng của ma trận ss.mantissa
+                    int rank = ss.mantissa.Length - 1;
+                    for (; rank >= 0; rank--)
+                    {
+                        if (ss.mantissa[rank] != 0) break;
+                    }
+                    byte[] resultArr = new byte[++rank + man.Length];
+                    Array.Copy(ss.mantissa, resultArr, rank);
+                    Array.Copy(man, 0, resultArr, rank, resultArr.Length - rank);
+                    ss.mantissa = resultArr;
                 }
 
-                BigNumber.Mul(mm, 60, mTemp);
-                BigNumber.Add(mTemp, ss, ss);
-                BigNumber.Div(ss, 3600, mTemp);
-                BigNumber.Add(dd, mTemp, xx);
+                // ss=mm*60+ss, xx=dd+ss/3600
+                Mul(mm, 60, mTemp);
+                Add(mTemp, ss, ss);
+                Div(ss, 3600, mTemp);
+                Add(dd, mTemp, xx);
             }
         }
         /// <summary>
@@ -166,39 +184,39 @@ namespace Calculator
         static public void DMS(BigNumber xx, BigNumber rr)
         {
             BigNumber dd = "0", mm = "0", ss = "0", mTemp = "0", sTemp = "0", mfloor = "0";
-            BigNumber.Copy(rr, dd);
-            if (!BigNumber.IsInteger(rr))
+            Copy(rr, dd);
+            if (!IsInteger(rr))
             {
-                BigNumber.Floor(dd, rr);        // dd = rr.floor();
-                BigNumber.Sub(rr, dd, mTemp);   // mtemp=rr-dd
-                BigNumber.Mul(mTemp, 0.6, mm);  // mm=mtemp*60
-                BigNumber.Mul(mm, 100, mTemp);  // mm=mtemp*60
-                if (!BigNumber.IsInteger(mTemp))
+                Floor(dd, rr);        // dd = rr.floor();
+                Sub(rr, dd, mTemp);   // mtemp=rr-dd
+                Mul(mTemp, 0.6, mm);  // mm=mtemp*60
+                Mul(mm, 100, mTemp);  // mm=mtemp*60
+                if (!IsInteger(mTemp))
                 {
-                    BigNumber.Floor(mfloor, mTemp);         //mTemp=mm.floor()
-                    BigNumber.Sub(mTemp, mfloor, sTemp);    //stemp=mm-mfloor
-                    BigNumber.Mul(sTemp, 60.0, ss);         //ss=stemp*60
+                    Floor(mfloor, mTemp);         //mTemp=mm.floor()
+                    Sub(mTemp, mfloor, sTemp);    //stemp=mm-mfloor
+                    Mul(sTemp, 60.0, ss);         //ss=stemp*60
                 }
                 else
                 {
-                    BigNumber.Add(dd, mm, xx);
+                    Add(dd, mm, xx);
                     return;
                 }
-                BigNumber.Div(mfloor, 100.0, mfloor);
-                BigNumber.Add(dd, mfloor, xx);
+                Div(mfloor, 100.0, mfloor);
+                Add(dd, mfloor, xx);
 
-                BigNumber.Div(ss, 10000.0, ss);
-                BigNumber.Add(xx, ss, xx);
+                Div(ss, 10000.0, ss);
+                Add(xx, ss, xx);
             }
             else
             {
-                BigNumber.Copy(rr, xx);
+                Copy(rr, xx);
             }
         }
 
         static public void Reciprocal(BigNumber src, BigNumber dst, int places)
         {
-            BigNumber.Div(BigNumber.One, src, dst, places);
+            Div(One__, src, dst, places);
         }
 
         static private void Exp(BigNumber src, BigNumber dst, int places)
@@ -208,14 +226,14 @@ namespace Calculator
 
             if (src.signum == 0)
             {
-                BigNumber.Copy(BigNumber.One, dst);
+                Copy(One__, dst);
                 return;
             }
 
             if (src.exponent <= -3)
             {
                 M_raw_exp(src, C, (places + 6));
-                BigNumber.Round(C, dst, places);
+                Round(C, dst, places);
                 return;
             }
 
@@ -226,88 +244,69 @@ namespace Calculator
 
             dplaces = places + 8;
 
-            BigNumber.CheckLogPlaces(dplaces);
-            BigNumber.Mul(A, BN_lc_log2, B);
-            BigNumber.Sub(src, B, A);
+            CheckLogPlaces(dplaces);
+            Mul(A, BN_lc_log2, B);
+            Sub(src, B, A);
 
-            while (true)
+            while (A.signum == 0 || A.exponent != 0)
             {
-                if (A.signum != 0)
-                {
-                    if (A.exponent == 0)
-                        break;
-                }
+                //if (A.signum != 0 && A.exponent == 0) break;
 
-                if (A.signum >= 0)
-                {
-                    nn++;
-                    BigNumber.Sub(A, BN_lc_log2, B);
-                    BigNumber.Copy(B, A);
-                }
-                else
-                {
-                    nn--;
-                    BigNumber.Add(A, BN_lc_log2, B);
-                    BigNumber.Copy(B, A);
-                }
+                nn += A.signum;
+                BN_lc_log2.signum = (sbyte)(-A.signum);
+                Add(A, BN_lc_log2, B);    // A.signum >= 0 => A - BN_lc_log2 else A + BN_lc_log2
+                BN_lc_log2.signum = 1;
+                Copy(B, A);
             }
 
-            BigNumber.Mul(A, 1.0 / 512, C);
+            Mul(A, 1.0 / 512, C);
 
             M_raw_exp(C, B, dplaces);
 
             ii = 9;
 
-            while (true)
+            do
             {
-                BigNumber.Mul(B, B, C);
-                BigNumber.Round(C, B, dplaces);
+                Mul(B, B, C);
+                Round(C, B, dplaces);
 
-                if (--ii == 0) break;
-            }
+                //if (--ii == 0) break;
+            } while (--ii != 0);
 
-            BigNumber.IntPow(dplaces, BigNumber.Two, nn, A);
-            BigNumber.Mul(A, B, C);
-            BigNumber.Round(C, dst, places);
+            IntPow(dplaces, Two__, nn, A);
+            Mul(A, B, C);
+            Round(C, dst, places);
         }
-
+        /// <summary>
+        /// kiểm tra số nhập vào của hàm exp có quá lớn hay không
+        /// </summary>
         static int M_exp_compute_nn(ref int n, BigNumber b, BigNumber a)
         {
             BigNumber tmp0, tmp1;
 
-            String cp = "";
-            int kk;
-
-            n = 0;
-
             tmp0 = new BigNumber();
             tmp1 = new BigNumber();
 
-            BigNumber.Mul(BN_exp_log2R, a, tmp1);
+            Mul(BN_exp_log2R, a, tmp1);
 
             if (tmp1.signum >= 0)
             {
-                BigNumber.Add(tmp1, 0.5, tmp0);
-                BigNumber.Floor(tmp1, tmp0);
+                Add(tmp1, 0.5, tmp0);
+                Floor(tmp1, tmp0);
             }
             else
             {
-                BigNumber.Sub(tmp1, 0.5, tmp0);
-                BigNumber.Ceil(tmp1, tmp0);
+                Sub(tmp1, 0.5, tmp0);
+                Ceil(tmp1, tmp0);
             }
 
-            kk = tmp1.exponent;
-
-
-            cp = BigNumber.ToIntString(tmp1);
+            string cp = ToIntString(tmp1);
             n = Convert.ToInt32(cp);
 
-            BigNumber.SetFromLong(b, (long)(n));
-            BigNumber.Normalize(b);
+            SetFromLong(b, (long)(n));
+            Normalize(b);
 
-            kk = BigNumber.Compare(b, tmp1);
-
-            return (kk);
+            return Compare(b, tmp1);
         }
 
         static private void M_raw_exp(BigNumber xx, BigNumber rr, int places)
@@ -324,18 +323,18 @@ namespace Calculator
             tolerance = -(places + 4);
             prev_exp = 0;
 
-            BigNumber.Add(BigNumber.One, xx, rr);
-            BigNumber.Copy(xx, term);
+            Add(One__, xx, rr);
+            Copy(xx, term);
 
             m1 = 2L;
 
             while (true)
             {
-                BigNumber.SetFromLong(digit, m1);
-                BigNumber.Mul(term, xx, tmp0);
-                BigNumber.Div(tmp0, digit, term, local_precision);
-                BigNumber.Add(rr, term, tmp0);
-                BigNumber.Copy(tmp0, rr);
+                SetFromLong(digit, m1);
+                Mul(term, xx, tmp0);
+                Div(tmp0, digit, term, local_precision);
+                Add(rr, term, tmp0);
+                Copy(tmp0, rr);
 
                 if ((term.exponent < tolerance) || (term.signum == 0))
                     break;
@@ -355,18 +354,18 @@ namespace Calculator
 
         static void Floor(BigNumber dst, BigNumber src)
         {
-            BigNumber.Copy(src, dst);
+            Copy(src, dst);
 
             if (IsInteger(dst)) return;
             if (dst.exponent <= 0)       /* if |bb| < 1, result is -1 or 0 */
             {
                 if (dst.signum < 0)
                 {
-                    BigNumber.Neg(BigNumber.One, dst);
+                    Neg(One__, dst);
                 }
                 else
                 {
-                    BigNumber.SetZero(dst);
+                    SetZero(dst);
                 }
 
                 return;
@@ -375,19 +374,22 @@ namespace Calculator
             if (dst.signum < 0)
             {
                 BigNumber mtmp = new BigNumber();
-                BigNumber.Neg(dst, mtmp);
+                Neg(dst, mtmp);
 
                 mtmp.dataLength = mtmp.exponent;
 
-                BigNumber.Normalize(mtmp);
+                Normalize(mtmp);
 
-                BigNumber.Add(mtmp, BigNumber.One, dst);
+                Add(mtmp, One__, dst);
                 dst.signum = -1;
             }
             else
             {
                 dst.dataLength = dst.exponent;
-                BigNumber.Normalize(dst);
+                byte[] man = new byte[(dst.exponent + 3) / 2];
+                Array.Copy(dst.mantissa, 0, man, 0, (dst.exponent + 1) / 2);
+                dst.mantissa = man;
+                Normalize(dst);
             }
         }
 
@@ -395,18 +397,15 @@ namespace Calculator
         {
             BigNumber mtmp;
 
-            BigNumber.Copy(src, dst);
+            Copy(src, dst);
 
-            if (IsInteger(dst))          /* if integer, we're done */
-            {
-                return;
-            }
-            if (dst.exponent <= 0)       /* if |bb| < 1, result is 0 or 1 */
+            if (IsInteger(dst)) return;     /* if integer, we're done */
+            if (dst.exponent <= 0)          /* if |bb| < 1, result is 0 or 1 */
             {
                 if (dst.signum < 0)
-                    BigNumber.SetZero(dst);
+                    SetZero(dst);
                 else
-                    BigNumber.Copy(BigNumber.One, dst);
+                    Copy(One__, dst);
 
                 return;
             }
@@ -414,17 +413,17 @@ namespace Calculator
             if (dst.signum < 0)
             {
                 dst.dataLength = dst.exponent;
-                BigNumber.Normalize(dst);
+                Normalize(dst);
             }
             else
             {
                 mtmp = new BigNumber();
-                BigNumber.Copy(dst, mtmp);
+                Copy(dst, mtmp);
 
                 mtmp.dataLength = mtmp.exponent;
-                BigNumber.Normalize(mtmp);
+                Normalize(mtmp);
 
-                BigNumber.Add(mtmp, BigNumber.One, dst);
+                Add(mtmp, One__, dst);
             }
         }
 
@@ -432,12 +431,12 @@ namespace Calculator
         {
             /* sqrt algorithm actually finds 1/sqrt */
             double dd;
-            String buf = BigNumber.ToExpString(a, 15);
+            String buf = ToExpString(a, 15);
 
-            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSym;
+            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSeparator;
 
             dd = Convert.ToDouble(buf, scci);
-            BigNumber.SetFromDouble(r, (1.0 / Math.Sqrt(dd)));
+            if (dd != 0) SetFromDouble(r, (1.0 / Math.Sqrt(dd)));
         }
 
         static void Sqrt(BigNumber src, BigNumber dst, int places)
@@ -445,12 +444,9 @@ namespace Calculator
             int ii, nexp, tolerance, dplaces;
             bool bflag;
 
-            if (src.signum <= 0)
+            if (src.signum <= 0 && src.signum == -1)
             {
-                if (src.signum == -1)
-                {
-                    throw new Exception("Cannot square root a negative number");
-                }
+                throw new Exception("Invalid input");
             }
 
             BigNumber last_x = new BigNumber();
@@ -460,43 +456,39 @@ namespace Calculator
             BigNumber tmp8 = new BigNumber();
             BigNumber tmp9 = new BigNumber();
 
-            BigNumber.Copy(src, tmpN);
+            Copy(src, tmpN);
 
             nexp = src.exponent / 2;
             tmpN.exponent -= 2 * nexp;
 
-            BigNumber.SQrtGuess(tmpN, guess);
+            SQrtGuess(tmpN, guess);
 
             tolerance = places + 4;
             dplaces = places + 16;
             bflag = false;
 
-            BigNumber.Neg(BigNumber.Ten, last_x);
+            Neg(Ten__, last_x);
 
             ii = 0;
 
             while (true)
             {
-                BigNumber.Mul(tmpN, guess, tmp9);
-                BigNumber.Mul(tmp9, guess, tmp8);
-                BigNumber.Round(tmp8, tmp7, dplaces);
-                BigNumber.Sub(BigNumber.Three, tmp7, tmp9);
-                BigNumber.Mul(tmp9, guess, tmp8);
-                BigNumber.Mul(tmp8, 0.5, tmp9);
+                Mul(tmpN, guess, tmp9);
+                Mul(tmp9, guess, tmp8);
+                Round(tmp8, tmp7, dplaces);
+                Sub(Three, tmp7, tmp9);
+                Mul(tmp9, guess, tmp8);
+                Mul(tmp8, 0.5, tmp9);
 
-                if (bflag)
-                {
-                    break;
-                }
+                if (bflag) break;
 
-                BigNumber.Round(tmp9, guess, dplaces);
+                Round(tmp9, guess, dplaces);
 
                 if (ii != 0)
                 {
-                    BigNumber.Sub(guess, last_x, tmp7);
+                    Sub(guess, last_x, tmp7);
 
-                    if (tmp7.signum == 0)
-                        break;
+                    if (tmp7.signum == 0) break;
 
                     /*
                      *   if we are within a factor of 4 on the error term,
@@ -505,16 +497,15 @@ namespace Calculator
                      *   the error term will be a negative number).
                      */
 
-                    if ((-4 * tmp7.exponent) > tolerance)
-                        bflag = true;
+                    if ((-4 * tmp7.exponent) > tolerance) bflag = true;
                 }
 
-                BigNumber.Copy(guess, last_x);
+                Copy(guess, last_x);
                 ii++;
             }
 
-            BigNumber.Mul(tmp9, tmpN, tmp8);
-            BigNumber.Round(tmp8, dst, places);
+            Mul(tmp9, tmpN, tmp8);
+            Round(tmp8, dst, places);
             dst.exponent += nexp;
         }
         /// <summary>
@@ -526,7 +517,7 @@ namespace Calculator
 
             if (j > dst.mantissa.Length)
             {
-                BigNumber.Expand(dst, j + 31);
+                Expand(dst, j + 31);
             }
 
             dst.dataLength = src.dataLength;
@@ -540,7 +531,7 @@ namespace Calculator
         /// </summary>
         static public int Compare(BigNumber ltmp, BigNumber rtmp)
         {
-            int llen, rlen, lsign, rsign, i, j, lexp, rexp;
+            int llen, rlen, lsign, rsign, j, lexp, rexp;
 
             llen = ltmp.dataLength;
             rlen = rtmp.dataLength;
@@ -551,58 +542,42 @@ namespace Calculator
             lexp = ltmp.exponent;
             rexp = rtmp.exponent;
 
-            if (rsign == 0) return (lsign);
+            int res = (lsign == 1) ? 1 : -1;
 
-            if (lsign == 0) return (-rsign);
+            if (rsign == 0 || lsign == -rsign) return lsign;
 
-            if (lsign == -rsign) return (lsign);
+            if (lsign == 0) return -rsign;
 
-            if (lexp > rexp) goto E1;
+            //if (lsign == -rsign) return lsign;
 
-            if (lexp < rexp) goto E2;
+            if (lexp > rexp) return res;
+
+            if (lexp < rexp) return -res;
 
             if (llen < rlen)
                 j = (llen + 1) >> 1;
             else
                 j = (rlen + 1) >> 1;
 
-            for (i = 0; i < j; i++)
+            for (int i = 0; i < j; i++)
             {
-                if (ltmp.mantissa[i] > rtmp.mantissa[i]) goto E1;
-                if (ltmp.mantissa[i] < rtmp.mantissa[i]) goto E2;
+                if (ltmp.mantissa[i] > rtmp.mantissa[i]) return res;
+                if (ltmp.mantissa[i] < rtmp.mantissa[i]) return -res;
             }
 
-            if (llen == rlen)
-                return (0);
-            else
-            {
-                if (llen > rlen)
-                    goto E1;
-                else
-                    goto E2;
-            }
-
-        E1: if (lsign == 1)
-                return (1);
-            else
-                return (-1);
-
-        E2: if (lsign == 1)
-                return (-1);
-            else
-                return (1);
-
+            if (llen == rlen) return 0;
+            if (llen > rlen)
+                return res;
+            return -res;
         }
-
-        static private int MM_lc_log_digits = 128;
 
         static void M_get_log_guess(BigNumber a, BigNumber r)
         {
             double dd;
 
-            String buf = BigNumber.ToExpString(a, 15);
-            dd = BigNumber.ExpStringToDouble(buf);
-            BigNumber.SetFromDouble(r, (1.00001 * Math.Log(dd)));        /* induce error of 10 ^ -5 */
+            String buf = ToExpString(a, 15);
+            dd = ExpStringToDouble(buf);
+            SetFromDouble(r, (1.00001 * Math.Log(dd)));        /* induce error of 10 ^ -5 */
         }
 
         static void M_log_solve_cubic(BigNumber nn, BigNumber rr, int places)
@@ -616,7 +591,7 @@ namespace Calculator
             tmp2 = new BigNumber();
             tmp3 = new BigNumber();
 
-            BigNumber.M_get_log_guess(nn, guess);
+            M_get_log_guess(nn, guess);
 
             tolerance = -(places + 4);
             maxp = places + 16;
@@ -626,22 +601,21 @@ namespace Calculator
 
             while (true)
             {
-                BigNumber.Exp(guess, tmp1, local_precision);
+                Exp(guess, tmp1, local_precision);
 
-                BigNumber.Sub(tmp1, nn, tmp3);
-                BigNumber.Add(tmp1, nn, tmp2);
+                Sub(tmp1, nn, tmp3);
+                Add(tmp1, nn, tmp2);
 
-                BigNumber.Div(tmp3, tmp2, tmp1, local_precision);
-                BigNumber.Mul(BigNumber.Two, tmp1, tmp0);
-                BigNumber.Sub(guess, tmp0, tmp3);
+                Div(tmp3, tmp2, tmp1, local_precision);
+                Mul(Two__, tmp1, tmp0);
+                Sub(guess, tmp0, tmp3);
 
                 if (ii != 0)
                 {
-                    if (((3 * tmp0.exponent) < tolerance) || (tmp0.signum == 0))
-                        break;
+                    if (((3 * tmp0.exponent) < tolerance) || (tmp0.signum == 0)) break;
                 }
 
-                BigNumber.Round(tmp3, guess, local_precision);
+                Round(tmp3, guess, local_precision);
 
                 local_precision *= 3;
 
@@ -650,7 +624,7 @@ namespace Calculator
                 ii = 1;
             }
 
-            BigNumber.Round(tmp3, rr, places);
+            Round(tmp3, rr, places);
 
         }
 
@@ -660,7 +634,7 @@ namespace Calculator
 
             if (places < 360)
             {
-                BigNumber.M_log_solve_cubic(nn, rr, places);
+                M_log_solve_cubic(nn, rr, places);
             }
             else
             {
@@ -669,16 +643,16 @@ namespace Calculator
                 tmp2 = new BigNumber();
                 tmpX = new BigNumber();
 
-                BigNumber.M_log_solve_cubic(nn, tmpX, 110);
-                BigNumber.Neg(tmpX, tmp0);
-                BigNumber.Exp(tmp0, tmp1, (places + 8));
-                BigNumber.Mul(tmp1, nn, tmp2);
-                BigNumber.Sub(tmp2, BigNumber.One, tmp1);
+                M_log_solve_cubic(nn, tmpX, 110);
+                Neg(tmpX, tmp0);
+                Exp(tmp0, tmp1, (places + 8));
+                Mul(tmp1, nn, tmp2);
+                Sub(tmp2, One__, tmp1);
 
-                BigNumber.M_log_near_1(tmp1, tmp0, (places - 104));
+                M_log_near_1(tmp1, tmp0, (places - 104));
 
-                BigNumber.Add(tmpX, tmp0, tmp1);
-                BigNumber.Round(tmp1, rr, places);
+                Add(tmpX, tmp0, tmp1);
+                Round(tmp1, rr, places);
             }
         }
 
@@ -695,9 +669,8 @@ namespace Calculator
          *                          ----
          *                           \
          *                            \     n-1      2    2
-         *                      1  -   |   2    *  (a  - b )
-         *                            /              n    n
-         *                           /
+         *                     1  -   /    2    *  (a  - b )
+         *                           /               n    n
          *                          ----
          *                         n >= 0
          *
@@ -726,80 +699,75 @@ namespace Calculator
 
         static void LogAGMRFunc(BigNumber aa, BigNumber bb, BigNumber rr, int places)
         {
-            BigNumber tmp1, tmp2, tmp3, tmp4, tmpC2, sum, pow_2, tmpA0, tmpB0;
-            int tolerance, dplaces;
+            BigNumber tmpA0 = new BigNumber();
+            BigNumber tmpB0 = new BigNumber();
+            BigNumber tmpC2 = new BigNumber();
+            BigNumber tmp1 = new BigNumber();
+            BigNumber tmp2 = new BigNumber();
+            BigNumber tmp3 = new BigNumber();
+            BigNumber tmp4 = new BigNumber();
+            BigNumber sum = new BigNumber();
+            BigNumber pow_2 = new BigNumber();
 
-            tmpA0 = new BigNumber();
-            tmpB0 = new BigNumber();
-            tmpC2 = new BigNumber();
-            tmp1 = new BigNumber();
-            tmp2 = new BigNumber();
-            tmp3 = new BigNumber();
-            tmp4 = new BigNumber();
-            sum = new BigNumber();
-            pow_2 = new BigNumber();
+            int tolerance = places + 8;
+            int dplaces = places + 16;
 
-            tolerance = places + 8;
-            dplaces = places + 16;
+            Copy(aa, tmpA0);
+            Copy(bb, tmpB0);
+            Copy(0.5, pow_2);
 
-            BigNumber.Copy(aa, tmpA0);
-            BigNumber.Copy(bb, tmpB0);
-            BigNumber.Copy("0.5", pow_2);
-
-            BigNumber.Mul(aa, aa, tmp1);		    /* 0.5 * [ a ^ 2 - b ^ 2 ] */
-            BigNumber.Mul(bb, bb, tmp2);
-            BigNumber.Sub(tmp1, tmp2, tmp3);
-            BigNumber.Mul("0.5", tmp3, sum);
+            Mul(aa, aa, tmp1);		    /* 0.5 * [ a ^ 2 - b ^ 2 ] */
+            Mul(bb, bb, tmp2);
+            Sub(tmp1, tmp2, tmp3);
+            Mul(0.5, tmp3, sum);
 
             while (true)
             {
-                BigNumber.Sub(tmpA0, tmpB0, tmp1);      /* C n+1 = 0.5 * [ An - Bn ] */
-                BigNumber.Mul("0.5", tmp1, tmp4);      /* C n+1 */
-                BigNumber.Mul(tmp4, tmp4, tmpC2);       /* C n+1 ^ 2 */
+                Sub(tmpA0, tmpB0, tmp1);      /* C n+1 = 0.5 * [ An - Bn ] */
+                Mul(0.5, tmp1, tmp4);         /* C n+1 */
+                Mul(tmp4, tmp4, tmpC2);       /* C n+1 ^ 2 */
 
                 /* do the AGM */
 
-                BigNumber.Add(tmpA0, tmpB0, tmp1);
-                BigNumber.Mul("0.5", tmp1, tmp3);
+                Add(tmpA0, tmpB0, tmp1);
+                Mul(0.5, tmp1, tmp3);
 
-                BigNumber.Mul(tmpA0, tmpB0, tmp2);
-                BigNumber.Sqrt(tmp2, tmpB0, dplaces);
+                Mul(tmpA0, tmpB0, tmp2);
+                Sqrt(tmp2, tmpB0, dplaces);
 
-                BigNumber.Round(tmp3, tmpA0, dplaces);
+                Round(tmp3, tmpA0, dplaces);
 
                 /* end AGM */
 
-                BigNumber.Mul(BigNumber.Two, pow_2, tmp2);
-                BigNumber.Copy(tmp2, pow_2);
+                Mul(Two__, pow_2, tmp2);
+                Copy(tmp2, pow_2);
 
-                BigNumber.Mul(tmpC2, pow_2, tmp1);
-                BigNumber.Add(sum, tmp1, tmp3);
+                Mul(tmpC2, pow_2, tmp1);
+                Add(sum, tmp1, tmp3);
 
-                if ((tmp1.signum == 0) || ((-2 * tmp1.exponent) > tolerance))
-                    break;
+                if ((tmp1.signum == 0) || ((-2 * tmp1.exponent) > tolerance)) break;
 
-                BigNumber.Round(tmp3, sum, dplaces);
+                Round(tmp3, sum, dplaces);
             }
 
-            BigNumber.Sub(BigNumber.One, tmp3, tmp4);
-            BigNumber.Reciprocal(tmp4, rr, places);
+            Sub(One__, tmp3, tmp4);
+            Reciprocal(tmp4, rr, places);
         }
 
         /****************************************************************************/
 
         /*
-	        calculate log (1 + x) with the following series:
-
-                  x
-	        y = -----      ( |y| < 1 )
-	            x + 2
-
-
-                    [ 1 + y ]                 y^3     y^5     y^7
-	        log [-------]  =  2 * [ y  +  ---  +  ---  +  ---  ... ]
-                    [ 1 - y ]                  3       5       7
-
-        */
+         * calculate log (1 + x) with the following series:
+         *
+         *        x
+	     *  y = -----      ( |y| < 1 )
+	     *      x + 2
+         *
+         *
+         *          [ 1 + y ]                     y^3     y^5     y^7
+	     *  log [---------------]  =  2 * [ y  +  ---  +  ---  +  ---  ... ]
+         *          [ 1 - y ]                      3       5       7
+         * */
 
         static void M_log_near_1(BigNumber xx, BigNumber rr, int places)
         {
@@ -816,39 +784,38 @@ namespace Calculator
             tolerance = xx.exponent - (places + 6);
             dplaces = (places + 12) - xx.exponent;
 
-            BigNumber.Add(xx, BigNumber.Two, tmp0);
-            BigNumber.Div(xx, tmp0, tmpS, (dplaces + 6));
-            BigNumber.Copy(tmpS, term);
-            BigNumber.Mul(tmpS, tmpS, tmp0);
-            BigNumber.Round(tmp0, tmp2, (dplaces + 6));
+            Add(xx, Two__, tmp0);
+            Div(xx, tmp0, tmpS, (dplaces + 6));
+            Copy(tmpS, term);
+            Mul(tmpS, tmpS, tmp0);
+            Round(tmp0, tmp2, (dplaces + 6));
 
             m1 = 3L;
 
             while (true)
             {
-                BigNumber.Mul(term, tmp2, tmp0);
+                Mul(term, tmp2, tmp0);
 
-                if ((tmp0.exponent < tolerance) || (tmp0.signum == 0))
-                    break;
+                if ((tmp0.exponent < tolerance) || (tmp0.signum == 0)) break;
 
                 local_precision = dplaces + tmp0.exponent;
 
                 if (local_precision < 20)
                     local_precision = 20;
 
-                BigNumber.SetFromLong(tmp1, m1);
-                BigNumber.Round(tmp0, term, local_precision);
-                BigNumber.Div(term, tmp1, tmp0, local_precision);
-                BigNumber.Add(tmpS, tmp0, tmp1);
-                BigNumber.Copy(tmp1, tmpS);
+                SetFromLong(tmp1, m1);
+                Round(tmp0, term, local_precision);
+                Div(term, tmp1, tmp0, local_precision);
+                Add(tmpS, tmp0, tmp1);
+                Copy(tmp1, tmpS);
                 m1 += 2;
             }
 
-            BigNumber.Mul(BigNumber.Two, tmpS, tmp0);
-            BigNumber.Round(tmp0, rr, places);
-
+            Mul(Two__, tmpS, tmp0);
+            Round(tmp0, rr, places);
         }
 
+        static private int MM_lc_log_digits = 128;
         static void CheckLogPlaces(int places)
         {
             BigNumber tmp6, tmp7, tmp8, tmp9;
@@ -865,26 +832,25 @@ namespace Calculator
                 tmp8 = new BigNumber();
                 tmp9 = new BigNumber();
 
-                dplaces += 6 + (int)Math.Log10((double)places);
+                dplaces += 6 + (int)Math.Log10(places);
 
-                BigNumber.Copy(BigNumber.One, tmp7);
+                Copy(One__, tmp7);
                 tmp7.exponent = -places;
 
-                BigNumber.LogAGMRFunc(BigNumber.One, tmp7, tmp8, dplaces);
+                LogAGMRFunc(One__, tmp7, tmp8, dplaces);
 
-                BigNumber.Mul(tmp7, "0.5", tmp6);
+                Mul(tmp7, "0.5", tmp6);
 
-                BigNumber.LogAGMRFunc(BigNumber.One, tmp6, tmp9, dplaces);
+                LogAGMRFunc(One__, tmp6, tmp9, dplaces);
 
-                BigNumber.Sub(tmp9, tmp8, BN_lc_log2);
+                Sub(tmp9, tmp8, BN_lc_log2);
 
                 tmp7.exponent -= 1;
 
-                BigNumber.LogAGMRFunc(BigNumber.One, tmp7, tmp9, dplaces);
+                LogAGMRFunc(One__, tmp7, tmp9, dplaces);
 
-                BigNumber.Sub(tmp9, tmp8, BN_lc_log10);
-                BigNumber.Reciprocal(BN_lc_log10R, BN_lc_log10, dplaces);
-
+                Sub(tmp9, tmp8, BN_lc_log10);
+                Reciprocal(BN_lc_log10R, BN_lc_log10, dplaces);
             }
         }
 
@@ -894,10 +860,10 @@ namespace Calculator
             BigNumber tmp9 = new BigNumber();
             int dplaces = places + 4;
 
-            BigNumber.CheckLogPlaces(dplaces + 45);
-            BigNumber.LogE(src, tmp9, dplaces);
-            BigNumber.Mul(tmp9, BN_lc_log10R, tmp8);
-            BigNumber.Round(tmp8, dst, places);
+            CheckLogPlaces(dplaces + 45);
+            LogE(src.StrValue, tmp9, dplaces);
+            Mul(tmp9, BN_lc_log10R, tmp8);
+            Round(tmp8, dst, places);
         }
 
         static void LogE(BigNumber src, BigNumber dst, int places)
@@ -907,7 +873,7 @@ namespace Calculator
 
             if (src.signum <= 0)
             {
-                throw new Exception("Negative argument in logarit function");
+                throw new Exception("Invalid input");
             }
 
             tmp0 = new BigNumber();
@@ -920,11 +886,11 @@ namespace Calculator
 
             if (mexp == 0 || mexp == 1)
             {
-                BigNumber.Sub(src, BigNumber.One, tmp0);
+                Sub(src, One__, tmp0);
 
                 if (tmp0.signum == 0)    /* is input exactly 1 ?? */
                 {                           /* if so, result is 0    */
-                    BigNumber.SetZero(dst);
+                    SetZero(dst);
                     return;
                 }
 
@@ -935,10 +901,10 @@ namespace Calculator
                 }
             }
 
-            /* make sure our log(10) is accurate enough for this calculation */
+            /* make sure our log(10) is accurate enough for this input */
             /* (and log(2) which is called from M_log_basic_iteration) */
 
-            BigNumber.CheckLogPlaces(dplaces + 25);
+            CheckLogPlaces(dplaces + 25);
 
             if (Math.Abs(mexp) <= 3)
             {
@@ -956,26 +922,26 @@ namespace Calculator
                  *  then log(x * y) = log(x) + ( C * base_10_exponent )
                  */
 
-                BigNumber.Copy(src, tmp2);
+                Copy(src, tmp2);
 
                 mexp = tmp2.exponent - 2;
                 tmp2.exponent = 2;
 
                 M_log_basic_iteration(tmp2, tmp0, dplaces);
 
-                BigNumber.SetFromLong(tmp1, (long)mexp);
-                BigNumber.Mul(tmp1, BN_lc_log10, tmp2);
-                BigNumber.Add(tmp2, tmp0, tmp1);
+                SetFromLong(tmp1, mexp);
+                Mul(tmp1, BN_lc_log10, tmp2);
+                Add(tmp2, tmp0, tmp1);
 
-                BigNumber.Round(tmp1, dst, places);
+                Round(tmp1, dst, places);
             }
 
         }
 
         static public void Round(BigNumber src, BigNumber dst, int places)
         {
-            BigNumber t0_5 = BigNumber.Zero;
-            BigNumber.Copy(BigNumber.Five, t0_5);
+            BigNumber t0_5 = "0";
+            Copy(Five_, t0_5);
             int ii = places + 1;
 
             if (src.dataLength <= ii)
@@ -988,18 +954,16 @@ namespace Calculator
 
             if (src.signum > 0)
             {
-                BigNumber.Add(src, t0_5, dst);
+                Add(src, t0_5, dst);
             }
             else
             {
-                BigNumber.Sub(src, t0_5, dst);
+                Sub(src, t0_5, dst);
             }
 
             dst.dataLength = ii;
-            BigNumber.Normalize(dst);
+            Normalize(dst);
         }
-
-        static readonly int sMinPrecision = 32;
         /// <summary>
         /// checkif atmp is an integer
         /// </summary>
@@ -1007,6 +971,29 @@ namespace Calculator
         {
             if (atmp.signum == 0) return true;
             return (atmp.exponent >= atmp.dataLength);
+        }
+        /// <summary>
+        /// checkif atmp is an integer
+        /// </summary>
+        public static bool IsInteger(string atmpBN)
+        {
+            BigNumber atmp = atmpBN;
+            return IsInteger(atmp);
+        }
+        /// <summary>
+        /// checkif atmp is a number
+        /// </summary>
+        public static bool IsNumber(string str)
+        {
+            try
+            {
+                SetFromString(new BigNumber(), str);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         static int GetSizeofInt()
@@ -1026,11 +1013,8 @@ namespace Calculator
             k = 2;
             ct = 0;
 
-            while (true)
+            while (k < n)
             {
-                if (k >= n)
-                    break;
-
                 k = k << 1;
 
                 if (++ct == bit_limit)
@@ -1039,13 +1023,12 @@ namespace Calculator
                 }
             }
 
-            return (k);
-
+            return k;
         }
 
         static private int Digits(BigNumber atm)
         {
-            return atm.dataLength < sMinPrecision ? sMinPrecision : atm.dataLength;
+            return atm.dataLength < 32 ? 32 : atm.dataLength;
         }
 
         static private int MaxDigits(BigNumber a, BigNumber b)
@@ -1070,7 +1053,7 @@ namespace Calculator
 
             if (ii > ctmp.mantissa.Length)
             {
-                BigNumber.Expand(ctmp, (ii + 32));
+                Expand(ctmp, (ii + 32));
             }
 
             if ((ct & 1) != 0)          /* move odd number first */
@@ -1096,10 +1079,7 @@ namespace Calculator
                         ctmp.mantissa[ii + 1] = (byte)(10 * numrem + numdiv);
                         numdiv = numdiv2;
 
-                        if (ii == 0)
-                        {
-                            break;
-                        }
+                        if (ii == 0) break;
 
                         ii--;
                     }
@@ -1122,18 +1102,13 @@ namespace Calculator
                     }
                     else
                     {
-                        while (true)
+                        do
                         {
                             Unpack(ctmp.mantissa[ii - 1], ref  numdiv, ref numrem);
 
                             ctmp.mantissa[ii] = (byte)(10 * numrem + numdiv2);
                             numdiv2 = numdiv;
-
-                            if (--ii == 0)
-                            {
-                                break;
-                            }
-                        }
+                        } while (--ii != 0);
 
                         ctmp.mantissa[0] = numdiv;
                     }
@@ -1179,7 +1154,8 @@ namespace Calculator
             }
             else
             {
-                throw new Exception("'Expand', newLength smaller than current length");
+                //throw new Exception("'Expand', new length is smaller than current length");
+				return;
             }
         }
         /// <summary>
@@ -1211,7 +1187,7 @@ namespace Calculator
 
             if (numb > atm.mantissa.Length)
             {
-                BigNumber.Expand(atm, numb + 32);
+                Expand(atm, numb + 32);
             }
 
             int num1 = (atm.dataLength + 1) >> 1;
@@ -1232,13 +1208,9 @@ namespace Calculator
         /// <summary>
         /// normalize number
         /// </summary>
-        /// <param name="atm"></param>
         static private void Normalize(BigNumber atm)
         {
-            if (atm.signum == 0)
-            {
-                return;
-            }
+            if (atm.signum == 0) return;
             int ucp = 0;
             int i;
             int index;
@@ -1246,7 +1218,7 @@ namespace Calculator
             int exponent = atm.exponent;
             byte numdiv = 0, numrem = 0, numrem2 = 0;
 
-            BigNumber.Pad(atm, datalength + 3);
+            Pad(atm, datalength + 3);
 
             // remove leading zeroes
             while (true)
@@ -1255,10 +1227,7 @@ namespace Calculator
                 Unpack(atm.mantissa[0], ref numdiv, ref numrem);
 
                 // if first digit is greater 1 we are done
-                if (numdiv >= 1)
-                {
-                    break;
-                }
+                if (numdiv >= 1) break;
 
                 // otherwise we have leading zeroes
                 index = (datalength + 1) >> 1;
@@ -1268,12 +1237,8 @@ namespace Calculator
                     i = 0;
                     ucp = 0;
 
-                    while (true)
+                    while (atm.mantissa[ucp] == 0)
                     {
-                        if (atm.mantissa[ucp] != 0)
-                        {
-                            break;
-                        }
                         ucp++;
                         i++;
                     }
@@ -1304,22 +1269,15 @@ namespace Calculator
             {
                 index = ((datalength + 1) >> 1) - 1;
 
-                if ((datalength & 1) == 0)   /* back-up full bytes at a time if the */
-                {				            /* current length is an even number    */
+                if ((datalength & 1) == 0)  /* back-up full bytes at a time if the */
+                {
+                    /* current length is an even number    */
                     ucp = index;
-                    if (atm.mantissa[ucp] == 0)
+                    while (atm.mantissa[ucp] == 0)
                     {
-                        while (true)
-                        {
-                            datalength -= 2;
-                            index--;
-                            ucp--;
-
-                            if (atm.mantissa[ucp] != 0)
-                            {
-                                break;
-                            }
-                        }
+                        datalength -= 2;
+                        index--;
+                        ucp--;
                     }
                 }
 
@@ -1360,7 +1318,7 @@ namespace Calculator
 
             for (int i = 0; i < max_i; i++)
             {
-                BigNumber.Unpack(atm.mantissa[i], ref numdiv, ref numrem);
+                Unpack(atm.mantissa[i], ref numdiv, ref numrem);
                 res += (char)('0' + numdiv);
                 res += (char)('0' + numrem);
             }
@@ -1369,29 +1327,21 @@ namespace Calculator
 
             if (exp > 0)
             {
-                for (int i = res.Length; i < exp; i++)
-                {
-                    res += "0";
-                }
-
+                res = res.PadRight(exp, '0');
                 if (exp < res.Length)
                 {
-                    res = res.Insert(exp, Misc.DecimalSym);
+                    res = res.Insert(exp, Misc.DecimalSeparator);
                 }
             }
-            else if (exp <= 0)
+            else
             {
-                while (exp++ <= 0)
+                res = res.PadLeft(1 - exp + res.Length, '0');
+                if (res.Length >= 2)
                 {
-                    res = "0" + res;
-                }
-
-                if (exp <= res.Length)
-                {
-                    res = res.Insert(1, Misc.DecimalSym);
+                    res = res.Insert(1, Misc.DecimalSeparator);
                 }
             }
-            if (atm < "0") res = "-" + res;
+            if (atm.signum < 0) res = "-" + res;
             return res;
         }
 
@@ -1407,11 +1357,11 @@ namespace Calculator
 
             if (dec_places < 0)
             {
-                BigNumber.Copy(atm, ctmp);
+                Copy(atm, ctmp);
             }
             else
             {
-                BigNumber.Round(atm, ctmp, dec_places);
+                Round(atm, ctmp, dec_places);
             }
 
             if (ctmp.signum == 0)
@@ -1426,16 +1376,11 @@ namespace Calculator
 
                     if (dec_places > 0)
                     {
-                        res += Misc.DecimalSym;
+                        res += Misc.DecimalSeparator;
                     }
 
-                    for (i = 0; i < dec_places; i++)
-                    {
-                        res += "0";
-                    }
-
-                    res += "e+0";
-
+                    res = res.PadRight(dec_places + res.Length, '0') + "e+0";
+                    //res += "e+0";
                 }
                 return res;
             }
@@ -1460,7 +1405,7 @@ namespace Calculator
             i = 0;
             index = 0;
 
-            while (true)
+            do
             {
                 if (index >= max_i)
                 {
@@ -1482,14 +1427,14 @@ namespace Calculator
                 if (first != 0)
                 {
                     first = 0;
-                    res += Misc.DecimalSym[0];
+                    res += Misc.DecimalSeparator[0];
                 }
 
                 res += (char)('0' + numrem);
 
-                if (++i == num_digits)
-                    break;
-            }
+                //if (++i == num_digits)
+                //    break;
+            } while (++i != num_digits);
 
             i = ctmp.exponent - 1;
 
@@ -1498,13 +1443,12 @@ namespace Calculator
             else if (i < 0)
                 res += "e" + i;
 
-
             return res;
         }
 
         static double ExpStringToDouble(String src)
         {
-            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSym;
+            scci.NumberFormat.NumberDecimalSeparator = Misc.DecimalSeparator;
             return Convert.ToDouble(src, scci);
         }
 
@@ -1524,7 +1468,7 @@ namespace Calculator
 
             if (ct > 112)
             {
-                BigNumber.Expand(atm, ct + 31);
+                Expand(atm, ct + 31);
             }
 
             ii = 0;
@@ -1546,31 +1490,22 @@ namespace Calculator
 
             int ucp = 0;
 
-            while (true)
+            do
             {
                 Unpack(atm.mantissa[ucp++], ref numdiv, ref numrem);
 
                 result += (char)('0' + numdiv);
                 result += (char)('0' + numrem);
-
-                if (--numb == 0)
-                {
-                    break;
-                }
-            }
+            } while (--numb != 0);
 
             if (ct > dl)
             {
-                for (int i = 0; i < (ct + 1 - dl); i++)
-                {
-                    result += '0';
-                }
+                result = result.PadRight(ct + 1 - dl + result.Length, '0');
             }
 
             result = result.Substring(0, ct + ii);
 
             return result;
         }
-
     }
 }

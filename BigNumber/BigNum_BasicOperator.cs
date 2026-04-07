@@ -4,7 +4,7 @@ namespace Calculator
 {
     public partial class BigNumber
     {
-        static readonly int RDFT_LOOP_DIV = 64;
+        private const int RDFT_LOOP_DIV = 64;
         static readonly double WR5000 = 0.707106781186547524400844362104849039284835937688;
 
         static private void M_bitrv2(int n, double[] a)
@@ -65,7 +65,7 @@ namespace Calculator
                         a[j1 + 1] = yi;
                         a[k1] = xr;
                         a[k1 + 1] = xi;
-                        for (i = n >> 1; i > (k ^= i); i >>= 1) ;
+                        for (i = n >> 1; i > (k ^= i); i >>= 1) { }
                     }
                     j1 = j0 + k0 + m;
                     k1 = j1 + m;
@@ -77,7 +77,7 @@ namespace Calculator
                     a[j1 + 1] = yi;
                     a[k1] = xr;
                     a[k1 + 1] = xi;
-                    for (i = n >> 1; i > (j0 ^= i); i >>= 1) ;
+                    for (i = n >> 1; i > (j0 ^= i); i >>= 1) { }
                 }
             }
             else
@@ -85,7 +85,7 @@ namespace Calculator
                 j0 = 0;
                 for (k0 = 2; k0 < m; k0 += 2)
                 {
-                    for (i = n >> 1; i > (j0 ^= i); i >>= 1) ;
+                    for (i = n >> 1; i > (j0 ^= i); i >>= 1) { }
                     k = k0;
                     for (j = j0; j < j0 + k0; j += 2)
                     {
@@ -107,7 +107,7 @@ namespace Calculator
                         a[j1 + 1] = yi;
                         a[k1] = xr;
                         a[k1 + 1] = xi;
-                        for (i = n >> 1; i > (k ^= i); i >>= 1) ;
+                        for (i = n >> 1; i > (k ^= i); i >>= 1) { }
                     }
                 }
             }
@@ -272,7 +272,7 @@ namespace Calculator
             kr = 0;
             for (j = 16; j < n; j += 16)
             {
-                for (kj = n >> 2; kj > (kr ^= kj); kj >>= 1) ;
+                for (kj = n >> 2; kj > (kr ^= kj); kj >>= 1) { }
                 wk1r = Math.Cos(ew * kr);
                 wk1i = Math.Sin(ew * kr);
                 wk2r = 1 - 2 * wk1i * wk1i;
@@ -392,7 +392,7 @@ namespace Calculator
             m2 = 2 * m;
             for (k = m2; k < n; k += m2)
             {
-                for (kj = n >> 2; kj > (kr ^= kj); kj >>= 1) ;
+                for (kj = n >> 2; kj > (kr ^= kj); kj >>= 1) { }
                 wk1r = Math.Cos(ew * kr);
                 wk1i = Math.Sin(ew * kr);
                 wk2r = 1 - 2 * wk1i * wk1i;
@@ -640,14 +640,14 @@ namespace Calculator
 
         static private void FastMulFFT(byte[] ww, byte[] uu, byte[] vv, int nbytes)
         {
-            int i, j, nn2, nn, w0;
+            int j;
             ulong ul;
-            double carry, nnr, dtemp;
-            double[] a = null;
-            double[] b = null;
+            double dtemp;
+            double[] a;
+            double[] b;
 
-            nn = nbytes;
-            nn2 = nbytes >> 1;
+            int nn = nbytes;
+            int nn2 = nbytes >> 1;
 
             if (nn > 8200)
             {
@@ -660,11 +660,11 @@ namespace Calculator
                 b = new double[8200];
             }
 
-            i = 0;
+            int i = 0;
             for (j = 0; j < nn2; j++)
             {
-                a[j] = (double)((int)uu[i] * 100 + uu[i + 1]);
-                b[j] = (double)((int)vv[i] * 100 + vv[i + 1]);
+                a[j] = (uu[i] * 100 + uu[i + 1]);
+                b[j] = vv[i] * 100 + vv[i + 1];
                 i += 2;
             }
 
@@ -696,26 +696,21 @@ namespace Calculator
             /* perform a final pass to release all the carries */
             /* we are still in base 10000 at this point        */
 
-            carry = 0.0;
+            double carry = 0.0;
             j = nn;
-            nnr = 2.0 / (double)nn;
+            double nnr = 2.0 / nn;
 
-            while (true)
+            do
             {
-                dtemp = b[--j] * nnr + carry + 0.5;
-                ul = (ulong)(dtemp * 1.0E-4);
-                carry = (double)ul;
-                b[j] = dtemp - carry * 10000.0;
-
-                if (j == 0)
-                {
-                    break;
-                }
-            }
+                dtemp = b[--j]*nnr + carry + 0.5;
+                ul = (ulong) (dtemp*1.0E-4);
+                carry = ul;
+                b[j] = dtemp - carry*10000.0;
+            } while (j != 0);
 
             /* copy result to our destination after converting back to base 100 */
 
-            w0 = 0;
+            int w0 = 0;
             byte div = 0, rem = 0;
 
             UnpackMult((int)ul, ref div, ref rem);
@@ -740,11 +735,10 @@ namespace Calculator
             BigNumber M_ain = new BigNumber();
             BigNumber M_bin = new BigNumber();
 
-            BigNumber.Copy(aa, M_ain);
-            BigNumber.Copy(bb, M_bin);
+            Copy(aa, M_ain);
+            Copy(bb, M_bin);
 
-            int size_flag = GetSizeofInt();
-            int bit_limit = 8 * size_flag + 1;
+            //GetSizeofInt();
 
 
             sign = M_ain.signum * M_bin.signum;
@@ -760,21 +754,21 @@ namespace Calculator
 
             k = 2 * ii;                   /* required size of expression, in bytes  */
 
-            BigNumber.Pad(M_ain, k);          /* fill out the data so the number of */
-            BigNumber.Pad(M_bin, k);          /* bytes is an exact power of 2       */
+            Pad(M_ain, k);          /* fill out the data so the number of */
+            Pad(M_bin, k);          /* bytes is an exact power of 2       */
 
             if (k > rr.mantissa.Length)
             {
-                BigNumber.Expand(rr, (k + 31));
+                Expand(rr, (k + 31));
             }
 
-            BigNumber.FastMulFFT(rr.mantissa, M_ain.mantissa, M_bin.mantissa, ii);
+            FastMulFFT(rr.mantissa, M_ain.mantissa, M_bin.mantissa, ii);
 
             rr.signum = (sbyte)sign;
             rr.exponent = nexp;
             rr.dataLength = 4 * ii;
 
-            BigNumber.Normalize(rr);
+            Normalize(rr);
         }
         /// <summary>
         /// rr = aa * bb
@@ -789,7 +783,7 @@ namespace Calculator
 
             if (sign == 0)
             {
-                BigNumber.SetZero(rr);
+                SetZero(rr);
                 return;
             }
 
@@ -799,7 +793,7 @@ namespace Calculator
 
             if (indexa >= 48 && indexb >= 48)
             {
-                BigNumber.FastMul(aa, bb, rr);
+                FastMul(aa, bb, rr);
                 return;
             }
 
@@ -807,27 +801,24 @@ namespace Calculator
 
             if (ii >= rr.mantissa.Length)
             {
-                BigNumber.Expand(rr, ii + 31);
+                Expand(rr, ii + 31);
             }
 
             index0 = indexa + indexb;
-            for (int i = 0; i < index0; i++)
-            {
-                rr.mantissa[i] = 0;
-            }
+            rr.mantissa = new byte[index0 + 1];
 
             ii = indexa;
 
-            while (true)
+            do
             {
                 index0--;
                 int crp = index0;
                 jj = indexb;
-                ai = (int)aa.mantissa[--ii];
+                ai = aa.mantissa[--ii];
 
-                while (true)
+                do
                 {
-                    itmp = ai * bb.mantissa[--jj];
+                    itmp = ai*bb.mantissa[--jj];
 
                     rr.mantissa[crp - 1] += s_MsbLookupMult[itmp];
                     rr.mantissa[crp] += s_LsbLookupMult[itmp];
@@ -845,26 +836,18 @@ namespace Calculator
                         rr.mantissa[crp] -= 100;
                         rr.mantissa[crp - 1] += 1;
                     }
-
-                    if (jj == 0)
-                    {
-                        break;
-                    }
-                }
-
-                if (ii == 0)
-                {
-                    break;
-                }
-            }
+                    //if (jj == 0) break;
+                } while (jj != 0);
+                //if (ii == 0) break;
+            } while (ii != 0);
 
             rr.signum = sign;
             rr.exponent = nexp;
-            rr.dataLength = numdigits;
+            rr.dataLength = numdigits > numDefaultPlaces ? numDefaultPlaces + 1 : numdigits;
 
-            BigNumber.Normalize(rr);
-
+            Normalize(rr);
         }
+
 
         static private void Div(BigNumber aa, BigNumber bb, BigNumber rr, int places)
         {
@@ -886,28 +869,28 @@ namespace Calculator
                 {
                     throw new Exception("Cannot divide by zero");
                 }
-                BigNumber.SetZero(rr);
+                SetZero(rr);
                 return;
             }
 
             if (bb.mantissa[0] >= 50)
             {
-                BigNumber.Abs(M_div_worka, aa);
-                BigNumber.Abs(M_div_workb, bb);
+                Abs(M_div_worka, aa);
+                Abs(M_div_workb, bb);
             }
             else       /* 'normal' step D1 */
             {
                 k = 100 / (bb.mantissa[0] + 1);
-                BigNumber.SetFromLong(M_div_tmp9, (long)k);
+                SetFromLong(M_div_tmp9, k);
 
-                BigNumber.Mul(M_div_tmp9, aa, M_div_worka);
-                BigNumber.Mul(M_div_tmp9, bb, M_div_workb);
+                Mul(M_div_tmp9, aa, M_div_worka);
+                Mul(M_div_tmp9, bb, M_div_workb);
 
                 M_div_worka.signum = 1;
                 M_div_workb.signum = 1;
             }
 
-            b0 = 100 * (int)M_div_workb.mantissa[0];
+            b0 = 100 * M_div_workb.mantissa[0];
 
             if (M_div_workb.dataLength >= 3)
             {
@@ -929,7 +912,7 @@ namespace Calculator
 
             if (k > rr.mantissa.Length)
             {
-                BigNumber.Expand(rr, k + 31);
+                Expand(rr, k + 31);
             }
 
             /* clear the exponent in the working copies */
@@ -939,7 +922,7 @@ namespace Calculator
 
             /* if numbers are equal, ratio == 1.00000... */
 
-            if ((icompare = BigNumber.Compare(M_div_worka, M_div_workb)) == 0)
+            if ((icompare = Compare(M_div_worka, M_div_workb)) == 0)
             {
                 iterations = 1;
                 rr.mantissa[0] = 10;
@@ -947,15 +930,8 @@ namespace Calculator
             }
             else			           /* ratio not 1, do the real division */
             {
-                if (icompare == 1)                        /* numerator > denominator */
-                {
-                    nexp++;                           /* to adjust the final exponent */
-                    M_div_worka.exponent += 1;     /* multiply numerator by 10 */
-                }
-                else                                      /* numerator < denominator */
-                {
-                    M_div_worka.exponent += 2;    /* multiply numerator by 100 */
-                }
+                nexp += (icompare == 1).GetHashCode();                          /* to adjust the final exponent */
+                M_div_worka.exponent += (1 + (icompare != 1).GetHashCode());	/* multiply numerator by 10 */
 
                 indexr = 0;
                 m = 0;
@@ -967,7 +943,7 @@ namespace Calculator
                      *  actually has that many digits.
                      */
 
-                    trial_numer = 10000L * (long)M_div_worka.mantissa[0];
+                    trial_numer = 10000L * M_div_worka.mantissa[0];
 
                     if (M_div_worka.dataLength >= 5)
                     {
@@ -994,20 +970,18 @@ namespace Calculator
                         while (true)
                         {
                             j /= 10;
-                            if (--k == 0)
-                                break;
+                            if (--k == 0) break;
                         }
                     }
 
-                    if (j == 100)       /* qhat == base ??      */
-                        j = 99;         /* if so, decrease by 1 */
+                    if (j == 100) j = 99;   /* if qhat == base then decrease by 1      */
 
-                    BigNumber.SetFromLong(M_div_tmp8, (long)j);
-                    BigNumber.Mul(M_div_tmp8, M_div_workb, M_div_tmp7);
+                    SetFromLong(M_div_tmp8, j);
+                    Mul(M_div_tmp8, M_div_workb, M_div_tmp7);
 
                     /*
-                     *    Compare our q-hat (j) against the desired number.
-                     *    j is either correct, 1 too large, or 2 too large
+                     *    Compare our q-hat (i) against the desired number.
+                     *    i is either correct, 1 too large, or 2 too large
                      *    per Theorem B on pg 272 of Art of Compter Programming,
                      *    Volume 2, 3rd Edition.
                      *
@@ -1019,11 +993,11 @@ namespace Calculator
                      *    2 too large, (and q-hat being 1 too large is quite remote).
                      */
 
-                    if (BigNumber.Compare(M_div_tmp7, M_div_worka) == 1)
+                    if (Compare(M_div_tmp7, M_div_worka) == 1)
                     {
                         j--;
-                        BigNumber.Sub(M_div_tmp7, M_div_workb, M_div_tmp8);
-                        BigNumber.Copy(M_div_tmp8, M_div_tmp7);
+                        Sub(M_div_tmp7, M_div_workb, M_div_tmp8);
+                        Copy(M_div_tmp8, M_div_tmp7);
                     }
 
                     /*
@@ -1033,15 +1007,14 @@ namespace Calculator
                      *  do D5 before D4 and decide if we are done.
                      */
 
-                    rr.mantissa[indexr++] = (byte)j;    /* j == 'qhat' */
+                    rr.mantissa[indexr++] = (byte)j;    /* i == 'qhat' */
                     m += 2;
 
-                    if (m >= iterations)
-                        break;
+                    if (m >= iterations) break;
 
                     /* step D4 */
 
-                    BigNumber.Sub(M_div_worka, M_div_tmp7, M_div_tmp9);
+                    Sub(M_div_worka, M_div_tmp7, M_div_tmp9);
 
                     /*
                      *  if the subtraction yields zero, the division is exact
@@ -1056,7 +1029,7 @@ namespace Calculator
 
                     /* multiply by 100 and re-save */
                     M_div_tmp9.exponent += 2;
-                    BigNumber.Copy(M_div_tmp9, M_div_worka);
+                    Copy(M_div_tmp9, M_div_worka);
                 }
             }
 
@@ -1064,18 +1037,19 @@ namespace Calculator
             rr.exponent = nexp;
             rr.dataLength = iterations;
 
-            BigNumber.Normalize(rr);
+            Normalize(rr);
         }
-        /// <summary>
+
+		/// <summary>
         /// rr = aa / bb
         /// </summary>
         static public void Div(BigNumber aa, BigNumber bb, BigNumber rr)
         {
-            int places = BigNumber.MaxDigits(aa, bb);
-            BigNumber.Div(aa, bb, rr, places);
+            int places = MaxDigits(aa, bb);
+            Div(aa, bb, rr, places);
         }
         /// <summary>
-        /// result = src+ dst
+        /// result = src + dst
         /// </summary>
         static public void Add(BigNumber src, BigNumber dst, BigNumber result)
         {
@@ -1085,13 +1059,13 @@ namespace Calculator
 
             if (src.signum == 0)
             {
-                BigNumber.Copy(dst, result);
+                Copy(dst, result);
                 return;
             }
 
             if (dst.signum == 0)
             {
-                BigNumber.Copy(src, result);
+                Copy(src, result);
                 return;
             }
 
@@ -1121,89 +1095,55 @@ namespace Calculator
             if (aexp == bexp)
             {
                 // scale (shift) 2 digits
-                BigNumber.Scale(A, 2);
-                BigNumber.Scale(B, 2);
+                Scale(A, 2);
+                Scale(B, 2);
             }
             else
             {
                 // scale to larger exponent
                 if (aexp > bexp)
                 {
-                    BigNumber.Scale(A, 2);
-                    BigNumber.Scale(B, (aexp - bexp + 2));
+                    Scale(A, 2);
+                    Scale(B, (aexp - bexp + 2));
                 }
                 else
                 {
-                    BigNumber.Scale(B, 2);
-                    BigNumber.Scale(A, (bexp - aexp + 2));
+                    Scale(B, 2);
+                    Scale(A, (bexp - aexp + 2));
                 }
             }
 
             adigits = A.dataLength;
             bdigits = B.dataLength;
 
+			BigNumber bn1 = new BigNumber(), bn2 = new BigNumber();
             if (adigits >= bdigits)
-            {
-                Copy(A, result);
+			{
+				Copy(A, bn1);
+				Copy(B, bn2);
+				j = (bdigits + 1) >> 1;
+			}
+			else
+			{
+				Copy(B, bn1);
+				Copy(A, bn2);
+				j = (adigits + 1) >> 1;
+			}
+			Copy(bn1, result);
 
-                j = (bdigits + 1) >> 1;
-
-                carry = 0;
-
-                while (true)
-                {
-                    j--;
-                    result.mantissa[j] += (byte)(carry + B.mantissa[j]);
-
-                    if (result.mantissa[j] >= 100)
-                    {
-                        result.mantissa[j] -= 100;
-                        carry = 1;
-                    }
-                    else
-                    {
-                        carry = 0;
-                    }
-
-                    if (j == 0)
-                    {
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                Copy(B, result);
-
-                j = (adigits + 1) >> 1;
-
-                carry = 0;
-
-                while (true)
-                {
-                    j--;
-                    result.mantissa[j] += (byte)(carry + A.mantissa[j]);
-
-                    if (result.mantissa[j] >= 100)
-                    {
-                        result.mantissa[j] -= 100;
-                        carry = 1;
-                    }
-                    else
-                    {
-                        carry = 0;
-                    }
-
-                    if (j == 0)
-                    {
-                        break;
-                    }
-                }
-            }
+			carry = 0;
+			while (j > 0)
+			{
+				j--;
+				result.mantissa[j] += (byte)(carry + bn2.mantissa[j]);
+				carry = (result.mantissa[j] >= 100) ? 1 : 0;
+				if (result.mantissa[j] >= 100) result.mantissa[j] -= 100;
+			}
 
             result.signum = sign;
             Normalize(result);
         }
+
         /// <summary>
         /// result = src - dst
         /// </summary>
@@ -1212,16 +1152,16 @@ namespace Calculator
             int itmp, j, ChangeOrderFlag, icompare, aexp, bexp, borrow, adigits, bdigits;
             sbyte sign;
             BigNumber A = 0, B = 0;
-
+            if (src == 0) { Neg(dst, result); return; }
             if (dst.signum == 0)
             {
-                BigNumber.Copy(src, result);
+                Copy(src, result);
                 return;
             }
 
             if (src.signum == 0)
             {
-                BigNumber.Copy(dst, result);
+                Copy(dst, result);
                 return;
             }
 
@@ -1241,8 +1181,8 @@ namespace Calculator
                 return;
             }
 
-            BigNumber.Abs(A, src);
-            BigNumber.Abs(B, dst);
+            Abs(A, src);
+            Abs(B, dst);
 
             if ((icompare = Compare(A, B)) == 0)
             {
@@ -1286,65 +1226,40 @@ namespace Calculator
                 Pad(A, bdigits);
             }
 
+            BigNumber big = new BigNumber(), small = new BigNumber();
+
+
             if (ChangeOrderFlag == 1)		 // |a| > |b|  (do A-B)
             {
-                Copy(A, result);
-
-                j = (result.dataLength + 1) >> 1;
-
-                borrow = 0;
-
-                while (true)
-                {
-                    j--;
-                    itmp = ((int)result.mantissa[j] - ((int)B.mantissa[j] + borrow));
-
-                    if (itmp >= 0)
-                    {
-                        result.mantissa[j] = (byte)itmp;
-                        borrow = 0;
-                    }
-                    else
-                    {
-                        result.mantissa[j] = (byte)(100 + itmp);
-                        borrow = 1;
-                    }
-
-                    if (j == 0)
-                        break;
-                }
+                Copy(A, big);
+                Copy(B, small);
             }
             else   		// |b| > |a|  (do B-A) instead
             {
-                Copy(B, result);
+                Copy(B, big);
+                Copy(A, small);
+            }
+            Copy(big, result);
+            borrow = 0;
+            j = (result.dataLength + 1) >> 1;
+            while (j > 0)
+            {
+                j--;
+                itmp = (result.mantissa[j] - (small.mantissa[j] + borrow));
 
-                j = (result.dataLength + 1) >> 1;
-                borrow = 0;
-
-                while (true)
+                if (itmp >= 0)
                 {
-                    j--;
-                    itmp = (int)result.mantissa[j] - ((int)A.mantissa[j] + borrow);
-
-                    if (itmp >= 0)
-                    {
-                        result.mantissa[j] = (byte)itmp;
-                        borrow = 0;
-                    }
-                    else
-                    {
-                        result.mantissa[j] = (byte)(100 + itmp);
-                        borrow = 1;
-                    }
-
-                    if (j == 0)
-                        break;
+                    result.mantissa[j] = (byte)itmp;
                 }
+                else
+                {
+                    result.mantissa[j] = (byte)(100 + itmp);
+                }
+                borrow = (itmp < 0) ? 1 : 0;
             }
 
             result.signum = sign;
-
-            BigNumber.Normalize(result);
+            Normalize(result);
         }
 
         static public void SetZero(BigNumber mm)
@@ -1356,74 +1271,20 @@ namespace Calculator
             mm.dataLength = 1;
         }
 
-        static private void InitializehexLookup()
-        {
-            if (hexLookup.Count == 0)
-            {
-                hexLookup['0'] = (int)0;
-                hexLookup['1'] = (int)1;
-                hexLookup['2'] = (int)2;
-                hexLookup['3'] = (int)3;
-                hexLookup['4'] = (int)4;
-                hexLookup['5'] = (int)5;
-                hexLookup['6'] = (int)6;
-                hexLookup['7'] = (int)7;
-                hexLookup['8'] = (int)8;
-                hexLookup['9'] = (int)9;
-                hexLookup['a'] = (int)10;
-                hexLookup['b'] = (int)11;
-                hexLookup['c'] = (int)12;
-                hexLookup['d'] = (int)13;
-                hexLookup['e'] = (int)14;
-                hexLookup['f'] = (int)15;
-            }
-        }
-
-        static private BigNumber SetFromBinaryString(String binvalue)
-        {
-            BigNumber atm = 0;
-            int length = binvalue.Length - 1;
-            BigNumber CurValue = new BigNumber();
-            BigNumber.SetZero(CurValue);
-
-            BigNumber CurDigitBaseValue = 1;
-            InitializehexLookup();
-
-            try
-            {
-                while (length >= 0)
-                {
-                    char digit = binvalue[length];
-                    int value = (int)hexLookup[digit];
-                    CurValue += (CurDigitBaseValue * value);
-                    CurDigitBaseValue *= 2;
-                    length--;
-                }
-
-                BigNumber.Copy(CurValue, atm);
-                return atm;
-            }
-            catch
-            {
-                // illegal input string
-                throw new Exception("illegal input string");
-            }
-        }
-
         static private void SetFromDouble(BigNumber atm, double doubleValue)
         {
-            BigNumber.SetFromString(atm, "" + doubleValue);
+            SetFromString(atm, doubleValue.ToString());
         }
 
         static private void SetFromLong(BigNumber atm, long mm)
         {
             if (mm == 0)
             {
-                BigNumber.SetZero(atm);
+                SetZero(atm);
                 return;
             }
 
-            String ascii_number = mm.ToString();
+            string ascii_number = mm.ToString();
 
             atm.signum = 1;
 
@@ -1437,11 +1298,11 @@ namespace Calculator
 
             if ((atm.exponent % 2) != 0)
             {
-                // append a 0 to  least significant nibble in case of odd length
-                ascii_number += '0';
+                // append a 0 to least significant nibble in case of odd length
+                ascii_number += "0";
             }
 
-            int nbytes = (atm.exponent + 1) >> 1;    // we display 2 digits per byte
+            int nbytes = (atm.exponent + 1) >> 1;    // display 2 digits per byte
 
             // allocate data array
             atm.mantissa = new byte[atm.exponent + 1];
@@ -1450,98 +1311,96 @@ namespace Calculator
 
             for (int ii = 0, p = 0; ii < nbytes; ii++)
             {
-                byte ch = (byte)(ascii_number[p++] - '0');
-                atm.mantissa[ii] = (byte)((byte)(10 * ch) + (byte)(ascii_number[p++] - '0'));
+                atm.mantissa[ii] = (byte)(10 * ascii_number[p] + ascii_number[p + 1] - 528);
+                p += 2;
             }
         }
 
-        static private void SetFromString(BigNumber atm, String value)
+        static private void SetFromString(BigNumber atm, string value)
         {
-            SetZero(atm);
+            //SetZero(atm);
 
-            int p = 0;
+            int p;
             sbyte sign = 1;
             int exponent = 0;
 
-            value = value.Trim();               // trim whitespace
-            value = value.ToLower();            // convert to lower
+            value = value.Trim().Replace(" ", "");  // trim whitespace
+            value = value.ToLower();                // convert to lower
 
-            int cp = value.IndexOf("e");
-            if (cp > 0) // e cannot be leading
+            if (value.Contains("e+"))
             {
-                String ex = value.Substring(cp + 1, value.Length - (cp + 1));
-                exponent = Convert.ToInt32(ex);
-                value = value.Substring(0, cp);
+                value = value.Replace("e+", "e"); // remove optional '+' character
             }
-
-            if (value.Contains("+"))
+            else if (value.StartsWith("+"))
             {
-                value = value.Replace("+", ""); // remove optional '+' character
+                sign = 1;
+                value = value.Substring(1);
             }
-            else if (value.Contains("-"))
+            else if (value.StartsWith("-"))
             {
                 sign = -1;
-                value = value.Replace("-", "");
+                value = value.Substring(1);
+            }
+
+            if (value.IndexOf("e") > 0) // e cannot be leading
+            {
+                string[] com = value.Split('e');
+
+                try
+                {
+                    if (com[1][0] == '+') throw new Exception("Input string is invalid");
+                    exponent = Convert.ToInt32(com[1]);
+                }
+                catch { throw new Exception("Number is too large"); }
+
+                value = com[0];
             }
 
             //value_ = value_.InsertMultiplyChar(",", ".");
-            value = value.Replace(Misc.ThousandSym, Misc.DecimalSym);
+            value = value.Replace(Misc.GroupSeparator, Misc.DecimalSeparator);
 
-            int j = value.IndexOf(Misc.DecimalSym);
+            int j = value.IndexOf(Misc.DecimalSeparator);
             if (j == -1)
             {
-                value = value + Misc.DecimalSym;
-                j = value.IndexOf(Misc.DecimalSym);
+                value = value + Misc.DecimalSeparator;
+                j = value.Length - 1;   //j = value.IndexOf(Misc.DecimalSeparator);
             }
 
-            if (j > 0)
-            {
-                exponent += j;
-                value = value.Replace(Misc.DecimalSym, "");
-            }
+            exponent += j;          // atm.stringvalue.length
+            value = value.Remove(value.IndexOf(Misc.DecimalSeparator), 1);
 
             int i = value.Length;
             atm.dataLength = i;
+            // i is even
+            if (i % 2 != 0) value = value + "0";
 
-            if (i % 2 != 0)
+            j = value.Length >> 1;  //=value.Length/2
+
+            //if (value.Length > atm.mantissa.Length)
             {
-                value = value + '0';
+                Expand(atm, atm.dataLength/* + 28*/+ 1);
             }
 
-            j = value.Length >> 1;
+            byte ch;
+            bool zflag = true;
 
-            if (value.Length > atm.mantissa.Length)
-            {
-                BigNumber.Expand(atm, atm.dataLength + 28);
-            }
-
-            byte ch = 0;
-
-            int zflag = 1;
             for (i = 0, p = 0; i < j; i++)
             {
-                ch = (byte)(value[p++] - '0');
+                ch = (byte)(10 * value[p] + value[p + 1] - 528);    // 528 = 11 * '0'
+                if (ch != 0) zflag = false;
 
-                if ((ch = (byte)((byte)(10 * ch) + (byte)(value[p++] - '0'))) != 0)
+                if ((ch & 0xFF) >= 100 || ((ch & 0xFF) < 100) && (ch / 10 != value[p] - '0'))
                 {
-                    zflag = 0;
-                }
-
-                if (((int)ch & 0xFF) >= 100)
-                {
-                    // Error!
-                    SetZero(atm);
-                    return;
+                    // Error!, throw new exception
+                    throw new Exception("Input string is not a number");
                 }
 
                 atm.mantissa[i] = ch;
                 atm.mantissa[i + 1] = 0;
+                p += 2;
             }
 
-            atm.exponent = exponent;
-            atm.signum = sign;
-
-            if (zflag != 0)
+            if (zflag)
             {
                 atm.exponent = 0;
                 atm.signum = 0;
@@ -1550,6 +1409,8 @@ namespace Calculator
             }
             else
             {
+                atm.exponent = exponent;
+                atm.signum = sign;
                 Normalize(atm);
             }
         }
