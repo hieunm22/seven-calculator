@@ -14,11 +14,11 @@ namespace Calculator
 
         private readonly string KeyText = "Keyboard equivalent = ";
 
-        public delegate void CustomHandler(Keys keys);
+        public delegate void SendKeyHandler(Keys keys);
         /// <summary>
         /// send keys to main form before close
         /// </summary>
-        public event CustomHandler Form_Closed;
+        public event SendKeyHandler Form_Closed;
 
         string description = @"";
         string hotkey = "";
@@ -27,7 +27,7 @@ namespace Calculator
             switch (control.Text)
             {
                 #region select by comparing to text
-                case "1": case "2": case "3": case "4": case "5":
+                case "1": case "2": case "3": case "4": case "5": 
                 case "6": case "7": case "8": case "9": case "0":
                     description = @"Puts this number in the calculator display.";
                     hotkey = "0-9";
@@ -447,8 +447,7 @@ The maximum number of levels is 25.";
                     break;
                 #endregion
             }
-            rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>{1}{1}TabIndex={4}", description, Environment.NewLine, KeyText, hotkey, control.TabIndex);
-            //displayText.Text = description + Environment.NewLine + Environment.NewLine + KeyText + hotkey;
+            rtbInfo.Text = string.Format("{0}{1}{1}{2}<b>{3}</b>", description, Environment.NewLine, KeyText, hotkey);
             FormatTheText();
             AutoFit();
         }
@@ -471,7 +470,7 @@ The maximum number of levels is 25.";
                 int count = regex.Matches(html.Substring(0, close)).Count;
                 rtbInfo.SelectionStart = open - count;
                 rtbInfo.SelectionLength = close - open;
-                rtbInfo.SelectionFont = new Font(rtbInfo.Font, FontStyle.Bold);
+                rtbInfo.SelectionFont = new Font(rtbInfo.Font, rtbInfo.SelectionFont.Style | FontStyle.Bold);
             }
         }
 
@@ -494,11 +493,6 @@ The maximum number of levels is 25.";
             rtbInfo.Size = TextRenderer.MeasureText(rtbInfo.Text, rtbInfo.Font);
             this.Height = rtbInfo.Height + 12;
             this.Width = rtbInfo.Width + 12;
-            //using (Graphics g = CreateGraphics())
-            //{
-            //    displayText.Height = (int)g.MeasureString(displayText.Text, displayText.Font, displayText.Width).Height;
-            //    this.Height = displayText.Height + 10;
-            //}
         }
     }
 }

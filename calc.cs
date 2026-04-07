@@ -14,9 +14,9 @@ namespace Calculator
 
         #region bien toan cuc
 
-        string str = "0", sci_exp = "", pro_exp = "";
-        bool confirm_num = true, prcmdkey = true, propertiesChange, sciexpAdd;
-        int pre_bt = -1, pre_oprt;
+        string screenStr = "0", mainExp = "", prevFunc = "";
+        bool confirm_num = true, prcmdkey = true, propertiesChange = false, expAdded = false, dictionaryAdded = false;
+        int pre_bt = -1;
         object[] initConfigValue, currentConfig;
         string[] resultCollection = new string[100];
         BigNumber mem_num = 0;
@@ -33,24 +33,14 @@ namespace Calculator
         /// </summary>
         private void calc_Load(object sender, EventArgs e)
         {
-            // đoạn này để phòng trừ trường hợp người dùng chạy chương trình 
+            // đoạn này để phòng trừ trường hợp người dùng chạy chương trình
             // từ 1 shortcut mà shortcut này có thuộc tính run là Maximized
             WindowState = FormWindowState.Normal;   // không được xóa dòng này (lý do ở trên)
             LoadInfo();
+            if ((int)initConfigValue[12] == 1) ReadDictionary();
             getPaste(null, null);
             // lúc load thì dù có bật extra function hay không thì vẫn bật tính năng bắt sự kiện phím của chương trình
             if (!basicMI.Checked) EnableKeyboardAndChangeFocus();
-        }
-        /// <summary>
-        /// di chuyển form mà không cần đưa con trỏ lên title bar
-        /// </summary>
-        private void MoveFormWithoutMouseAtTitleBar(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Left)
-            {
-                Misc.ReleaseCapture();
-                Misc.SendMessage(Handle, 0xA1, 0x2, 1);
-            }
         }
         /// <summary>
         /// thay đổi kích thước font để hiển thị đủ kết quả lên màn hình
@@ -103,8 +93,8 @@ namespace Calculator
             {
                 string std = expressionTB.Text;
                 expressionTB.AllowTextChanged = false;
-                expressionTB.Text = "..." + std.Substring(std.Length - len);
-                toolTip2.SetToolTip(expressionTB, Misc.StandardExpression(sci_exp));
+                expressionTB.Text = "« " + std.Substring(std.Length - len); // alt 174
+                toolTip2.SetToolTip(expressionTB, mainExp);
                 expressionTB.AllowTextChanged = true;
             }
             else
@@ -115,7 +105,7 @@ namespace Calculator
         //
         // nut xoa bo nho
         //
-        private void memclear_Click(object sender, EventArgs e)
+        private void memclearBT_Click(object sender, EventArgs e)
         {
             mem_num = 0;
             currentConfig[4] = mem_num.StrValue;
@@ -125,15 +115,15 @@ namespace Calculator
 
         private void recallMemory()
         {
-            str = mem_num.StrValue;
+            screenStr = mem_num.StrValue;
 
-            if (!programmerMI.Checked) 
+            if (!programmerMI.Checked)
                 DisplayToScreen();
             else
                 ScreenToPanel();
 
-            prevFunc = str;
-            sciexpAdd = false;
+            prevFunc = screenStr;
+            expAdded = false;
             pre_bt = 25;
             confirm_num = true;
         }
@@ -166,58 +156,67 @@ namespace Calculator
                 if (standardMI.Checked)       // standard.checked
                 {
                     #region standard operation
-                    switch (pre_bt)
+                    if (Array.IndexOf(new int[] { 12, 13, 14, 15 }, pre_bt) >= 0) prevFunc = screenStr;
+                    if (!expAdded/* || pre_oprt != 0*/) mainExp += prevFunc;
+
+                    rightNum = screenStr;
+                    switch (curPriority[0].PText)
                     {
-                        case 12: case 13: case 14: case 15:
-                            prevFunc = str;
+                        case "+": screenStr = (leftNum + rightNum).StrValue;
+                            break;
+                        case "-": screenStr = (leftNum - rightNum).StrValue;
+                            break;
+                        case "*": screenStr = (leftNum * rightNum).StrValue;
+                            break;
+                        case "/": if (rightNum != 0)
+                            {
+                                screenStr = (leftNum / rightNum).Round(15).StrValue;
+                            }
+                            else
+                            {
+                                pex = new Exception("Cannot divided by zero");
+                            }
                             break;
                     }
-                    if (!sciexpAdd/* || pre_oprt != 0*/) sci_exp += prevFunc;
 
-                    parser.EvaluateStd(sci_exp);
-                    // form standard nay tinh chinh xac den 15 chu so nen dung kieu double de hien thi cung duoc
-                    str = parser.StringResult;
                     expressionTB.Text = "";
 
                     #region đưa lên grid
                     hisDGV.AllowCellStateChanged = false;
                     hisDGV.Rows.Add();
                     hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
-                    hisDGV[0, hisDGV.RowCount - 1].Value = Misc.StandardExpression(sci_exp);
+                    hisDGV[0, hisDGV.RowCount - 1].Value = mainExp.Trim();
                     hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
                     rowIndex = hisDGV.CurrentCell.RowIndex;
                     hisDGV.AllowCellStateChanged = true;
                     countLB.Text = string.Format("Index = {0} / {0}", hisDGV.RowCount);
                     #endregion
 
-                    sci_exp = "";
-                    isFuncClicked = sciexpAdd = false;
+                    mainExp = "";
+                    isFuncClicked = false;
                     #endregion
                 }
                 if (scientificMI.Checked)     // scientific.checked
                 {
                     #warning hàm dấu bằng của scientific
                     #region scientific operation
-                    if (pre_oprt == 0) sci_exp = prevFunc;
-                    else
-                    //if (pre_oprt != 0/* && !isFuncClicked*/)
+                    // neu la phep tinh dau bieu thuc
+                    if (curPriority[openBrkLevel].Index < 0)
                     {
-                        if (!sciexpAdd) sci_exp += prevFunc;
-                        // tu dong ngoac neu thieu
-                        sci_exp = sci_exp.PadRight(openBRKLevel + sci_exp.Length, ')');
+                        if (openBrkLevel == 0) mainExp = prevFunc;
+                    }
+                    else
+                    {
+                        if (!expAdded) mainExp += prevFunc;
                     }
 
-                    if (slow)
-                    {
-                        NewBGW(false);
-                    }
-                    else
-                    {
-                        InitCancelOperation();
-                        pex = parser.EvaluateSci(sci_exp);
-                    }
-                    if (pex == null) str = parser.StringResult;
-                    else str = pex.Message;
+                    // tu dong ngoac neu thieu
+                    mainExp = mainExp.PadRight(openBrkLevel + mainExp.Length, ')');
+
+                    pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
+
+                    if (pex == null) screenStr = parser.StringResult;
+                    else screenStr = pex.Message;
                     expressionTB.Text = "";
 
                     #region write to history panel
@@ -225,7 +224,7 @@ namespace Calculator
                     hisDGV.Rows.Add();
                     try
                     {
-                        resultCollection[hisDGV.RowCount - 1] = str;
+                        resultCollection[hisDGV.RowCount - 1] = screenStr;
                     }
                     catch
                     {
@@ -235,22 +234,20 @@ namespace Calculator
                     }
                     hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
                     hisDGV.Rows[hisDGV.RowCount - 1].DefaultCellStyle.Alignment = DataGridViewContentAlignment.TopRight;
-                    //hisDGV[0, hisDGV.RowCount - 1].Value = StandardExpression(sci_exp);
-                    hisDGV[0, hisDGV.RowCount - 1].Value = Misc.StandardExpression(sci_exp);
-                    string content = hisDGV[0, hisDGV.RowCount - 1].Value.ToString();
+                    //hisDGV[0, hisDGV.RowCount - 1].Value = StandardExpression(mainExp);
+                    hisDGV[0, hisDGV.RowCount - 1].Value = mainExp.Trim();
                     hisDGV.CurrentCell = hisDGV[0, hisDGV.RowCount - 1];
                     //hisDGV.AllowCellDoubleClick = true;
                     hisDGV.AllowCellStateChanged = true;
                     rowIndex = hisDGV.CurrentCell.RowIndex;
                     ChangeDGVHeight(hisDGV);
-                    countLB.Text = string.Format("Index = {0}/{0}", hisDGV.RowCount);
+                    countLB.Text = string.Format("Index = {0} / {0}", hisDGV.RowCount);
                     #endregion
 
-                    sci_exp = power_Exp = mul_div_Exp = "";
-                    prevFunc = str;
+                    mainExp = "";
+                    prevFunc = screenStr;
                     bracketTime_lb.Text = "";
-                    sciexpAdd = isFuncClicked = false;
-                    slow = false;
+                    isFuncClicked = false;
 
                     #endregion
                 }
@@ -258,24 +255,28 @@ namespace Calculator
                 {
                     #region programmer operation
                     ScreenToPanel();
-                    pro_exp += decRB.Value;
-                    if (pre_oprt == 0) goto jump;
-                    pex = parser.EvaluatePro(pro_exp, (int)currentConfig[11] == 1);
+                    if (!expAdded) mainExp += prevFunc;
+                    if (curPriority[openBrkLevel].Index < 0) goto jump;
+                    //if (prePriority[openBrkLevel].Index < 0) goto jump;
+                    pex = parser.EvaluatePro(mainExp, (int)currentConfig[11] == 1);
                     if (pex == null)
                     {
-                        str = parser.StringResult;
+                        screenStr = parser.StringResult;
                         ScreenToPanel();
                     }
-                    pro_exp = "";
+                    mainExp = "";
+                    prevFunc = decRB.Value;
                     bracketTime_lb.Text = "";
                     #endregion
                 }
 
+                expAdded = false;
                 DisplayToScreen();
-                openBRKLevel = 0;
-                jump: pre_oprt = 0;
-                priority = 0;
-                pre_priority = 0;
+                openBrkLevel = 0;
+                leftNum = 0;
+                rightNum = 0;
+                jump: bracketExp = new string[maxBracketLevel + 1];
+                NewPriorityExpression();
                 pre_bt = 16;
             }
         }
@@ -295,56 +296,55 @@ namespace Calculator
         //
         private void exp_bt_Click(object sender, EventArgs e)
         {
-            if (pex == null && str != "0" && !str.Contains("e") && !confirm_num)
+            if (pex == null && screenStr != "0" && !screenStr.Contains("e") && !confirm_num)
             {
-                str = str + "e+0";
-                scr_lb.Text = str;
+                screenStr = screenStr + "e+0";
+                scr_lb.Text = screenStr;
                 pre_bt = 33;
             }
         }
         //
         // nut %
         //
-        private void percent_Click(object sender, EventArgs e)
+        private void percent_bt_Click(object sender, EventArgs e)
         {
             confirm_num = true;
-            if (pre_oprt != 0)
+            if (curPriority[openBrkLevel].Index >= 0)
             {
-                BigNumber scr_num = scr_lb.Text;
-                parser.EvaluateStd(sci_exp.Substring(0, sci_exp.Length - 1));
-                scr_num = scr_num / 100 * parser.StringResult;
-                str = prevFunc = scr_num.StrValue;
+                screenStr = prevFunc = (leftNum * scr_lb.Text / 100).StrValue;
             }
             DisplayToScreen();
             pre_bt = 18;
         }
-
+        //
+        // nut pi
+        //
         private void pi_bt_Click(object sender, EventArgs e)
-        {            
-            if (pre_oprt == 0 && isFuncClicked)
+        {
+            if (prePriority[openBrkLevel].Index < 0 && curPriority[openBrkLevel].Index < 0 && isFuncClicked)
             {
                 equal_Click(null, null);
             }
             confirm_num = true;
-            if (/*isFuncClicked && */sciexpAdd)
+            if (/*isFuncClicked && */expAdded)
             {
-                sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length);
+                mainExp = mainExp.Substring(0, mainExp.Length - prevFunc.Length);
             }
             if (!inv_ChkBox.Checked)
             {
-                str = "31415926535897932384626433832795".Insert(1, Misc.DecimalSeparator);
+                screenStr = "31415926535897932384626433832795".Insert(1, Misc.DecimalSeparator);
                 //prevFunc = "pi";
             }
             else
             {
-                str = "6283185307179586476925286766559".Insert(1, Misc.DecimalSeparator);
+                screenStr = "6283185307179586476925286766559".Insert(1, Misc.DecimalSeparator);
                 //prevFunc = "2 * pi";
             }
-            prevFunc = str;
+            prevFunc = screenStr;
             DisplayToScreen();
-            sciexpAdd = false;
+            expAdded = false;
 
-            expressionTB.Text = Misc.StandardExpression(sci_exp);
+            expressionTB.Text = mainExp;
 
             inv_ChkBox.Checked = false;
             pre_bt = 144;
@@ -359,13 +359,13 @@ namespace Calculator
             {
                 if (fe_ChkBox.Checked)
                 {
-                    scr_lb.Text = ((BigNumber)str).ToString();
+                    scr_lb.Text = ((BigNumber)screenStr).ToString();
                 }
                 else
                 {
                     if (digitGroupingMI.Checked)
-                        scr_lb.Text = Misc.Group(str);
-                    else scr_lb.Text = str;
+                        scr_lb.Text = Misc.Group(screenStr);
+                    else scr_lb.Text = screenStr;
                 }
             }
 
@@ -451,89 +451,74 @@ namespace Calculator
         //
         // nut xoa ki tu so vua nhap
         //
-        private void backspace_Click(object sender, EventArgs e)
+        private void backspacebt_Click(object sender, EventArgs e)
         {
-            switch (pre_bt)
-            {
-                case 28: case 29: case 30: case 31: case 32: case 35: case 36:
-                case 37: case 38: case 39: case 40: case 42: case 43: case 44:
-                    return;
-            }
+            if (isFuncClicked) return;
 
             if (!confirm_num)
             {
-                if (str.Length > 1)
+                if (screenStr.Length > 1)
                 {
-                    if (str.Length == 2 && str.StartsWith("-"))
+                    if (screenStr.Length == 2 && screenStr.StartsWith("-"))
                     {
-                        str = "0";
+                        screenStr = "0";
                         confirm_num = true;
                     }
                     else
                     {
-                        str = str.Substring(0, str.Length - 1);
-                        if (str.ToLower().EndsWith("e+")) str += "0";
+                        screenStr = screenStr.Substring(0, screenStr.Length - 1);
+                        if (screenStr.ToLower().EndsWith("e+")) screenStr += "0";
                     }
-                    confirm_num = (str.Length == 2 & str.StartsWith("-"));
+                    confirm_num = (screenStr.Length == 2 & screenStr.StartsWith("-"));
                 }
                 else
                 {
-                    str = "0";
+                    screenStr = "0";
                     confirm_num = true;
                 }
             }
-            else str = "0";
-            prevFunc = str;
+            else screenStr = "0";
+            prevFunc = screenStr;
             if (programmerMI.Checked) ScreenToPanel();
             else DisplayToScreen();
             pre_bt = 22;
         }
 
-        int openBRKLevel;
-        string[] bracketExp = new string[20];
+        int openBrkLevel;
+        string[] bracketExp = new string[maxBracketLevel + 1];
         //
         // nut mo ngoac
         //
         private void open_bracket_Click(object sender, EventArgs e)
         {
-            if (!scientificMI.Checked) return;
-            if (pre_oprt == 0)
+            if (prePriority[openBrkLevel].Index < 0 && expAdded)
             {
-                //switch (pre_bt)
-                //{
-                //    case 28: case 29: case 30: case 31: case 32: case 35: case 36:
-                //    case 37: case 38: case 39: case 40: case 42: case 43: case 44:
-                //        equal_Click(null, null);
-                //        return;
-                //}
-                if (sciexpAdd) equal_Click(null, null);
+                equal_Click(null, null);
             }
-            if (pex == null && openBRKLevel < 20)
+            if (pex == null && openBrkLevel < maxBracketLevel)
             {
-                str = "0";
+                screenStr = "0";
                 DisplayToScreen();
-                mul_div_Exp = "";
-                power_Exp = "";
-                if (openBRKLevel == 0)
+                if (openBrkLevel < maxBracketLevel)
                 {
-                    bracketExp = new string[20];
-                }
-                if (openBRKLevel < 20)
-                {
-                    openBRKLevel++;
-                    /*if (openBRKLevel == closeBRK) bracketTime_lb.Text = string.Format("(=1");
-                    else*/
-                    bracketTime_lb.Text = string.Format("(={0}", openBRKLevel);
-                    bracketExp[openBRKLevel - 1] = "";
+                    bracketTime_lb.Text = string.Format("(={0}", ++openBrkLevel);
                 }
 
-                if (sciexpAdd && isFuncClicked)
-                    sci_exp = sci_exp.Substring(0, sci_exp.Length - prevFunc.Length) + "(";
-                else sci_exp += "(";
+                if (expAdded)
+                {
+                    mainExp = mainExp.Substring(0, mainExp.Length - prevFunc.Length) + "(";
+                    bracketExp[openBrkLevel] = bracketExp[openBrkLevel].Substring(0, bracketExp[openBrkLevel].Length - prevFunc.Length) + "(";
+                }
+                else
+                {
+                    mainExp += "(";
+                    //bracketExp[openBrkLevel] += "(";  // khong can
+                }
                 prevFunc = "0";
-                pre_bt = 153;
-                isFuncClicked = false;
-                expressionTB.Text = Misc.StandardExpression(sci_exp);
+
+                if (scientificMI.Checked) { isFuncClicked = false; expressionTB.Text = mainExp; }
+
+                pre_bt = 152;
             }
         }
         //
@@ -541,56 +526,56 @@ namespace Calculator
         //
         private void close_bracket_Click(object sender, EventArgs e)
         {
-            if (!scientificMI.Checked) return;
-            if (pex == null && openBRKLevel > 0)
+            if (pex == null && openBrkLevel > 0)
             {
-                mul_div_Exp = "";
-                power_Exp = "";
-                openBRKLevel--;
-                if (openBRKLevel > 0)
+                priorityExpression[openBrkLevel] = new string[7];
+                //--------------------------------------------------------------
+                if (pre_bt != 153)
                 {
-                    bracketTime_lb.Text = string.Format("(={0}", openBRKLevel);
+                    if (!expAdded)
+                    {
+                        mainExp += prevFunc;
+                        bracketExp[openBrkLevel] += prevFunc;
+                    }
+
+                    expAdded = true;
+                }
+                mainExp += ")";
+
+                prevFunc = "(" + bracketExp[openBrkLevel] + ")"; // string.Format("({0})", bracketExp[openBrkLevel]); cung duoc
+                if (openBrkLevel > 0)
+                    bracketExp[openBrkLevel - 1] += prevFunc;
+                pex = parser.EvaluateSci(bracketExp[openBrkLevel]);
+                screenStr = parser.StringResult;
+                // gan cac bien mang ve gia tri mac dinh
+                bracketExp[openBrkLevel] = null;
+                lowestOperator[openBrkLevel] = 7;
+                prePriority[openBrkLevel] = new OperatorPriority();
+                curPriority[openBrkLevel] = new OperatorPriority();
+
+                if (scientificMI.Checked)
+                {
+                    expressionTB.Text = mainExp.Trim();
+                    isFuncClicked = false;
+                }
+
+                if (--openBrkLevel > 0)
+                {
+                    bracketTime_lb.Text = string.Format("(={0}", openBrkLevel);
                 }
                 else
                 {
                     bracketTime_lb.Text = "";
-                    if (openBRKLevel < 0) { pre_bt = 152; return; }
                 }
-                //--------------------------------------------------------------
-                if (pre_bt != 152)
-                {
-                    if (!sciexpAdd)
-                    {
-                        sci_exp += prevFunc + ")";
-                    }
-                    else
-                    {
-                        sci_exp += ")";
-                    }
-                    sciexpAdd = true;
-                    bracketExp[openBRKLevel] += prevFunc;
-                    //prevFunc = "(" + bracketExp[openBRKLevel] + ")";
-                }
-                else
-                {
-                    sci_exp += ")";
-                    //prevFunc = "(" + bracketExp[openBRKLevel] + ")";
-                }
-                prevFunc = "(" + bracketExp[openBRKLevel] + ")"; // string.Format("({0})", bracketExp[openBRKLevel]); cung duoc
-                if (openBRKLevel > 0)
-                    bracketExp[openBRKLevel - 1] += prevFunc;
-                pex = parser.EvaluateSci(bracketExp[openBRKLevel]);
-                str = parser.StringResult;
-                //prevFunc = bracketExp[openBRKLevel];
-
-                expressionTB.Text = Misc.StandardExpression(sci_exp);
-                confirm_num = true;
-                pre_bt = 152;
-                isFuncClicked = false;
-                DisplayToScreen();
             }
-        }
 
+            confirm_num = true;
+            pre_bt = 153;
+            DisplayToScreen();
+        }
+        //
+        // label so openBrkLevel
+        //
         private void bracketTime_lb_TextChanged(object sender, EventArgs e)
         {
             switch (bracketTime_lb.Text.Length)
@@ -606,78 +591,44 @@ namespace Calculator
         #endregion
 
         #region Cac menu item
+        //
+        // menu standard
+        //
         private void standardMI_Click(object sender, EventArgs e)
         {
             if (!standardMI.Checked) { stdLoad(false); clear_num(true); }
         }
-
+        //
+        // menu scientific
+        //
         private void scientificMI_Click(object sender, EventArgs e)
         {
             if (!scientificMI.Checked) { sciLoad(false); clear_num(true); }
         }
-
+        //
+        // menu programmer
+        //
         private void programmerMI_Click(object sender, EventArgs e)
         {
             if (!programmerMI.Checked) { proLoad(false); clear_num(true); }
         }
-
+        //
+        // menu statistics
+        //
         private void statisticsMI_Click(object sender, EventArgs e)
         {
             if (!statisticsMI.Checked) { staLoad(false); clear_num(true); }
         }
-
+        //
+        // menu digit grouping
+        //
         private void digitGroupingMI_Click(object sender, EventArgs e)
         {
             digitLoad(false);
         }
-
-        private void digitLoad(bool isLoaded)
-        {
-            digitGroupingMI.Checked = !digitGroupingMI.Checked;
-            currentConfig[1] = digitGroupingMI.Checked ? 1 : 0;
-
-            if (!isLoaded) propertiesChange = true;
-
-            GroupWorksheetsFunctionResult(toTB, unitconvPN);
-            GroupWorksheetsFunctionResult(workSheetResultTB, workSheetPN);
-
-            if (!programmerMI.Checked)
-            {
-                if (Misc.IsNumber(str)) DisplayToScreen();
-            }
-            else
-            {
-                if (digitGroupingMI.Checked)
-                {
-                    if (decRB.Checked) scr_lb.Text = Misc.Group(str, 3, Misc.GroupSeparator);
-                    if (octRB.Checked) scr_lb.Text = Misc.Group(str, 3, " ");
-                    if (binRB.Checked || hexRB.Checked) scr_lb.Text = Misc.Group(str, 4, " ");
-                }
-                else
-                {
-                    if (decRB.Checked) scr_lb.Text = scr_lb.Text.Replace(Misc.GroupSeparator, "");
-                    if (octRB.Checked || binRB.Checked || hexRB.Checked)
-                        scr_lb.Text = scr_lb.Text.Replace(" ", "");
-                }
-            }
-        }
-        /// <summary>
-        /// nhóm kết quả tính được ở các textbox extra function
-        /// </summary>
-        /// <param name="tb">textbox kết quả</param>
-        /// <param name="pn">panel chứa kết quả đó</param>
-        private void GroupWorksheetsFunctionResult(TextBox tb, IPanel pn)
-        {
-            if (Misc.IsNumber(tb.Text) && pn.Visible)
-            {
-                if (digitGroupingMI.Checked)
-                {
-                    if (!tb.Text.Contains("E")) tb.Text = Misc.Group(tb.Text);
-                }
-                else tb.Text = tb.Text.Replace(Misc.GroupSeparator, "");
-            }
-        }
-
+        //
+        // menu basic
+        //
         private void basicMI_Click(object sender, EventArgs e)
         {
             int his = historyMI.Checked && historyMI.Enabled ? 104 : 0;
@@ -723,20 +674,26 @@ namespace Calculator
                 propertiesChange = true;
             }
         }
-
+        //
+        // menu các chức năng
+        //
         private void extraFunctionMI_Click(object sender, EventArgs e)
         {
             var mi = sender as MenuItem;
             if (!mi.Checked) exFunc(mi, false);
         }
-
+        //
+        // menu copy
+        //
         private void copyCTMN_Click(object sender, EventArgs e)
         {
             if (pex == null)
-                try { Clipboard.SetText(str); }
+                try { Clipboard.SetText(screenStr); }
                 catch { }
         }
-
+        //
+        // su kien context menu xo ra
+        //
         private void mainContextMenu_Popup(object sender, EventArgs e)
         {
             if (hisDGV.Visible) hisDGV.Focus();
@@ -744,7 +701,9 @@ namespace Calculator
             //contextMenuOptions(statisticsMI.Checked);
             historyAndDatasetOptionMI_Popup(null, null);
         }
-
+        //
+        // su kien history/dataset menu xo ra
+        //
         private void historyAndDatasetOptionMI_Popup(object sender, EventArgs e)
         {
             if (statisticsMI.Checked)
@@ -774,16 +733,20 @@ namespace Calculator
             clearDatasetCTMN.Visible = clearDatasetMI.Visible = statisticsMI.Checked;
             getPaste(null, null);
         }
-
+        //
+        // ham paste
+        //
         private void getPaste(object sender, EventArgs e)
         {
             pasteMI.Enabled = pasteCTMN.Enabled = Clipboard.ContainsText(TextDataFormat.Text);
         }
-
+        //
+        // menu paste
+        //
         private void pasteCTMN_Click(object sender, EventArgs e)
         {
             string data = Clipboard.GetText().ToUpper();
-            data = data.Trim().Replace(" ", "").Replace("\r", "").Replace("\n", "");
+            data = data.Replace(" ", "").Replace("\r", "").Replace("\n", "=").Trim();
             if (data.Length > 200) data = data.Substring(0, 200);
             int len = data.Length;
             Keys[] keyData = new Keys[len];
@@ -810,14 +773,15 @@ namespace Calculator
                         break;
                     case 43: if (i > 0)
                         {
-                            if (data[i - 1] != 88 && data[i - 1] != 69) 
+                            if (data[i - 1] != 88 && data[i - 1] != 69)
                                 keyData[i] = Keys.Add;
                             else continue;
                         }
                         break;
                     case 42: keyData[i] = Keys.Multiply;
                         break;
-                    case 44: case 46: keyData[i] = Keys.Decimal;
+                    case 44:
+                    case 46: keyData[i] = Keys.Decimal;
                         break;
                     case 45: if (i > 0)
                         {
@@ -836,7 +800,7 @@ namespace Calculator
                         break;
                     case 71: keyData[i] = Keys.Control | Keys.G;
                         break;
-                    case 94: 
+                    case 94:
                         if (scientificMI.Checked) keyData[i] = Keys.Y;
                         if (programmerMI.Checked) keyData[i] = (Keys)65590;
                         break;
@@ -848,12 +812,16 @@ namespace Calculator
             if (programmerMI.Checked) ScreenToPanel();
             else DisplayToScreen();
         }
-
+        //
+        // ham recalculate
+        //
         private void reCalculate_Click(object sender, EventArgs e)
         {
             recalculate(rowIndex);
         }
-
+        //
+        // menu cancel edit history
+        //
         private void cancelEditHisMI_Click(object sender, EventArgs e)
         {
             //hisDGV.CellEndEdit -= historyDGV_CellEndEdit;
@@ -866,7 +834,9 @@ namespace Calculator
             dgv_OnEndEdit(hisDGV);
             //hisDGV.CellEndEdit += historyDGV_CellEndEdit;
         }
-
+        //
+        // menu copy history
+        //
         private void copyHistoryMI_Click(object sender, EventArgs e)
         {
             string clipboard = "";
@@ -883,14 +853,18 @@ namespace Calculator
                 Clipboard.SetText(ex.Message);
             }
         }
-
+        //
+        // menu edit history
+        //
         private void editHistoryMI_Click(object sender, EventArgs e)
         {
             prcmdkey = false;
             hisDGV.ReadOnly = false;
             hisDGV.BeginEdit(false);
         }
-
+        //
+        // menu copy dataset
+        //
         private void copyDatasetMI_Click(object sender, EventArgs e)
         {
             // DO SOMETHING HERE
@@ -908,14 +882,18 @@ namespace Calculator
                 Clipboard.SetText(ex.Message);
             }
         }
-
+        //
+        // menu edit dataset
+        //
         private void editDatasetMI_Click(object sender, EventArgs e)
         {
             prcmdkey = false;
             staDGV.ReadOnly = false;
             staDGV.BeginEdit(false);
         }
-
+        //
+        // menu cancel edit dataset
+        //
         private void cancelEditDSMI_Click(object sender, EventArgs e)
         {
             //staDGV.CellEndEdit -= staDGV_CellEndEdit;
@@ -926,20 +904,26 @@ namespace Calculator
             dgv_OnEndEdit(staDGV);
             //staDGV.CellEndEdit += staDGV_CellEndEdit;
         }
-
+        //
+        // menu commit dataset
+        //
         private void commitDSMI_Click(object sender, EventArgs e)
         {
             prcmdkey = true;
             staDGV.EndEdit();
             staDGV.ReadOnly = true;
         }
-
+        //
+        // menu about
+        //
         private void aboutMI_Click(object sender, EventArgs e)
         {
             About ab = new About();
             ab.ShowDialog();
         }
-
+        //
+        // menu help topics
+        //
         private void helpTopicsMI_Click(object sender, EventArgs e)
         {
             try
@@ -948,25 +932,35 @@ namespace Calculator
             }
             catch { }
         }
-
+        //
+        // menu preferrences
+        //
         private void preferrencesMI_Click(object sender, EventArgs e)
         {
             Preferences pre = new Preferences((int)currentConfig[8],
-                (int)currentConfig[9] == 1, (int)currentConfig[10] == 1, (int)currentConfig[11] == 1);
-            pre.DoCheck += new Preferences.ICheckChanged(pre_DoCheck);
+                (int)currentConfig[9] == 1, (int)currentConfig[10] == 1, (int)currentConfig[11] == 1, (int)currentConfig[12] == 1);
+            pre.DoCheck += new Preferences.PreferencesCheckChanged(pre_DoCheck);
             pre.ShowDialog();
         }
-
-        private void pre_DoCheck(int spd, bool sign, bool fast, bool animate)
+        //
+        // sự kiện kick nút ok trên form preferrences
+        //
+        private void pre_DoCheck(int spd, bool sign, bool fast, bool animate, bool readdict, bool restartRequired)
         {
             currentConfig[8] = spd;
             currentConfig[9] = animate ? 1 : 0;
             currentConfig[10] = fast ? 1 : 0;
             currentConfig[11] = sign ? 1 : 0;
+            currentConfig[12] = readdict ? 1 : 0;
 
             if (!currentConfig.Equals(initConfigValue)) propertiesChange = true;
-            
+
             if (programmerMI.Checked) PanelToScreen(true);
+            if (!initConfigValue[12].Equals(currentConfig[12]) && restartRequired)
+            {
+                OnClosing(null);
+                Application.Restart();
+            }
         }
         #endregion
 
@@ -982,14 +976,14 @@ namespace Calculator
         //
         private void dtP_ValueChanged(object sender, EventArgs e)
         {
-            if (autocal_date.Checked) calculate_bt_Click(null, null);
+            if (autocal_date.Checked) dateCalculationBT_Click(null, null);
             else
             { tbResult1.Text = ""; tbResult2.Text = ""; }
         }
         //
         // nut calculate
         //
-        private void calculate_bt_Click(object sender, EventArgs e)
+        private void dateCalculationBT_Click(object sender, EventArgs e)
         {
             //if (prcmdkey) return;
             if (datemethodCB.SelectedIndex == 0)
@@ -1084,7 +1078,7 @@ namespace Calculator
 
         private void periods_ValueChanged(object sender, EventArgs e)
         {
-            if (autocal_date.Checked) calculate_bt_Click(null, null);
+            if (autocal_date.Checked) dateCalculationBT_Click(null, null);
         }
 
         private void autocal_date_CheckedChanged(object sender, EventArgs e)
@@ -1204,11 +1198,15 @@ namespace Calculator
                     break;
                 case 9: toCombobox.SelectedIndex = 3;
                     break;
-                case 1: case 10: toCombobox.SelectedIndex = 6;
+                case 1:
+                case 10: toCombobox.SelectedIndex = 6;
                     break;
-                case 7: case 8: toCombobox.SelectedIndex = 5;
+                case 7:
+                case 8: toCombobox.SelectedIndex = 5;
                     break;
-                case 2: case 4: case 5: toCombobox.SelectedIndex = 4;
+                case 2:
+                case 4:
+                case 5: toCombobox.SelectedIndex = 4;
                     break;
             }
             fromCB.SelectedIndexChanged += fromCB_SelectedIndexChanged;
@@ -1233,7 +1231,7 @@ namespace Calculator
             {
                 double db = double.Parse(fromstr);
                 int type = typeUnitCB.SelectedIndex;
-                if (typeUnitCB.SelectedIndex != 6)
+                if (type != 6)
                     db *= Misc.getRate(type, fromCB.SelectedIndex, toCombobox.SelectedIndex);
                 else
                     db = Misc.getTemperature(fromCB.SelectedIndex, toCombobox.SelectedIndex, db);
@@ -1267,13 +1265,13 @@ namespace Calculator
         }
 
         #endregion
-        
+
         #region history controls
 
         private void hotkeyMI_Click(object sender, EventArgs e)
         {
             Info tt = new Info(infoControl);
-            tt.Form_Closed += new Info.CustomHandler(tt_Form_Closed);
+            tt.Form_Closed += new Info.SendKeyHandler(tt_Form_Closed);
             tt.Show();
             // location la diem goc trai tren cua control so voi man hinh desktop
             Point p = new Point(location.X + (infoControl.Size.Width - tt.Size.Width) / 2, location.Y + infoControl.Size.Height);
@@ -1298,7 +1296,9 @@ namespace Calculator
 
             tt.Location = p;
         }
-
+        /// <summary>
+        /// truyền phím được bấm ở form info về form chính
+        /// </summary>
         private void tt_Form_Closed(Keys keys)
         {
             Message msg = Message.Create(IntPtr.Zero, 0, IntPtr.Zero, IntPtr.Zero);
@@ -1395,19 +1395,30 @@ namespace Calculator
 
             ChangeDGVHeight(dgv);
         }
+
         /// <summary>
         /// thay doi kich thuoc cell de hien thi nhieu dong
         /// </summary>
         private void ChangeDGVHeight(IDataGridView dgv)
         {
-            dgv.Rows[rowIndex].Height = (dgv[0, rowIndex].Value.ToString().Length / 51 + 1) * 20;
+            string group = hisDGV[0, rowIndex].Value.ToString();
+            int len = group.Length;
+            int insertIndex = len / charPerLine * charPerLine;
+            while (insertIndex > 0)
+            {
+                group = group.Insert(insertIndex, "\n");
+                insertIndex -= charPerLine;
+            }
+            dgv[0, rowIndex].Value = group;
+
+            dgv.Rows[rowIndex].Height = (hisDGV[0, rowIndex].Value.ToString().Length / charPerLine + 1) * 20;
         }
 
         private void dGV_DoubleClick(object sender, EventArgs e)
         {
             var dgv = sender as IDataGridView;
             // không hỗ trợ edit history cho standard calculator
-            if (!standardMI.Checked && dgv.CurrentCell != null && dgv.AllowCellDoubleClick)
+            if (scientificMI.Checked && dgv.CurrentCell != null && dgv.AllowCellDoubleClick)
             {
                 dgv.ReadOnly = false;
                 dgv.BeginEdit(false);
@@ -1419,7 +1430,6 @@ namespace Calculator
 
         private void historyDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-
             hisDGV.AllowCellStateChanged = false;
             hisDGV.MouseDown += EnableKeyboardAndChangeFocus;
             dgv_OnEndEdit(sender);
@@ -1435,9 +1445,10 @@ namespace Calculator
             hisDGV.AllowCellStateChanged = false;
             if (!hisDGV.IsCurrentCellInEditMode)
             {
-                //expressionTB.Text = sci_exp = "";
+                //expressionTB.Text = mainExp = "";
+                //clear_num(true);
                 evaluateExpression(e.RowIndex, false);
-                prevFunc = str;
+                prevFunc = screenStr;
                 rowIndex = e.RowIndex;
                 pre_bt = 16;
             }
@@ -1471,56 +1482,73 @@ namespace Calculator
                 }
                 if (isRecalculate)
                 {
-                    if (standardMI.Checked) pex = parser.EvaluateStd(expression);
-                    if (scientificMI.Checked)
+                    //if (standardMI.Checked) pex = parser.EvaluateStd(expression);
+                    // neu bieu thuc co chua ham giai thua thi moi dung backgroundwoker
+                    if (expression.ToLower().Contains("fact"))
                     {
-                        // neu bieu thuc co chua ham giai thua thi moi dung backgroundwoker
-                        if (expression.ToLower().Contains("fact"))
+                        if (CheckIfAllInSet(expression))
                         {
-                            var reg = new System.Text.RegularExpressions.Regex(@"(fact)\(([^\(\)]+)\)(\^|!?)");
-                            var m = reg.Match(expression);
-                            parser.EvaluateSci(m.Groups[2].Value);
-                            if (parser.BigNumberResult >= 1e5)
-                                NewBGW(false);
-                            else
-                            {
-                                //InitCancelOperation();
-                                pex = parser.EvaluateSci(expression);
-                            }
+                            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp));
                         }
-                        else pex = parser.EvaluateSci(expression);
+                        else
+                        {
+                            ShowFactorialProgress(false);
+                        }
                     }
+                    else pex = parser.EvaluateSci(expression);
+
                     if (pex != null)
                     {
-                        scr_lb.Text = str = pex.Message;
+                        scr_lb.Text = screenStr = pex.Message;
                         scr_lb.Font = new Font("Consolas", pex.Message.Length > 40 ? 5.25F : 9.75F);
                     }
                     else
                     {
                         hisDGV.ReadOnly = prcmdkey = true;
                         isFuncClicked = false;
-                        sci_exp = "";
+                        mainExp = "";
 
-                        prevFunc = parser.StringResult;
-                        str = parser.StringResult;
+                        prevFunc = screenStr = parser.StringResult;
                     }
-                    resultCollection[rowindex] = str;
-                    if (string.IsNullOrEmpty(str)) str = "0";
+                    resultCollection[rowindex] = screenStr;
+                    if (string.IsNullOrEmpty(screenStr)) screenStr = "0";
                 }
                 else
                 {
-                    if (scientificMI.Checked) str = resultCollection[rowindex].Trim();
-                    if (standardMI.Checked) str = double.Parse(resultCollection[rowindex]).ToString();
-                    if (BigNumber.IsNumber(str))
+                    if (scientificMI.Checked) screenStr = resultCollection[rowindex].Trim();
+                    if (standardMI.Checked) screenStr = double.Parse(resultCollection[rowindex]).ToString();
+                    if (BigNumber.IsNumber(screenStr))
                         pex = null;
                     else
-                        pex = new Exception(str);
+                        pex = new Exception(screenStr);
                 }
                 confirm_num = true;
                 DisplayToScreen();
             }
-            catch { return; }
-            //return pex;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private bool CheckIfAllInSet(string exp)
+        {
+            bool allInSet = true;
+            int searchIndex = 0;
+            mainExp = exp;
+            int open = 0;
+            open = exp.IndexOf("fact(", searchIndex) + 4;
+            while (open >= 4)
+            {
+                //if (open < 4) break;
+                int close = Misc.GetCloseBracketIndex(exp, open);
+                searchIndex = close + 1;
+                string subExp = exp.Substring(open + 1, close - open - 1);
+                parser.EvaluateSci(subExp);
+                allInSet &= Array.IndexOf(fact_Value, parser.StringResult) >= 0;
+                open = exp.IndexOf("fact(", searchIndex) + 4;
+            }
+            return allInSet;
         }
         //
         // nut up/down
@@ -1530,7 +1558,9 @@ namespace Calculator
             var btn = sender as Button;
             ProcessUpOrDown(e.Delta / Math.Abs(e.Delta));
         }
-
+        //
+        // nut up/down
+        //
         private void directionBT_Click(object sender, EventArgs e)
         {
             var btn = sender as Button;
@@ -1556,18 +1586,16 @@ namespace Calculator
                 for (int i = 15; i >= 0; i--)
                 {
                     binnum64 += bin_digit[i].Text;
-                    //if (bin_digit[index].Visible) binnum64 += bin_digit[index].Text;
-                    //else binnum64 += "0000";
                 }
             }
             binRB.Value = Binary.standardString(binnum64);
             decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
             octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
             hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
-            if (binRB.Checked) str = binRB.Value;
-            if (octRB.Checked) str = octRB.Value;
-            if (decRB.Checked) str = decRB.Value;
-            if (hexRB.Checked) str = hexRB.Value;
+            if (binRB.Checked) screenStr = binRB.Value;
+            if (octRB.Checked) screenStr = octRB.Value;
+            if (decRB.Checked) screenStr = decRB.Value;
+            if (hexRB.Checked) screenStr = hexRB.Value;
             confirm_num = true;
             prcmdkey = true;
             DisplayToScreen();
@@ -1579,35 +1607,36 @@ namespace Calculator
         {
             try
             {
+                bool signNum = (int)currentConfig[11] == 1;
                 if (binRB.Checked)
                 {
-                    binRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
+                    binRB.Value = screenStr;
+                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, signNum);
+                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
+                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
                 }
                 if (octRB.Checked)
                 {
-                    octRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(octRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
-                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
+                    octRB.Value = screenStr;
+                    decRB.Value = Binary.other_to_dec(octRB.Value, 08, SizeBin, signNum);
+                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                    hexRB.Value = Binary.dec_to_other(decRB.Value, 16, SizeBin, signNum);
                 }
                 if (decRB.Checked)
                 {
-                    BigNumber dec_Temp = str;
+                    BigNumber dec_Temp = screenStr;
                     //if (dec_Temp < 0) dec_Temp += BigNumber.Two.Pow(SizeBin - 1);
-                    binRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 02, SizeBin, (int)currentConfig[11] == 1);
-                    octRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 08, SizeBin, (int)currentConfig[11] == 1);
-                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
-                    hexRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 16, SizeBin, (int)currentConfig[11] == 1);
+                    binRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 02, SizeBin, signNum);
+                    octRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 08, SizeBin, signNum);
+                    decRB.Value = Binary.other_to_dec(binRB.Value, 02, SizeBin, signNum);
+                    hexRB.Value = Binary.dec_to_other(dec_Temp.StrValue, 16, SizeBin, signNum);
                 }
                 if (hexRB.Checked)
                 {
-                    hexRB.Value = str;
-                    decRB.Value = Binary.other_to_dec(hexRB.Value, 16, SizeBin, (int)currentConfig[11] == 1);
-                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, (int)currentConfig[11] == 1);
-                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, (int)currentConfig[11] == 1);
+                    hexRB.Value = screenStr;
+                    decRB.Value = Binary.other_to_dec(hexRB.Value, 16, SizeBin, signNum);
+                    binRB.Value = Binary.dec_to_other(decRB.Value, 02, SizeBin, signNum);
+                    octRB.Value = Binary.dec_to_other(decRB.Value, 08, SizeBin, signNum);
                 }
                 // đưa lên panel
                 binnum64 = binRB.Value.PadLeft(64, '0');
@@ -1619,7 +1648,7 @@ namespace Calculator
             catch
             {
                 pex = new Exception("Overflow");
-                str = pex.Message;
+                screenStr = pex.Message;
             }
             finally { DisplayToScreen(); }
 
@@ -1633,7 +1662,7 @@ namespace Calculator
             if (rb.Checked)
             {
                 baseRBCheckedChanged();
-                str = rb.Value;
+                screenStr = rb.Value;
                 DisplayToScreen();
             }
             confirm_num = true;
@@ -1701,8 +1730,6 @@ namespace Calculator
                     }
                 }
                 SizeBin = 4 * bd;
-
-                PanelToScreen(e == null);
             }
         }
         /// <summary>
@@ -1710,14 +1737,14 @@ namespace Calculator
         /// </summary>
         private void notBT_Click(object sender, EventArgs e)
         {
-            int notGroup = 0;
+            int not = 0;
             for (int i = 0; i < 16; i++)
             {
                 if (bin_digit[i].Visible)
                 {
-                    notGroup = int.Parse(bin_digit[i].Text);
-                    notGroup = 1111 - notGroup;
-                    bin_digit[i].Text = notGroup.ToString().PadLeft(4, '0');
+                    not = int.Parse(bin_digit[i].Text);
+                    not = 1111 - not;
+                    bin_digit[i].Text = not.ToString().PadLeft(4, '0');
                 }
                 else break;
             }
@@ -1734,10 +1761,17 @@ namespace Calculator
             {
                 bin_digit[i].Text = binnum64.Substring(60 - 4 * i, 4);
             }
-            if (qwordRB.Checked) architectureRB_CheckedChanged(qwordRB, null);
-            if (dwordRB.Checked) architectureRB_CheckedChanged(dwordRB, null);
-            if (_wordRB.Checked) architectureRB_CheckedChanged(_wordRB, null);
-            if (_byteRB.Checked) architectureRB_CheckedChanged(_byteRB, null);
+            if (qwordRB.Checked) architectureRB_CheckedChanged(qwordRB, e);
+            if (dwordRB.Checked) architectureRB_CheckedChanged(dwordRB, e);
+            if (_wordRB.Checked) architectureRB_CheckedChanged(_wordRB, e);
+            if (_byteRB.Checked) architectureRB_CheckedChanged(_byteRB, e);
+            PanelToScreen(true);
+        }
+
+        private void FocusAndMoveForm(object sender, MouseEventArgs e)
+        {
+            EnableKeyboardAndChangeFocus();
+            MoveFormWithoutMouseAtTitleBar(sender, e);
         }
         #endregion
 
@@ -1757,29 +1791,12 @@ namespace Calculator
         {
             staDGV.Rows.Add();
             staDGV.Rows[staDGV.RowCount - 1].DefaultCellStyle.Font = new Font("Consolas", 9.75F);
-            staDGV[0, staDGV.RowCount - 1].Value = str;
+            staDGV[0, staDGV.RowCount - 1].Value = screenStr;
             staDGV[0, staDGV.RowCount - 1].Selected = true;
             staDGV.CurrentCell = staDGV[0, staDGV.RowCount - 1];
             countLB.Text = string.Format("Count = {0}", staDGV.RowCount);
             confirm_num = true;
-            scr_lb.Text = str = "0";
-        }
-        /// <summary>
-        /// hàm tính tổng
-        /// </summary>
-        /// <param name="isSquare">tham số kiểm tra xem có tính tổng bình phương các số hay không</param>
-        /// <returns>tổng</returns>
-        private double sum(bool isSquare)
-        {
-            double sum = 0;
-            if (staDGV.RowCount == 0) return 0;
-            for (int i = 0; i < staDGV.RowCount; i++)
-            {
-                double number = double.Parse(staDGV[0, i].Value.ToString());
-                if (isSquare) sum += number * number;
-                else sum += number;
-            }
-            return sum;
+            scr_lb.Text = screenStr = "0";
         }
         //
         // sigma (n-1)
@@ -1789,8 +1806,8 @@ namespace Calculator
             if (staDGV.RowCount <= 1)
             {
                 scr_lb.TextChanged -= scr_lb_TextChanged;
-                str = "Enter data to calculate";
-                pex = new Exception(str);
+                screenStr = "Enter data to calculate";
+                pex = new Exception(screenStr);
                 DisplayToScreen();
                 scr_lb.TextChanged += scr_lb_TextChanged;
                 scr_lb.Font = new Font(scr_lb.Font.FontFamily, 8f);
@@ -1799,7 +1816,7 @@ namespace Calculator
             double resultSigmaN = sum(true) - sum(false) * sum(false) / staDGV.RowCount;
             resultSigmaN /= (staDGV.RowCount - 1);
             resultSigmaN = Math.Sqrt(resultSigmaN);
-            str = result.ToString();
+            screenStr = resultSigmaN.ToString();
             DisplayToScreen();
         }
         //
@@ -1810,8 +1827,8 @@ namespace Calculator
             if (staDGV.RowCount == 0)
             {
                 scr_lb.TextChanged -= scr_lb_TextChanged;
-                str = "Enter data to calculate";
-                pex = new Exception(str);
+                screenStr = "Enter data to calculate";
+                pex = new Exception(screenStr);
                 DisplayToScreen();
                 scr_lb.TextChanged += scr_lb_TextChanged;
                 scr_lb.Font = new Font(scr_lb.Font.FontFamily, 9.75f);
@@ -1820,7 +1837,7 @@ namespace Calculator
             double resultSigmaN = sum(true) - sum(false) * sum(false) / staDGV.RowCount;
             resultSigmaN /= staDGV.RowCount;
             resultSigmaN = Math.Sqrt(resultSigmaN);
-            str = resultSigmaN.ToString();
+            screenStr = resultSigmaN.ToString();
             DisplayToScreen();
         }
         //
@@ -1829,7 +1846,7 @@ namespace Calculator
         private void sigmax2BT_Click(object sender, EventArgs e)
         {
             if (staDGV.RowCount == 0) return;
-            str = sum(true).ToString();
+            screenStr = sum(true).ToString();
             DisplayToScreen();
         }
         //
@@ -1838,7 +1855,7 @@ namespace Calculator
         private void sigmaxBT_Click(object sender, EventArgs e)
         {
             if (staDGV.RowCount == 0) return;
-            str = sum(false).ToString();
+            screenStr = sum(false).ToString();
             DisplayToScreen();
         }
         //
@@ -1847,7 +1864,7 @@ namespace Calculator
         private void x2cross_Click(object sender, EventArgs e)
         {
             if (staDGV.RowCount == 0) return;
-            str = (sum(true) / staDGV.RowCount).ToString();
+            screenStr = (sum(true) / staDGV.RowCount).ToString();
             DisplayToScreen();
         }
         //
@@ -1856,7 +1873,7 @@ namespace Calculator
         private void xcross_Click(object sender, EventArgs e)
         {
             if (staDGV.RowCount == 0) return;
-            str = (sum(false) / staDGV.RowCount).ToString();
+            screenStr = (sum(false) / staDGV.RowCount).ToString();
             DisplayToScreen();
         }
 
@@ -1902,10 +1919,11 @@ namespace Calculator
 
         private void wsCalculateMethod(TextField[] tf, int wsType)
         {
-            //if (prcmdkey) return;
+            if (prcmdkey) return;
             double[] db = new double[tf.Length - 1];
             for (int i = 0; i < tf.Length - 1; i++)
             {
+                #region assign textbox value to double array
                 try
                 {
                     if (tf[order[i]].TextBoxText == "" || tf[order[i]].ForeColor == SystemColors.GrayText)
@@ -1927,7 +1945,8 @@ namespace Calculator
                     toolTip1.Show("This value can not be blank", tf[order[i]], 155, -40, 3000);
                     tf[order[i]].TBFocus();
                     return;
-                }
+                } 
+                #endregion
             }
 
             foreach (var lbl in tf)
@@ -1936,10 +1955,11 @@ namespace Calculator
             }
 
             double result_WS = 0, smth = 0;
+            int len = order.Length - 1;
             if (wsType == 0)
             {
                 #region mortgage calculation
-                /* 
+                /*
                  * with pp is the purchase price
                  *      dp is the down payment
                  *      t is term (in years) -> tm is the number of month in this term = t * 12
@@ -1948,7 +1968,7 @@ namespace Calculator
                  * we have the formula:
                  *      mp = (pp - dp) * (1 + rm) ^ tm * rm / ((1 + rm) ^ tm - 1)
                  * so we can calculate the other varius from the formula above
-                 * 
+                 *
                  * */
                 switch (typeWorkSheetCB.SelectedIndex)
                 {
@@ -1974,14 +1994,14 @@ namespace Calculator
                         result_WS = Math.Log(smth) / Math.Log(1 + db[2] / 1200) / 12;
                         break;
                 }
-                mortgageTF[order[4]].AllowTextChanged = false;
-                mortgageTF[order[4]].TBFont = new Font(mortgageTF[order[4]].Font, FontStyle.Regular);
-                mortgageTF[order[4]].TBForeColor = SystemColors.WindowText;
+                mortgageTF[order[len]].AllowTextChanged = false;
+                mortgageTF[order[len]].TBFont = new Font(mortgageTF[order[len]].Font, FontStyle.Regular);
+                mortgageTF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = mortgageTF[order[4]].TextBoxText = Misc.Group(result_WS.ToString());
+                    workSheetResultTB.Text = mortgageTF[order[len]].TextBoxText = Misc.Group(result_WS.ToString());
                 else
-                    workSheetResultTB.Text = mortgageTF[order[4]].TextBoxText = result_WS.ToString();
-                mortgageTF[order[4]].AllowTextChanged = true;
+                    workSheetResultTB.Text = mortgageTF[order[len]].TextBoxText = result_WS.ToString();
+                mortgageTF[order[len]].AllowTextChanged = true;
                 #endregion
             }
             if (wsType == 1)
@@ -2006,14 +2026,14 @@ namespace Calculator
                         result_WS = db[0] / db[1];
                         break;
                 }
-                fe_MPGTF[order[3]].AllowTextChanged = false;
-                fe_MPGTF[order[3]].TBFont = new Font(fe_MPGTF[order[4]].Font, FontStyle.Regular);
-                fe_MPGTF[order[3]].TBForeColor = SystemColors.WindowText;
+                fe_MPGTF[order[len]].AllowTextChanged = false;
+                fe_MPGTF[order[len]].TBFont = new Font(fe_MPGTF[order[len]].Font, FontStyle.Regular);
+                fe_MPGTF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = fe_MPGTF[order[3]].TextBoxText = Misc.Group(result_WS.ToString());
+                    workSheetResultTB.Text = fe_MPGTF[order[len]].TextBoxText = Misc.Group(result_WS.ToString());
                 else
-                    workSheetResultTB.Text = fe_MPGTF[order[3]].TextBoxText = result_WS.ToString();
-                fe_MPGTF[order[3]].AllowTextChanged = true;
+                    workSheetResultTB.Text = fe_MPGTF[order[len]].TextBoxText = result_WS.ToString();
+                fe_MPGTF[order[len]].AllowTextChanged = true;
                 #endregion
             }
             if (wsType == 3)
@@ -2031,14 +2051,14 @@ namespace Calculator
                         result_WS = db[0] * db[1] / 100;
                         break;
                 }
-                feL100TF[order[3]].AllowTextChanged = false;
-                feL100TF[order[3]].TBFont = new Font(feL100TF[order[4]].Font, FontStyle.Regular);
-                feL100TF[order[3]].TBForeColor = SystemColors.WindowText;
+                feL100TF[order[len]].AllowTextChanged = false;
+                feL100TF[order[len]].TBFont = new Font(feL100TF[order[len]].Font, FontStyle.Regular);
+                feL100TF[order[len]].Fore_Color = SystemColors.WindowText;
                 if (digitGroupingMI.Checked)
-                    workSheetResultTB.Text = feL100TF[order[3]].TextBoxText = Misc.Group(result_WS.ToString());
+                    workSheetResultTB.Text = feL100TF[order[len]].TextBoxText = Misc.Group(result_WS.ToString());
                 else
-                    workSheetResultTB.Text = feL100TF[order[3]].TextBoxText = result_WS.ToString();
-                feL100TF[order[3]].AllowTextChanged = true;
+                    workSheetResultTB.Text = feL100TF[order[len]].TextBoxText = result_WS.ToString();
+                feL100TF[order[len]].AllowTextChanged = true;
                 #endregion
             }
 
@@ -2127,16 +2147,17 @@ namespace Calculator
                 itf[order[i]].TabIndex = 10 + i;
                 itf[order[i]].Visible = i != itf.Length - 1;
             }
-            if (Misc.IsNumber(itf[order[itf.Length - 1]].TextBoxText))
-            {
-                workSheetResultTB.Text = itf[order[itf.Length - 1]].TextBoxText;
-            }
+            //if (Misc.IsNumber(itf[order[itf.Length - 1]].TextBoxText))
+            //{
+            //    workSheetResultTB.Text = itf[order[itf.Length - 1]].TextBoxText;
+            //}
+            workSheetResultTB.Text = "";
         }
 
         private void workSheetCalculateBT_Click(object sender, EventArgs e)
         {
             if (mortgageMI.Checked) wsCalculateMethod(mortgageTF, 0);
-            //if (vehicleLeaseMI.Checked) mortgageBT_Click(VhTF, 1);    // uncomment khi nao co cong thuc
+            //if (vehicleLeaseMI.Checked) wsCalculateMethod(VhTF, 1);    // uncomment khi nao co cong thuc
             if (fe_MPG_MI.Checked) wsCalculateMethod(fe_MPGTF, 2);
             if (feL100_MI.Checked) wsCalculateMethod(feL100TF, 3);
         }

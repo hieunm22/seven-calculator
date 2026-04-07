@@ -45,9 +45,9 @@ namespace Calculator
         /// <param name="input">chuỗi cần chia</param>
         /// <param name="num">số kí tự của từng nhóm</param>
         /// <param name="sep">ký tự phân cách từng nhóm</param>
-        public static string Group(string input, int num, string sep)
+        public static string Group(object input, int num, string sep)
         {
-            string outp = input;
+            string outp = input.ToString();
             int bit = outp.Length - num;
             // them ky tu phan cach nhom vao giua nhom 3 so o xau ket qua
             while (bit > 0)
@@ -158,7 +158,8 @@ namespace Calculator
         public static string StandardExpression(string Expression)
         {
             string stdStr = Expression.Trim().ToLower();
-            while (stdStr.Contains("  ")) stdStr = stdStr.Replace("  ", " ");
+            //while (stdStr.Contains("  ")) stdStr = stdStr.Replace("  ", " ");
+            stdStr = stdStr.Replace("\n", "");
             stdStr = stdStr.Replace(" ", "");
             stdStr = stdStr.Replace("yroot", " yroot ");     //√
             stdStr = stdStr.Replace("mod", " mod ").Replace("%", " mod ");
@@ -243,7 +244,7 @@ namespace Calculator
             if (diff3 < 0)
             {
                 // năm nhuận + 366, năm thường +365
-                diff3 += (isBis(dtp1_Temp.Year) ? 366 : 365);
+                diff3 += isBis(dtp1_Temp.Year) ? 366 : 365;
             }
             // differ[2]
             differ[2] = diff3 / 7;
@@ -330,8 +331,8 @@ namespace Calculator
         /// <summary>
         /// đọc thông tin từ regedit
         /// </summary>
-        /// <param name="optionName"></param>
-        /// <returns></returns>
+        /// <param name="optionName">list option name</param>
+        /// <returns>kết quả đọc được từ regedit</returns>
         public static object[] ReadFromRegedit(string[] optionName)
         {
             object[] result = new object[optionName.Length];
@@ -392,10 +393,12 @@ namespace Calculator
                 reg.SetValue(optionName[09], 1, RegistryValueKind.DWord);
                 reg.SetValue(optionName[10], 0, RegistryValueKind.DWord);
                 reg.SetValue(optionName[11], 1, RegistryValueKind.DWord);
+                reg.SetValue(optionName[12], 1, RegistryValueKind.DWord);
                 result[08] = 10;
                 result[09] = 1;
                 result[10] = 0;
                 result[11] = 1;
+                result[12] = 1;
             }
             else
             {
@@ -403,6 +406,7 @@ namespace Calculator
                 result[09] = GetValueFromValueKey(optionName[09], reg, 0, 1, 1);
                 result[10] = GetValueFromValueKey(optionName[10], reg, 0, 1, 0);
                 result[11] = GetValueFromValueKey(optionName[11], reg, 0, 1, 1);
+                result[12] = GetValueFromValueKey(optionName[12], reg, 0, 1, 1);
             }
             reg.Close();
 
@@ -469,8 +473,12 @@ namespace Calculator
             reg.SetValue(optName[09], config[09], RegistryValueKind.DWord);
             reg.SetValue(optName[10], config[10], RegistryValueKind.DWord);
             reg.SetValue(optName[11], config[11], RegistryValueKind.DWord);
+            reg.SetValue(optName[12], config[12], RegistryValueKind.DWord);
         }
-
+        /// <summary>
+        /// số lần mở ngoặc mà chưa đóng ngặc
+        /// </summary>
+        /// <param name="expression">biểu thức cần tính</param>
         public static int NumberOfOpenWOClose(string expression)
         {
             var regEx = new Regex(@"\(");
@@ -480,35 +488,22 @@ namespace Calculator
             return matches;
         }
 
-        public static double Round(double resultMort)
+        public static int GetCloseBracketIndex(string exp, int openIndex)
         {
-            double result = Math.Round(resultMort, 6);
-            if (Math.Abs(result - resultMort) < Math.Pow(10, -6 - 3)) return result;
-            return resultMort;
-        }
-
-        public static int CloseBracket(string input, string openBracket, string closeBracket, int openIndex)
-        {
-            int openLevel = 1;
-            int open = openIndex;
-            int close = 0;
-            int start = open;
-            while (openLevel > 0)
+            int openLevel = 0;
+            do
             {
-                close = input.IndexOf(closeBracket, start + closeBracket.Length);
-                open = input.IndexOf(openBracket, start + openBracket.Length);
-                if (open < close && open > 0)
+                openIndex = exp.IndexOfAny(new char[] { '(', ')' }, openIndex + 1);
+                if (exp[openIndex] == '(')
                 {
                     openLevel++;
-                    start = open;
                 }
-                else
+                else if (exp[openIndex] == ')')
                 {
                     openLevel--;
-                    start = close;
                 }
-            }
-            return start;
+            } while (openLevel >= 0);
+            return openIndex;
         }
     }
     /// <summary>
@@ -578,7 +573,7 @@ namespace Calculator
         public static string other_to_dec(string decimalNumber, int from/*, int dest*/, int Size, bool isSign)
         {
             // from nguon, dest dich
-            long result = 0;
+            long lResult = 0;
             BigNumber bs = 1;
             char[] memberChar = decimalNumber.ToCharArray();
             //if (memberChar.Length < Size) Size = memberChar.Length;
@@ -586,25 +581,25 @@ namespace Calculator
             {
                 if (memberChar[i] < 58 && memberChar[i] >= 48)
                 {
-                    result += (long)ulong.Parse(((memberChar[i] - 48) * bs).StrValue);
+                    lResult += (long)ulong.Parse(((memberChar[i] - 48) * bs).StrValue);
                 }
                 else if (memberChar[i] < 71 && memberChar[i] >= 65) //A-F
                 {
-                    result += (long)ulong.Parse(((memberChar[i] - 55) * bs).StrValue);
+                    lResult += (long)ulong.Parse(((memberChar[i] - 55) * bs).StrValue);
                 }
                 else    //a-f
                 {
-                    result += (long)ulong.Parse(((memberChar[i] - 87) * bs).StrValue);
+                    lResult += (long)ulong.Parse(((memberChar[i] - 87) * bs).StrValue);
                 }
                 bs *= from;
             }
-            BigNumber ketqua = result;
+            BigNumber result = lResult;
             if (Size == memberChar.Length && memberChar[0] == '1' )
             {
-                if (result > 0 && isSign) ketqua -= BigNumber.Two.Pow(Size);
-                if (result < 0 && !isSign) ketqua += BigNumber.Two.Pow(Size);
+                if (lResult > 0 && isSign) result -= BigNumber.Two.Pow(Size);
+                if (lResult < 0 && !isSign) result += BigNumber.Two.Pow(Size);
             }
-            return ketqua.StrValue;
+            return result.StrValue;
         }
         /// <summary>
         /// chuẩn hoá xâu - cắt những số 0 thừa ở đầu xâu

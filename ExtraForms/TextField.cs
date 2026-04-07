@@ -82,7 +82,7 @@ namespace Calculator
         /// <summary>
         /// lay mau chu cua textbox
         /// </summary>
-        public Color TBForeColor
+        public Color Fore_Color
         {
             get { return txtField.ForeColor; }
             set { txtField.ForeColor = value; }

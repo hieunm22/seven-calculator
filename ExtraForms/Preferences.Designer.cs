@@ -32,9 +32,10 @@
             this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.fastFactCB = new System.Windows.Forms.CheckBox();
-            this.collapsedSpdNUD = new Calculator.INumericUpDown();
             this.usedSignChkB = new System.Windows.Forms.CheckBox();
             this.animateCB = new System.Windows.Forms.CheckBox();
+            this.readDictChkB = new System.Windows.Forms.CheckBox();
+            this.collapsedSpdNUD = new Calculator.INumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.collapsedSpdNUD)).BeginInit();
             this.SuspendLayout();
             // 
@@ -53,7 +54,7 @@
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnOK.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnOK.Location = new System.Drawing.Point(78, 124);
+            this.btnOK.Location = new System.Drawing.Point(78, 156);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(87, 23);
             this.btnOK.TabIndex = 5;
@@ -65,7 +66,7 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnCancel.Location = new System.Drawing.Point(198, 124);
+            this.btnCancel.Location = new System.Drawing.Point(198, 156);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(87, 23);
             this.btnCancel.TabIndex = 6;
@@ -84,30 +85,6 @@
             this.fastFactCB.Text = "&Fast factorial";
             this.fastFactCB.UseVisualStyleBackColor = true;
             this.fastFactCB.CheckedChanged += new System.EventHandler(this.fastFactCB_CheckedChanged);
-            // 
-            // collapsedSpdNUD
-            // 
-            this.collapsedSpdNUD.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.collapsedSpdNUD.Location = new System.Drawing.Point(146, 12);
-            this.collapsedSpdNUD.Maximum = new decimal(new int[] {
-            12,
-            0,
-            0,
-            0});
-            this.collapsedSpdNUD.Minimum = new decimal(new int[] {
-            4,
-            0,
-            0,
-            0});
-            this.collapsedSpdNUD.Name = "collapsedSpdNUD";
-            this.collapsedSpdNUD.Size = new System.Drawing.Size(78, 21);
-            this.collapsedSpdNUD.TabIndex = 1;
-            this.collapsedSpdNUD.Value = new decimal(new int[] {
-            5,
-            0,
-            0,
-            0});
-            this.collapsedSpdNUD.ValueChanged += new System.EventHandler(this.collapsedSpdNUD_ValueChanged);
             // 
             // usedSignChkB
             // 
@@ -137,14 +114,53 @@
             this.animateCB.UseVisualStyleBackColor = true;
             this.animateCB.CheckedChanged += new System.EventHandler(this.animateCB_CheckedChanged);
             // 
+            // readDictChkB
+            // 
+            this.readDictChkB.AutoSize = true;
+            this.readDictChkB.Checked = true;
+            this.readDictChkB.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.readDictChkB.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.readDictChkB.Location = new System.Drawing.Point(24, 115);
+            this.readDictChkB.Name = "readDictChkB";
+            this.readDictChkB.Size = new System.Drawing.Size(289, 30);
+            this.readDictChkB.TabIndex = 5;
+            this.readDictChkB.Text = "Re&ad and write factorial result from dictionary\r\n(restart application required)";
+            this.readDictChkB.UseVisualStyleBackColor = true;
+            this.readDictChkB.CheckedChanged += new System.EventHandler(this.readDictChkB_CheckedChanged);
+            // 
+            // collapsedSpdNUD
+            // 
+            this.collapsedSpdNUD.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.collapsedSpdNUD.Location = new System.Drawing.Point(146, 12);
+            this.collapsedSpdNUD.Maximum = new decimal(new int[] {
+            12,
+            0,
+            0,
+            0});
+            this.collapsedSpdNUD.Minimum = new decimal(new int[] {
+            4,
+            0,
+            0,
+            0});
+            this.collapsedSpdNUD.Name = "collapsedSpdNUD";
+            this.collapsedSpdNUD.Size = new System.Drawing.Size(78, 21);
+            this.collapsedSpdNUD.TabIndex = 1;
+            this.collapsedSpdNUD.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.collapsedSpdNUD.ValueChanged += new System.EventHandler(this.collapsedSpdNUD_ValueChanged);
+            // 
             // Preferences
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(362, 157);
+            this.ClientSize = new System.Drawing.Size(362, 194);
             this.Controls.Add(this.animateCB);
+            this.Controls.Add(this.readDictChkB);
             this.Controls.Add(this.usedSignChkB);
             this.Controls.Add(this.collapsedSpdNUD);
             this.Controls.Add(this.fastFactCB);
@@ -176,5 +192,6 @@
         private INumericUpDown collapsedSpdNUD;
         private System.Windows.Forms.CheckBox usedSignChkB;
         private System.Windows.Forms.CheckBox animateCB;
+        private System.Windows.Forms.CheckBox readDictChkB;
     }
 }

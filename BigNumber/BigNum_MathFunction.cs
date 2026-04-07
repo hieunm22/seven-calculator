@@ -515,7 +515,7 @@ namespace Calculator
                     /*
                      *   if we are within a factor of 4 on the error term,
                      *   we will be accurate enough after the *next* iteration
-                     *   is complete. (note that the IsSign of the exponent on
+                     *   is complete. (note that the _IsSign of the exponent on
                      *   the error term will be a negative number).
                      */
 
@@ -551,7 +551,7 @@ namespace Calculator
         /// <summary>
         /// compare 2 numbers
         /// </summary>
-        static long Compare(BigNumber ltmp, BigNumber rtmp)
+        public static long Compare(BigNumber ltmp, BigNumber rtmp)
         {
             long llen, rlen, lsign, rsign, j, lexp, rexp;
 
@@ -964,7 +964,7 @@ namespace Calculator
             Round(input, result, 24);
             Sub(result, input, sub);
             Abs(sub, sub);
-            if (Compare(sub, "1e-29") < 0) Copy(result, input);
+            if (Compare(sub, "1e" + (-29 + input.exponent).ToString()) < 0) Copy(result, input);
         }
         /// <summary>
         /// so sánh 1 số có phải bội số số kia hay không?

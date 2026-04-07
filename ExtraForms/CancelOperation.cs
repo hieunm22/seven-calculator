@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace Calculator
 {
-    public partial class CancelOperation : Form
+    public partial class CancelOperation : Form, IDisposable
     {
         public CancelOperation()
         {

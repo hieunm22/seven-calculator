@@ -869,6 +869,19 @@ namespace Calculator
                 return;
             }
 
+            if (aa.exponent > numDefaultPlaces || bb.exponent > numDefaultPlaces)
+            {
+                long aexp = aa.exponent;
+                long bexp = bb.exponent;
+                aa.exponent = 0;
+                bb.exponent = 0;
+                Div(aa, bb, rr, places);
+                rr.exponent = aexp - bexp + rr.exponent;
+                aa.exponent = aexp;
+                bb.exponent = bexp;
+                return;
+            }
+
             if (bb.mantissa[0] >= 50)
             {
                 Abs(M_div_worka, aa);
@@ -916,7 +929,7 @@ namespace Calculator
             M_div_worka.exponent = 0;
             M_div_workb.exponent = 0;
 
-            /* if numbers are equal, ratio == 1.00000... */
+            /* if numbers are equalBT, ratio == 1.00000... */
 
             if ((icompare = Compare(M_div_worka, M_div_workb)) == 0)
             {
@@ -1032,7 +1045,12 @@ namespace Calculator
 
             Normalize(rr);
         }
-
+        /// <summary>
+        /// divide two number and get the remainder of the division
+        /// </summary>
+        /// <param name="c1">divider</param>
+        /// <param name="c2">divisor</param>
+        /// <param name="res">remainder</param>
         static void DivGetRemainder(BigNumber c1, BigNumber c2, BigNumber res)
         {
             if (Compare(c1.Abs(), c2.Abs()) < 0) { Copy(c1, res); return; }
@@ -1042,31 +1060,49 @@ namespace Calculator
             BigNumber div = new BigNumber();
             BigNumber divRound = new BigNumber();
             BigNumber mul = new BigNumber();
-            BigNumber c1abs = new BigNumber();
-            BigNumber c2abs = new BigNumber();
+            //BigNumber c1abs = new BigNumber();
+            //BigNumber c2abs = new BigNumber();
 
             #region code cu ok
-            Copy(c2, sig);
-            sig.signum = c1.signum;
-            Div(c1, c2, div);
-            Floor(divRound, div.Abs());
-            Mul(sig, divRound, mul);
-            Sub(c1, mul, res);
+            Copy(c2, sig);              // c2 = sign
+            sig.signum = c1.signum;     // c1, NOT c2
+            Div(c1, c2, div);           // div = c1 / c2
+            //Round(div, div, 32);        // sau phep nhan chia phai lam tron
+            Floor(divRound, div.Abs()); // divRound = |div|.floor() = |c1 / c2|.floor()
+            Mul(sig, divRound, mul);    // mul = sig * divRound = sig * |c1 / c2|.floor()
+            //Approximate(mul);
+            //Round(mul, mul, 32);        // sau phep nhan chia phai lam tron
+            Sub(c1, mul, res);          // res = c1 - mul = c1 - sig * |c1 / c2|.floor()
+            if (Compare(res.Abs(), c2.Abs()) > 0)
+            {
+                DivGetRemainder(res, c2, res);
+            }
             #endregion
 
-            #region code moi dang test
-            //// truoc het lam viec tren tri tuyet doi cua 2 so
-            //Abs(c1abs, c1);
-            //Abs(c2abs, c2);
-            //Div(c1, c2, div);
-            //Floor(div, div);
-            //Mul(c2abs, div, mul);
-            //Sub(c1abs, mul, res);
-            //// dau cua ket qua chinh la dau cua so dau tien
-            //res.signum = c1.signum;
+            #region code moi ok not
+            //jump:if (Compare(c1, "0") >= 0)
+            //{
+            //    Div(c1, c2, div);
+            //    Round(div, div, 32);
+            //    Floor(divRound, div);
+            //    Mul(divRound, c2, mul);
+            //    Sub(c1, mul, res);
+            //}
+            //else
+            //{
+            //    Div(c1.Neg(), c2, div);
+            //    Round(div, div, 32);
+            //    Floor(divRound, div);
+            //    Mul(divRound, c2, mul);
+            //    Add(c1, mul, res);
+            //}
+            //while (Compare(res, c2.Abs()) > 0)
+            //{
+            //    Copy(res, c1);
+            //    goto jump;
+            //}
             #endregion
         }
-
 		/// <summary>
         /// rr = aa / bb
         /// </summary>
@@ -1386,14 +1422,13 @@ namespace Calculator
                 value = com[0];
             }
 
-            //value_ = value_.InsertMultiplyChar(",", ".");
             value = value.Replace(Misc.GroupSeparator, Misc.DecimalSeparator);
 
             int j = value.IndexOf(Misc.DecimalSeparator);
             if (j == -1)
             {
                 value = value + Misc.DecimalSeparator;
-                j = value.Length - 1;   //j = Speed.IndexOf(Misc.DecimalSeparator);
+                j = value.Length - 1;   //j = value.IndexOf(Misc.DecimalSeparator);
             }
 
             exponent += j;          // atm.stringvalue.length
@@ -1401,12 +1436,12 @@ namespace Calculator
 
             int i = value.Length;
             atm.dataLength = i;
-            // Index is is even
+            // i is is even
             if (i % 2 != 0) value += "0";
 
-            j = value.Length >> 1;  //=Speed.Length/2
+            j = value.Length >> 1;  //=value.Length/2
 
-            //if (Speed.Length > atm.mantissa.Length)
+            //if (value.Length > atm.mantissa.Length)
             {
                 Expand(atm, atm.dataLength/* + 28*/+ 1);
             }

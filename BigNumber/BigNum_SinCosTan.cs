@@ -28,6 +28,7 @@ namespace Calculator
                 Div(pow, lastFactorial, f_comma_x, numDefaultPlaces);   //f'(x)=(-1)^n / (2n+1)!
                 //dst = dst + f_comma_x;
                 Add(dst, f_comma_x, add);
+                Round(f_comma_x, f_comma_x, numDefaultPlaces);
                 Round(add, add, numDefaultPlaces);
                 Copy(add, dst);
                 n++;
@@ -49,7 +50,19 @@ namespace Calculator
             if (Compare(src, 0) == 0) { dst = "1"; return; }
             if (CheckIfCommonMultiple(src, BN_HalfOfPi)) { SetZero(dst); return; }
             BigNumber param = new BigNumber();
-            Sub(BN_HalfOfPi, src, param);   // param = pi/2 - src
+            if (Compare(src, -BN_PI.Round(numDefaultPlaces)) < 0)
+            {
+                BigNumber rs = new BigNumber();
+                Add(src, BN_DoublePI.Round(numDefaultPlaces), rs);
+                Copy(rs, src);
+            }
+            else if (Compare(src, BN_PI.Round(numDefaultPlaces)) > 0)
+            {
+                BigNumber rs = new BigNumber();
+                Sub(src, BN_DoublePI, rs);
+                Copy(rs, src);
+            }
+            Sub(BN_HalfOfPi.Round(numDefaultPlaces), src, param);   // param = pi/2 - src
             Sinx(param, dst); 
         }
         /// <summary>

@@ -1,38 +1,36 @@
 ﻿using System;
-using System.IO;
 using System.Windows.Forms;
 
 namespace Calculator
 {
     public partial class Preferences : Form
     {
-        public Preferences(int Speed, bool Animate, bool Fast, bool IsSign)
+        public Preferences(int _Speed, bool _Animate, bool _Fast, bool _IsSign, bool _ReadDict)
         {
             InitializeComponent();
-            transfer = Speed;
-            animateCB.Checked = ani = Animate;
-            fastFactCB.Checked = f3 = Fast;
-            usedSignChkB.Checked = sign = IsSign;
-            collapsedSpdNUD.Value = (decimal)Speed;
+            transfer = _Speed;
+            animateCB.Checked = ani = _Animate;
+            fastFactCB.Checked = f3 = _Fast;
+            usedSignChkB.Checked = sign = _IsSign;
+            readDictChkB.Checked = readDict = _ReadDict;
+            collapsedSpdNUD.Value = (decimal)_Speed;
         }
 
-        public delegate void ICheckChanged(int spd, bool animate, bool fast, bool sign);
-        public event ICheckChanged DoCheck;
+        public delegate void PreferencesCheckChanged(int spd, bool animate, bool fast, bool sign, bool readdict, bool restart);
+        public event PreferencesCheckChanged DoCheck;
 
         int transfer;
-        bool mod = false, ani, f3, sign;
+        bool mod = false, ani, f3, sign, readDict, readDictChanged;
         private void btnOK_Click(object sender, EventArgs e)
         {
             if (mod)
             {
-                //string path = Environment.ExpandEnvironmentVariables("%HOMEDRIVE%%HOMEPATH%") + "\\calc.ini";
-                //string[] lines = File.ReadAllLines(path);
-                //lines[lines.Length - 3] = string.Format("Animate={0};", animateCB.Checked ? 1 : 0);
-                //lines[lines.Length - 2] = string.Format("FastFactorial={0};", fastFactCB.Checked ? 1 : 0);
-                //lines[lines.Length - 1] = string.Format("SignInteger={0};", usedSignChkB.Checked ? 1 : 0);
-                //lines[lines.Length - 4] = string.Format("CollapseSpeed={0};", collapsedSpdNUD.Value);
-                //File.WriteAllText(path, string.Join(Environment.NewLine, lines));
-                if (DoCheck != null) DoCheck((int)collapsedSpdNUD.Value, usedSignChkB.Checked, fastFactCB.Checked, animateCB.Checked);
+                DialogResult dr = DialogResult.No;
+                if (readDictChanged)
+                {
+                    dr = MessageBox.Show("This setting requires application restart to take effect.\r\nDo you want to restart now?", "Calculator", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                }
+                if (DoCheck != null) DoCheck((int)collapsedSpdNUD.Value, usedSignChkB.Checked, fastFactCB.Checked, animateCB.Checked, readDictChkB.Checked, dr == DialogResult.Yes);
             }
             this.Close();
         }
@@ -64,6 +62,13 @@ namespace Calculator
         {
             collapsedSpdNUD.Enabled = spdLB.Enabled = animateCB.Checked;
             mod |= ani != animateCB.Checked;
+        }
+
+        private void readDictChkB_CheckedChanged(object sender, EventArgs e)
+        {
+            if (mod && readDictChkB.Checked == readDict) { mod = false; return; }
+            readDictChanged = readDict != readDictChkB.Checked;
+            mod |= readDictChanged;
         }
 
         private void MoveForm(object sender, MouseEventArgs e)

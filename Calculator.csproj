@@ -75,17 +75,28 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BigNumber\BigNum.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BigNumber\BigNum_BasicOperator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BigNumber\BigNum_Constants.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BigNumber\BigNum_MathFunction.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="BigNumber\BigNum_SinCosTan.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Classes\OperatorPriority.cs" />
     <Compile Include="ExtraForms\About.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="ExtraForms\About.Designer.cs">
       <DependentUpon>About.cs</DependentUpon>
     </Compile>
-    <Compile Include="BigNumber\BigNum.cs" />
-    <Compile Include="BigNumber\BigNum_MathFunction.cs" />
-    <Compile Include="BigNumber\BigNum_Constants.cs" />
-    <Compile Include="BigNumber\BigNum_BasicOperator.cs" />
-    <Compile Include="BigNumber\BigNum_SinCosTan.cs" />
     <Compile Include="calc.cs">
       <SubType>Form</SubType>
     </Compile>
