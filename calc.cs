@@ -34,7 +34,7 @@ namespace Calculator
                 WindowState = FormWindowState.Normal;
             }
             pasteTSMI.Enabled = misc.isNumber(Clipboard.GetText().Trim());
-            getThousandSym();
+            //getThousandSym();
             loadInfoFromRegistry(sender, e);
             clearHistoryCTMN.Visible = historyTSMI.Checked;
             getMemoryNumber();
@@ -76,16 +76,16 @@ namespace Calculator
         //
         private void equal_Click(object sender, EventArgs e)
         {
-            equalclicked();
+            equalClicked();
         }
         //
         // nut ham chuc nang
         //
         private void functionBT_Click(object sender, EventArgs e)
         {
-            int tabindex = ((Button)sender).TabIndex;
-            math_func(tabindex);
-            pre_bt = tabindex;
+            int tabIndex = ((Button)sender).TabIndex;
+            math_func(tabIndex);
+            pre_bt = tabIndex;
         }
         //
         // nut %
@@ -214,35 +214,40 @@ namespace Calculator
         #endregion
 
         #region Cac menu item duoc click
-        private void viewMode_Click(object sender, EventArgs e)
+        private void standardTSMI_Click(object sender, EventArgs e)
         {
-            stdLoad();            
+            stdLoad(false);            
         }
 
         private void scientificTSMI_Click(object sender, EventArgs e)
         {
-            sciLoad();
+            sciLoad(false);
         }
 
         private void programmerTSMI_Click(object sender, EventArgs e)
         {
-            proLoad();
+            proLoad(false);
         }
 
         private void statisticsTSMI_Click(object sender, EventArgs e)
         {
-            staLoad();
+            staLoad(false);
         }
 
         private void digitGroupingTSMI_Click(object sender, EventArgs e)
         {
+            digitLoad(false);
+        }
+
+        private void digitLoad(bool isLoaded)
+        {
             digitGroupingTSMI.Checked = !digitGroupingTSMI.Checked;
-            writeToRegistry(digitGroupingTSMI);
+            if (!isLoaded) writeToRegistry(digitGroupingTSMI);
             if (misc.isNumber(toTB.Text) && unitConversionTSMI.Checked)
             {
                 if (digitGroupingTSMI.Checked) toTB.Text = misc.grouping(toTB.Text);
                 else toTB.Text = misc.de_group(toTB.Text);
-            } 
+            }
             if (!programmerTSMI.Checked)
             {
                 if (misc.isNumber(str)) displayToScreen();
@@ -335,16 +340,20 @@ namespace Calculator
         private void calculate_bt_Click(object sender, EventArgs e)
         {
             DateTime dt = new DateTime();
-            int[] differ = misc.differencesTimes(dtP1.Value, dtP2.Value);
+            int[] differ;
             int d1 = dtP1.Value.Year, d2 = dtP2.Value.Year;
             if (d1 > d2 || (d1 == d2 && dtP1.Value.DayOfYear > dtP2.Value.DayOfYear))
             {
                 differ = misc.differencesTimes(dtP2.Value, dtP1.Value);
             }
+            else
+            {
+                differ = misc.differencesTimes(dtP1.Value, dtP2.Value);
+            }
 
             if (calmethodCB.SelectedIndex == 0)
             {
-                double diff = misc.differenceBW2Dates(dtP1.Value, dtP2.Value);
+                int diff = misc.differenceBW2Dates(dtP1.Value, dtP2.Value);
                 if (diff == 1)
                     result2.Text = "1 day";
                 else
@@ -359,30 +368,31 @@ namespace Calculator
                 }
 
                 #region hiển thị kết quả lên textbox
-                result1.Text = "";
+                string text = "";
                 if (differ[0] != 0)
                 {
-                    if (differ[0] != 1) result1.Text = differ[0] + " years";
-                    else result1.Text = "1 year";
+                    if (differ[0] != 1) text = differ[0] + " years";
+                    else text = "1 year";
                 }
-                if (differ[0] != 0 && differ[1] != 0) result1.Text += ", ";
+                if (differ[0] != 0 && differ[1] != 0) text += ", ";
                 if (differ[1] != 0)
                 {
-                    if (differ[1] != 1) result1.Text += differ[1] + " months";
-                    else result1.Text += "1 month";
+                    if (differ[1] != 1) text += differ[1] + " months";
+                    else text += "1 month";
                 }
-                if ((differ[0] != 0 || differ[1] != 0) && differ[2] != 0) result1.Text += ", ";
+                if ((differ[0] != 0 || differ[1] != 0) && differ[2] != 0) text += ", ";
                 if (differ[2] != 0)
                 {
-                    if (differ[2] != 1) result1.Text += differ[2] + " weeks";
-                    else result1.Text += "1 week";
+                    if (differ[2] != 1) text += differ[2] + " weeks";
+                    else text += "1 week";
                 }
-                if ((differ[0] != 0 || differ[1] != 0 || differ[2] != 0) && differ[3] != 0) result1.Text += ", ";
+                if ((differ[0] != 0 || differ[1] != 0 || differ[2] != 0) && differ[3] != 0) text += ", ";
                 if (differ[3] != 0)
                 {
-                    if (differ[3] != 1) result1.Text += differ[3] + " days";
-                    else result1.Text += "1 day";
+                    if (differ[3] != 1) text += differ[3] + " days";
+                    else text += "1 day";
                 }
+                result1.Text = text;
                 #endregion
 
                 if (result1.Text == "") result1.Text = result2.Text;
@@ -429,7 +439,7 @@ namespace Calculator
                 label5.Text = "Date:";
             }
 
-            result2.Text = ""; // or calculate_bt_Click(sender, e);
+            result2.Text = ""; // or calculate_bt_Click(sender, rowIndex);
             result1.Text = "";
             dtP1_ValueChanged(sender, e);
         }
@@ -441,7 +451,7 @@ namespace Calculator
 
         private void autocal_cb_CheckedChanged(object sender, EventArgs e)
         {
-            dtP1_ValueChanged(sender, e);
+            if (result1.Text == "") dtP1_ValueChanged(sender, e);
             writeToSubkey(dateCalculationTSMI, "DateCalculation");
         }
 
@@ -538,6 +548,7 @@ namespace Calculator
                 fcb[i].Visible = (typeCB.SelectedIndex == i);
                 tcb[i].Visible = (typeCB.SelectedIndex == i);
                 if (typeCB.SelectedIndex == i) fcb[i].SelectedIndex = 0;
+                // khởi tạo vị trí mặc định của combox kết quả
                 tcb[00].SelectedIndex = 2;
                 tcb[01].SelectedIndex = 6;
                 tcb[02].SelectedIndex = 4;
@@ -577,10 +588,10 @@ namespace Calculator
                     db = misc.getTemperature(fcb[type].SelectedIndex, tcb[type].SelectedIndex, db);
 
                 if (digitGroupingTSMI.Checked)
-                    if (("" + db).IndexOf("E") <= 0) ret_string = misc.grouping("" + db);
+                    if (db.ToString().IndexOf("E") <= 0) ret_string = misc.grouping("" + db);
                     else ret_string = "" + db;
                 else
-                    ret_string = misc.de_group("" + db);
+                    ret_string = misc.de_group(db.ToString());
 
                 if (double.Parse(fromTB.Text) < 0 && typeCB.SelectedIndex != 6)
                     ret_string = "The input number must be a positive";
@@ -589,6 +600,11 @@ namespace Calculator
             if ((fromstr == "Enter value" && fromTB.ForeColor == SystemColors.GrayText) || fromstr == "")
             {
                 ret_string = "";
+            }
+            if (fromstr != "Enter value" && fromTB.ForeColor == SystemColors.GrayText)
+            {
+                fromTB.ForeColor = SystemColors.ControlText;
+                fromTB.Font = new Font("Tahoma", 9F, FontStyle.Regular, GraphicsUnit.Point, ((byte)(0)));
             }
             return ret_string;
         }
@@ -611,36 +627,16 @@ namespace Calculator
 
         private void historyTSMI_Click(object sender, EventArgs e)
         {
-            formWithHistory();
+            formWithHistory(false);
         }
 
         private void clearHistoryBT_EnabledChanged(object sender, EventArgs e)
         {
-            clearHistoryTSMI.Enabled = clearHistoryBT.Enabled;
-            clearHistoryCTMN.Enabled = clearHistoryTSMI.Enabled;
-        }
-
-        private void currentCellToNull()
-        {
-            upBT.Enabled = false;
-            dnBT.Enabled = false;
+            clearHistoryTSMI.Enabled = historyDGV.Rows.Count > 0;
+            clearHistoryCTMN.Enabled = historyDGV.Rows.Count > 0;
         }
 
         //int historycount = 0;
-
-        private void historyDGV_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            prcmdkey = true;
-            string expression = (string)historyDGV[0, e.RowIndex].Value;
-            int count = historyDGV.Rows.Count;
-            clearHistoryBT.Enabled = (count > 1 || (count == 1 && historyDGV[0, 0].Value != null));
-            copyHistoryTSMI.Enabled = (expression != null);
-            str = "" + misc.Evaluate(expression);
-            if (str == "") str = "0";
-            upBT.Enabled = (e.RowIndex >= 1 && expression != null);
-            dnBT.Enabled = (e.RowIndex < historyDGV.Rows.Count - 1 && expression != null);
-            displayToScreen();
-        }
 
         private void clearHistoryBT_Click(object sender, EventArgs e)
         {
@@ -649,44 +645,15 @@ namespace Calculator
 
         private void clear_history()
         {
-            int count = historyDGV.Rows.Count;
-            while (count > 1)
-            {
-                historyDGV.Rows.RemoveAt(0);
-                count = historyDGV.Rows.Count;
-            } 
-            if (count == 1 && historyDGV[0, 0].Value != null)
+            while (historyDGV.Rows.Count > 1) historyDGV.Rows.RemoveAt(0);
+            if (historyDGV.Rows.Count == 1 && historyDGV[0, 0].Value != null)
             {
                 historyDGV.Rows.RemoveAt(0);
             } 
-            historyDGV.CurrentCell = null;
-            clearHistoryBT.Enabled = false;
-            upBT.Enabled = false;
-            dnBT.Enabled = false;
+            //historyDGV.CurrentCell = null;
+            clearHistoryCTMN.Enabled = false;
+            clearHistoryTSMI.Enabled = false;
         } 
-
-        private void upBT_Click(object sender, EventArgs e)
-        {
-            object temp = historyDGV[0, historyDGV.CurrentCell.RowIndex].Value;
-            historyDGV[0, historyDGV.CurrentCell.RowIndex].Value = historyDGV[0, historyDGV.CurrentCell.RowIndex - 1].Value;
-            historyDGV[0, historyDGV.CurrentCell.RowIndex - 1].Value = temp;
-            historyDGV.CurrentCell = historyDGV[0, historyDGV.CurrentCell.RowIndex - 1];
-            upBT.Enabled = (historyDGV.CurrentCell.RowIndex >= 1);
-            dnBT.Enabled = (historyDGV.CurrentCell.RowIndex <= 2);
-        }
-
-        private void dnBT_Click(object sender, EventArgs e)
-        {
-            int rowid = historyDGV.CurrentCell.RowIndex;
-            object temp = historyDGV[0, rowid].Value;
-            historyDGV[0, rowid].Value = historyDGV[0, rowid + 1].Value;
-            historyDGV[0, rowid + 1].Value = temp;
-            historyDGV.CurrentCell = historyDGV[0, rowid + 1];
-            rowid++;
-            upBT.Enabled = (rowid >= 1);
-            dnBT.Enabled = (rowid < historyDGV.Rows.Count - 1);
-            //if (rowid < 3) dnBT.Enabled = (historyDGV[0, rowid + 1].Value != null);
-        }
 
         private void copyHistoryTSMI_Click(object sender, EventArgs e)
         {
@@ -697,6 +664,67 @@ namespace Calculator
             catch { }
         }
 
+        object oldValue = "";
+        private void historyDGV_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            prcmdkey = false;
+            oldValue = historyDGV[e.ColumnIndex, e.ColumnIndex].Value;
+        }
+
+        private void historyDGV_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            evaluateExpression(e.ColumnIndex, e.RowIndex);
+            historyDGV.ReadOnly = true;
+            prcmdkey = true;
+        }
+       
+        private void historyDGV_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (scientificTSMI.Checked)
+            {
+                historyDGV.ReadOnly = false;
+                historyDGV.BeginEdit(false);
+            }
+        }
+ 
+        private void historyDGV_CellStateChanged(object sender, DataGridViewCellStateChangedEventArgs e)
+        {
+            evaluateExpression(e.Cell.ColumnIndex, e.Cell.RowIndex);
+            historyDGV.ReadOnly = true;
+            prcmdkey = true;
+        }
+
+        private void evaluateExpression(int colIndex, int rowIndex)
+        {
+            prcmdkey = historyDGV.ReadOnly;
+            if (deg_rb.Checked) parser.Mode = Mode.DEG;
+            if (rad_rb.Checked) parser.Mode = Mode.RAD;
+            if (gra_rb.Checked) parser.Mode = Mode.GRA;
+            string expression = "";
+            try
+            {
+                expression = (string)historyDGV[0, rowIndex].Value;
+            }
+            catch { return; }
+            int count = historyDGV.Rows.Count;
+            //clearHistoryBT.Enabled = (count > 1 || (count == 1 && historyDGV[0, 0].Value != null));
+            copyHistoryTSMI.Enabled = (expression != null);
+            if (parser.Evaluate(expression))
+            {
+                str = "" + parser.strResult;
+            }
+            else
+            {
+                if (expression != null)
+                {
+                    MessageBox.Show("The value you have entered is not a valid expression!",
+                        "Calculator", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    historyDGV[colIndex, rowIndex].Value = oldValue;
+                }
+            }
+            if (string.IsNullOrEmpty(str)) str = "0";
+            displayToScreen();
+        }
         #endregion
 
         #region programmer mode
@@ -712,9 +740,9 @@ namespace Calculator
             binnum = binnum64;
             while (binnum[0] == '0' && binnum.Length > 1)
                 binnum = binnum.Substring(1, binnum.Length - 1);
-            decnum = ConvertNumber.other_to_dec(binnum, 1);
-            octnum = ConvertNumber.bin_to_other(binnum, 2);
-            hexnum = ConvertNumber.bin_to_other(binnum, 4);
+            decnum = Binary.other_to_dec(binnum, 1);
+            octnum = Binary.bin_to_other(binnum, 2);
+            hexnum = Binary.bin_to_other(binnum, 4);
             if (binRB.Checked) str = binnum;
             if (octRB.Checked) str = octnum;
             if (decRB.Checked) str = decnum;
@@ -731,30 +759,30 @@ namespace Calculator
             if (binRB.Checked)
             {
                 binnum = str;
-                decnum = ConvertNumber.other_to_dec(binnum, 1);
-                octnum = ConvertNumber.dec_to_other(decnum, 2);
-                hexnum = ConvertNumber.dec_to_other(decnum, 4);
+                decnum = Binary.other_to_dec(binnum, 1);
+                octnum = Binary.dec_to_other(decnum, 2);
+                hexnum = Binary.dec_to_other(decnum, 4);
             }
             if (octRB.Checked)
             {
                 octnum = str;
-                decnum = ConvertNumber.other_to_dec(str, 2);
-                binnum = ConvertNumber.dec_to_other(decnum, 1);
-                hexnum = ConvertNumber.dec_to_other(decnum, 4);
+                decnum = Binary.other_to_dec(str, 2);
+                binnum = Binary.dec_to_other(decnum, 1);
+                hexnum = Binary.dec_to_other(decnum, 4);
             }
             if (decRB.Checked)
             {
                 decnum = str;
-                binnum = ConvertNumber.dec_to_other(decnum, 1);
-                octnum = ConvertNumber.dec_to_other(decnum, 2);
-                hexnum = ConvertNumber.dec_to_other(decnum, 4);
+                binnum = Binary.dec_to_other(decnum, 1);
+                octnum = Binary.dec_to_other(decnum, 2);
+                hexnum = Binary.dec_to_other(decnum, 4);
             }
             if (hexRB.Checked)
             {
                 hexnum = str;
-                decnum = ConvertNumber.other_to_dec(hexnum, 4);
-                binnum = ConvertNumber.dec_to_other(decnum, 1);
-                octnum = ConvertNumber.dec_to_other(decnum, 2);
+                decnum = Binary.other_to_dec(hexnum, 4);
+                binnum = Binary.dec_to_other(decnum, 1);
+                octnum = Binary.dec_to_other(decnum, 2);
             }
             int len = binnum.Length;
             binnum64 = binnum;
@@ -828,7 +856,7 @@ namespace Calculator
         {
             RadioButton rb = (RadioButton)sender;
             int tabindex = rb.TabIndex;
-            int bd = (int)ConvertNumber.powan(2, tabindex - 2 * (tabindex > 3).GetHashCode());
+            int bd = (int)Binary.powan(2, tabindex - 2 * (tabindex > 3).GetHashCode());
             if (rb.Checked)
             {
                 for (int i = 0; i < bd; i++) bit_digit[i].Visible = true;

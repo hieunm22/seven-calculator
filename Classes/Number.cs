@@ -397,7 +397,7 @@ namespace Calculator
                 {
                     int thua = ketqua.Length - 1;
                     ketqua = ketqua.Substring(0, 27/* - thua.ToString().Length*/);
-                    //ketqua = Add(ketqua, (num[32] >= 53).GetHashCode().ToString());
+                    //strResult = Add(strResult, (num[32] >= 53).GetHashCode().ToString());
                     ketqua = ketqua.Insert(1, @decimal) + "E+" + thua;
                     while (ketqua.IndexOf("0E") > 0) ketqua = ketqua.Replace("0E", "E");
                 }

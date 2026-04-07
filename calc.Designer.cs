@@ -12,116 +12,7 @@ namespace Calculator
         /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
-
-        #region muParser Code
-        private void muParserMethod()
-        {
-            try
-            {
-                m_parser = new Parser();
-                m_parser.DefineFun("fun1", new Parser.Fun1Delegate(fun1));
-                m_parser.DefineFun("fun2", new Parser.Fun2Delegate(fun2));
-                m_parser.DefineFun("fun3", new Parser.Fun3Delegate(fun3));
-                m_parser.DefineFun("fun4", new Parser.Fun4Delegate(fun4));
-                m_parser.DefineFun("fun5", new Parser.Fun5Delegate(fun5));
-                m_parser.DefineFun("prod", new Parser.MultFunDelegate(prod));
-                m_parser.DefineOprt("%", new Parser.Fun2Delegate(fun2), 2);
-
-                m_parser.DefinePostfixOprt("m", new Parser.Fun1Delegate(milli));
-                m_parser.DefineInfixOprt("!", new Parser.Fun1Delegate(not), Parser.EPrec.prLOGIC);
-
-                m_parser.DefineVar("ans", m_ans);
-                m_parser.DefineVar("my_var1", m_val1);
-                m_parser.DefineVar("my_var2", m_val2);
-            }
-            catch (ParserException exc)
-            {
-                DumpException(exc);
-            }
-        }
-
-        private void DumpException(ParserException exc)
-        {
-            string sMsg;
-
-            sMsg = "An error occured:\n";
-            sMsg += string.Format("  Expression:  \"{0}\"\n", exc.Expression);
-            sMsg += string.Format("  Message:     \"{0}\"\n", exc.Message);
-            sMsg += string.Format("  Token:       \"{0}\"\n", exc.Token);
-            sMsg += string.Format("  Position:      {0}\n", exc.Position);
-
-            //meHistory.SelectionColor = System.Drawing.Color.Red;
-            //meHistory.AppendText(sMsg);
-            //meHistory.SelectionColor = System.Drawing.Color.Black;
-
-            //meHistory.SelectionStart = meHistory.TextLength;
-            //meHistory.ScrollToCaret();
-        }
-
-        private Parser m_parser;
-        private ParserVariable m_val1 = new ParserVariable(0);
-        private ParserVariable m_val2 = new ParserVariable(0);
-        private ParserVariable m_ans = new ParserVariable(0);
-
-        public double prod(double[] a, int size)
-        {
-            double val = 1;
-            for (int i = 0; i < size; ++i)
-                val *= a[i];
-
-            return val;
-        }
-
-        public double strFun1(String str, double val1)
-        {
-            return val1 * 2;
-        }
-
-        public double strFun2(String str, double val1, double val2)
-        {
-            return val1 + val2;
-        }
-
-        public double strFun3(String str, double val1, double val2, double val3)
-        {
-            return val1 + val2 + val3;
-        }
-
-        public double milli(double val1)
-        {
-            return val1 / 1000.0;
-        }
-
-        public double not(double val1)
-        {
-            return (val1 == 0) ? 1 : 0;
-        }
-
-        public double fun1(double val1)
-        {
-            return val1 * 2;
-        }
-
-        public double fun2(double val1, double val2)
-        {
-            return val1 + val2;
-        }
-
-        public double fun3(double val1, double val2, double val3)
-        {
-            return val1 + val2 + val3;
-        }
-
-        public double fun4(double val1, double val2, double val3, double val4)
-        {
-            return val1 + val2 + val3 + val4;
-        }
-
-        public double fun5(double val1, double val2, double val3, double val4, double val5)
-        {
-            return val1 + val2 + val3 + val4 + val5;
-        }
-        #endregion
+        Parser parser = new Parser();
 
         #region dll import
         [DllImport("User32.dll")]
@@ -178,10 +69,12 @@ namespace Calculator
                 if (key_hc == 69 && btnE.Enabled && btnE.Visible) buttonAF(btnE.Text);
                 if (key_hc == 70 && btnF.Enabled && btnF.Visible) buttonAF(btnF.Text);
 
+                if (key_hc == 38) { }   // up
+                if (key_hc == 40) { }   // down
                 if (key_hc == 187 | key_hc == 13)    // = hoac enter 
                 {
                     if (statisticsTSMI.Checked) statistics_add();
-                    if (!statisticsTSMI.Checked) equalclicked();
+                    if (!statisticsTSMI.Checked) equalClicked();
                 }
                 if (key_hc == 110 | key_hc == 00190 && btdot.Enabled) numinput(10);  // .
                 if (key_hc == 107 | key_hc == 65723 && addbt.Enabled)    // +
@@ -227,17 +120,26 @@ namespace Calculator
                 {
                     binRB.Checked = true; basecheckchange();
                 }
+                if (key_hc == 113)  // F2
+                {
+                    if (historyDGV.CurrentCell != null && scientificTSMI.Checked)
+                    {
+                        historyDGV.ReadOnly = false;
+                        historyDGV.BeginEdit(false);
+                        prcmdkey = false;
+                    }
+                }
                 if (key_hc == 120 && doidau.Enabled) numinput(11);      // F9
                 if (key_hc == 082 && invert_bt.Enabled) math_func(17);  // R
                 if (key_hc == 112) helptopics();        // F1
                 if (key_hc == 008) backspaceclicked();  // Backspace
                 if (key_hc == 027) clear_num(true);     // Esc
                 // cac to hop phim 
-                if (key_hc == 262193) stdLoad();  // alt 1
-                if (key_hc == 262194) sciLoad();  // alt 2
-                if (key_hc == 262195) proLoad();  // alt 3
-                if (key_hc == 262196) staLoad();  // alt 3
-                if (key_hc == 131144 && historyTSMI.Enabled) formWithHistory();   // ctrl H
+                if (key_hc == 262193) stdLoad(false);  // alt 1
+                if (key_hc == 262194) sciLoad(false);  // alt 2
+                if (key_hc == 262195) proLoad(false);  // alt 3
+                if (key_hc == 262196) staLoad(false);  // alt 3
+                if (key_hc == 131144 && historyTSMI.Enabled) formWithHistory(false);   // ctrl H
                 if (key_hc == 131187) basicForm();
 
                 if (key_hc == 131152) mem_process(1);   // ctrl P
@@ -339,7 +241,7 @@ namespace Calculator
         /// <summary>
         /// form standard
         /// </summary>
-        private void stdLoad()
+        private void stdLoad(bool isLoaded)
         {
             clearHistoryTableB4SwitchForm();
             int his = historyTSMI.Checked.GetHashCode();
@@ -364,14 +266,14 @@ namespace Calculator
                 unitconvGB.Visible = unitConversionTSMI.Checked;
                 this.Size = new Size(237 + 363 * exf, 340 + 130 * his);
                 clear_num(false);
-                writeToRegistry(standardTSMI);
+                if (!isLoaded) writeToRegistry(standardTSMI);
                 prcmdkey = !typeCB.Focused && !dtP1.Focused && !calmethodCB.Focused;
             }
         }
         /// <summary>
         /// form scientific
         /// </summary>
-        private void sciLoad()
+        private void sciLoad(bool isLoaded)
         {
             clearHistoryTableB4SwitchForm();
             int his = historyTSMI.Checked.GetHashCode();
@@ -389,8 +291,8 @@ namespace Calculator
                 if (historyTSMI.Checked && historyTSMI.Enabled) sciWithHistory();
                 else scientificLoad(true);
 
-                datecalcGB.Visible = readFromRegistry("Date");
-                unitconvGB.Visible = readFromRegistry("Unit");
+                //datecalcGB.Visible = readFromRegistry("Date");
+                //unitconvGB.Visible = readFromRegistry("Unit");
                 dateCalculationTSMI.Checked = datecalcGB.Visible;
                 unitConversionTSMI.Checked = unitconvGB.Visible;
                 datecalcGB.Location = new Point(446, 9);
@@ -402,14 +304,14 @@ namespace Calculator
 
                 this.Size = new Size(447 + 363 * ex.GetHashCode(), 340 + 130 * his);
                 clear_num(true);
-                writeToRegistry(scientificTSMI);
+                if (!isLoaded) writeToRegistry(scientificTSMI);
                 prcmdkey = !typeCB.Focused && !dtP1.Focused && !calmethodCB.Focused;
             }
         }
         /// <summary>
         /// form programmer
         /// </summary>
-        private void proLoad()
+        private void proLoad(bool isLoaded)
         {
             bool exf = dateCalculationTSMI.Checked || unitConversionTSMI.Checked;
             if (!programmerTSMI.Checked)
@@ -420,21 +322,21 @@ namespace Calculator
                 hideSciComponent(false);
                 hideProComponent(true);
                 hideStaComponent(false);
-                datecalcGB.Visible = readFromRegistry("Date");
-                unitconvGB.Visible = readFromRegistry("Unit");
+                //datecalcGB.Visible = readFromRegistry("Date");
+                //unitconvGB.Visible = readFromRegistry("Unit");
                 dateCalculationTSMI.Checked = datecalcGB.Visible;
                 unitConversionTSMI.Checked = unitconvGB.Visible; 
                 historyPN.Visible = false;
                 programmerMode();
                 this.Size = new Size(447 + 363 * exf.GetHashCode(), 420);
-                writeToRegistry(programmerTSMI);
+                if (!isLoaded) writeToRegistry(programmerTSMI);
                 prcmdkey = !typeCB.Focused && !dtP1.Focused && !calmethodCB.Focused;
             }
         }
         /// <summary>
         /// form statistics
         /// </summary>
-        private void staLoad()
+        private void staLoad(bool isLoaded)
         {
             clearHistoryTableB4SwitchForm();
             int exf = (dateCalculationTSMI.Checked || unitConversionTSMI.Checked).GetHashCode();
@@ -446,8 +348,8 @@ namespace Calculator
                 hideSciComponent(false);
                 hideProComponent(false);
                 hideStaComponent(true);
-                datecalcGB.Visible = readFromRegistry("Date");
-                unitconvGB.Visible = readFromRegistry("Unit");
+                //datecalcGB.Visible = readFromRegistry("Date");
+                //unitconvGB.Visible = readFromRegistry("Unit");
                 dateCalculationTSMI.Checked = datecalcGB.Visible;
                 unitConversionTSMI.Checked = unitconvGB.Visible;
                 historyPN.Visible = false;
@@ -462,7 +364,7 @@ namespace Calculator
                 unitconvGB.Visible = unitConversionTSMI.Checked;
                 this.Size = new Size(237 + 363 * exf, 470);
                 clear_num(false);
-                writeToRegistry(statisticsTSMI);
+                if (!isLoaded) writeToRegistry(statisticsTSMI);
                 prcmdkey = !typeCB.Focused && !dtP1.Focused && !calmethodCB.Focused;
             }
         }
@@ -574,31 +476,33 @@ namespace Calculator
         /// </summary>
         private void clearHistoryTableB4SwitchForm()
         {
-            while (historyDGV.Rows.Count > 0)
-                historyDGV.Rows.RemoveAt(0);
+            while (historyDGV.Rows.Count > 0) historyDGV.Rows.RemoveAt(0);
         }
         /// <summary>
-        /// nạp thông tin trong registry
+        /// nạp những setting từ lần sử dụng trước đó từ registry
         /// </summary>
         private void loadInfoFromRegistry(object sender, EventArgs e)
         {
-            //if (readFromRegistry("Standard")) viewMode_Click(sender, e);
-            if (readFromRegistry("Scientific")) scientificTSMI_Click(sender, e);
-            if (readFromRegistry("Programmer")) programmerTSMI_Click(sender, e);
-            if (readFromRegistry("Statistics")) statisticsTSMI_Click(sender, e);
-            if (readFromRegistry("DigitGrouping")) digitGroupingTSMI_Click(sender, e);
-            if (readFromRegistry("History") && historyTSMI.Enabled) historyTSMI_Click(sender, e);
-            if (readFromRegistry("Date"))
+            int read = readFromRegistry("CalculatorType");
+            if (read == 0) stdLoad(true);
+            if (read == 1) sciLoad(true);
+            if (read == 2) proLoad(true);
+            if (read == 3) staLoad(true);
+
+            read = readFromRegistry("ExtraFunction");
+            if (read == 1)
+            {
+                unitConversionTSMI_Click(sender, e);
+                typeCB.SelectedIndex = readFromSubkey("Type", "UnitConversion");
+            }
+            if (read == 2)
             {
                 dateCalculationTSMI_Click(sender, e);
                 calmethodCB.SelectedIndex = readFromSubkey("Method", "DateCalculation");
                 autocal_date.Checked = (readFromSubkey("AutoCalculate", "DateCalculation") == 1);
             }
-            if (readFromRegistry("Unit"))
-            {
-                unitConversionTSMI_Click(sender, e);
-                typeCB.SelectedIndex = readFromSubkey("Type", "UnitConversion");
-            }
+            if (readFromRegistry("History") == 1) formWithHistory(true);
+            if (readFromRegistry("DigitGrouping") == 1) digitLoad(true);
             btdot.Text = decimalSym;
         }
         /// <summary>
@@ -608,109 +512,105 @@ namespace Calculator
         {
             RegistryKey regkey = Registry.LocalMachine;
             regkey = regkey.OpenSubKey("Software\\Calculator", true);
-            if (tsmi == standardTSMI)
-            {
-                regkey.SetValue("Standard", (int)1);
-                regkey.SetValue("Scientific", (int)0);
-                regkey.SetValue("Programmer", (int)0);
-                regkey.SetValue("Statistics", (int)0);
-                regkey.SetValue("Basic", (int)basicTSMI.Checked.GetHashCode());
-                regkey.SetValue("Date", (int)dateCalculationTSMI.Checked.GetHashCode());
-                regkey.SetValue("Unit", (int)unitConversionTSMI.Checked.GetHashCode());
-            }
-            if (tsmi == scientificTSMI)
-            {
-                regkey.SetValue("Standard", (int)0);
-                regkey.SetValue("Scientific", (int)1);
-                regkey.SetValue("Programmer", (int)0);
-                regkey.SetValue("Statistics", (int)0);
-                regkey.SetValue("Basic", (int)basicTSMI.Checked.GetHashCode());
-                regkey.SetValue("Date", (int)dateCalculationTSMI.Checked.GetHashCode());
-                regkey.SetValue("Unit", (int)unitConversionTSMI.Checked.GetHashCode());
-            }
-            if (tsmi == programmerTSMI)
-            {
-                regkey.SetValue("Standard", (int)0);
-                regkey.SetValue("Scientific", (int)0);
-                regkey.SetValue("Programmer", (int)1);
-                regkey.SetValue("Statistics", (int)0);
-                regkey.SetValue("Basic", (int)basicTSMI.Checked.GetHashCode());
-                regkey.SetValue("Date", (int)dateCalculationTSMI.Checked.GetHashCode());
-                regkey.SetValue("Unit", (int)unitConversionTSMI.Checked.GetHashCode());
-            } 
-            if (tsmi == statisticsTSMI)
-            {
-                regkey.SetValue("Standard", (int)0);
-                regkey.SetValue("Scientific", (int)0);
-                regkey.SetValue("Programmer", (int)0);
-                regkey.SetValue("Statistics", (int)1);
-                regkey.SetValue("Basic", (int)basicTSMI.Checked.GetHashCode());
-                regkey.SetValue("Date", (int)dateCalculationTSMI.Checked.GetHashCode());
-                regkey.SetValue("Unit", (int)unitConversionTSMI.Checked.GetHashCode());
-            } 
+            if (tsmi == standardTSMI) regkey.SetValue("CalculatorType", 0);
+            if (tsmi == scientificTSMI) regkey.SetValue("CalculatorType", 1);
+            if (tsmi == programmerTSMI) regkey.SetValue("CalculatorType", 2);
+            if (tsmi == statisticsTSMI) regkey.SetValue("CalculatorType", 3);
             if (tsmi == digitGroupingTSMI)
             {
-                regkey.SetValue("DigitGrouping", (int)digitGroupingTSMI.Checked.GetHashCode());
+                regkey.SetValue("DigitGrouping", digitGroupingTSMI.Checked.GetHashCode());
             }
             if (tsmi == historyTSMI)
             {
-                regkey.SetValue("History", (int)historyTSMI.Checked.GetHashCode());
+                regkey.SetValue("History", historyTSMI.Checked.GetHashCode());
             } 
             if (tsmi == unitConversionTSMI)
             {
-                regkey.SetValue("Standard", (int)standardTSMI.Checked.GetHashCode());
-                regkey.SetValue("Scientific", (int)scientificTSMI.Checked.GetHashCode());
-                regkey.SetValue("Programmer", (int)programmerTSMI.Checked.GetHashCode());
-                regkey.SetValue("Basic", (int)0);
-                regkey.SetValue("Date", (int)0);
-                regkey.SetValue("Unit", (int)1);
+                regkey.SetValue("ExtraFunction", 1);
             }
             if (tsmi == dateCalculationTSMI)
             {
-                regkey.SetValue("Standard", (int)standardTSMI.Checked.GetHashCode());
-                regkey.SetValue("Scientific", (int)scientificTSMI.Checked.GetHashCode());
-                regkey.SetValue("Programmer", (int)programmerTSMI.Checked.GetHashCode());
-                regkey.SetValue("Basic", (int)0);
-                regkey.SetValue("Date", (int)1);
-                regkey.SetValue("Unit", (int)0);
+                regkey.SetValue("ExtraFunction", 2);
             }
             if (tsmi == basicTSMI)
             {
-                regkey.SetValue("Standard", (int)standardTSMI.Checked.GetHashCode());
-                regkey.SetValue("Scientific", (int)scientificTSMI.Checked.GetHashCode());
-                regkey.SetValue("Programmer", (int)programmerTSMI.Checked.GetHashCode());
-                regkey.SetValue("Basic", (int)1);
-                regkey.SetValue("Date", (int)0);
-                regkey.SetValue("Unit", (int)0);
+                regkey.SetValue("ExtraFunction", 0);
             }
 
             regkey.Close();
         }
         /// <summary>
-        /// đọc thuộc tính đã được ghi vào registry
+        /// đọc thuộc tính đã được ghi vào registry, nếu không đúng thì sửa luôn
         /// </summary>
-        private bool readFromRegistry(string name)
+        private int readFromRegistry(string name)
         {
-            bool ret = false;
-            RegistryKey regkey = Registry.LocalMachine;
-            regkey = regkey.OpenSubKey("Software\\Calculator");
-            if (regkey == null)
+            int returnVal = 0; 
+            loop:RegistryKey regkey = Registry.LocalMachine;
+            regkey = regkey.OpenSubKey("Software\\Calculator\\", true);
+            #warning điều kiện này phải xem lại
+            // chưa có hoặc không đủ 5 giá trị thì tạo mới
+            if ((regkey == null) || (regkey.ValueCount != 5))   // đoạn này phải xem lại
             {
                 regkey = Registry.LocalMachine.CreateSubKey("Software\\Calculator");
-                regkey.SetValue("Standard", 1, RegistryValueKind.DWord);
-                regkey.SetValue("Scientific", 0, RegistryValueKind.DWord);
-                regkey.SetValue("Programmer", 0, RegistryValueKind.DWord);
-                regkey.SetValue("Statistics", 0, RegistryValueKind.DWord);
+                regkey.SetValue("CalculatorType", 0, RegistryValueKind.DWord);
+                regkey.SetValue("ExtraFunction", 0, RegistryValueKind.DWord);
                 regkey.SetValue("DigitGrouping", 0, RegistryValueKind.DWord);
                 regkey.SetValue("History", 0, RegistryValueKind.DWord);
-                regkey.SetValue("Basic", 1, RegistryValueKind.DWord);
-                regkey.SetValue("Date", 0, RegistryValueKind.DWord);
-                regkey.SetValue("Unit", 0, RegistryValueKind.DWord);
-                regkey.SetValue("MemoryNumber", (string) "0", RegistryValueKind.String);
+                regkey.SetValue("MemoryNumber", "0", RegistryValueKind.String);
             }
-            if ((int)regkey.GetValue(name) == 1) ret = true;
+            if (name == "CalculatorType")
+            {
+                try
+                {
+                    returnVal = (int)regkey.GetValue(name);
+                }
+                catch (Exception)  // sai tên
+                {
+                    Registry.LocalMachine.DeleteSubKeyTree("Software\\Calculator");
+                    goto loop;
+                }   
+                if (((int)regkey.GetValue(name) > 3) || ((int)regkey.GetValue(name) < 0))
+                {
+                    returnVal = 0;
+                    regkey.SetValue(name, 0, RegistryValueKind.DWord);
+                }
+            }
+            if (name == "ExtraFunction")
+            {
+                try
+                {
+                    returnVal = (int)regkey.GetValue(name);
+                }
+                catch (Exception)  // sai tên
+                {
+                    Registry.LocalMachine.DeleteSubKeyTree("Software\\Calculator");
+                    goto loop;
+                }  
+                if (((int)regkey.GetValue(name) > 2) || ((int)regkey.GetValue(name) < 0))
+                {
+                    returnVal = 0;
+                    regkey.SetValue(name, 0, RegistryValueKind.DWord);
+                }
+            }
+            if (name == "History" || name == "DigitGrouping")
+            {
+                try
+                {
+                    returnVal = (int)regkey.GetValue(name);
+                }
+                catch (Exception)  // sai tên
+                {
+                    Registry.LocalMachine.DeleteSubKeyTree("Software\\Calculator");
+                    goto loop;
+                } 
+                if (((int)regkey.GetValue(name) > 1) || ((int)regkey.GetValue(name) < 0))
+                {
+                    returnVal = 0;
+                    regkey.SetValue(name, 0, RegistryValueKind.DWord);
+                }
+            }
             regkey.Close();
-            return ret;
+            return returnVal;
         }
         /// <summary>
         /// lấy thông tin về các checkbox, combobox trong registry
@@ -724,7 +624,7 @@ namespace Calculator
             {
                 regkey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Calculator\\", true);
                 regkey = regkey.CreateSubKey(subkeyValue);
-                regkey.SetValue(dwordValue, (int)0, RegistryValueKind.DWord);
+                regkey.SetValue(dwordValue, 0, RegistryValueKind.DWord);
             }
             try
             {
@@ -732,7 +632,7 @@ namespace Calculator
             }
             catch (NullReferenceException)
             {
-                regkey.SetValue(dwordValue, (int)0, RegistryValueKind.DWord);
+                regkey.SetValue(dwordValue, 0, RegistryValueKind.DWord);
             }
             regkey.Close();
             return ret;
@@ -765,18 +665,16 @@ namespace Calculator
         /// </summary>
         private void getMemoryNumber()
         {
-            RegistryKey regkey = Registry.LocalMachine;
-            regkey = regkey.OpenSubKey("Software\\Calculator", true);
+            RegistryKey regkey = Registry.LocalMachine.OpenSubKey("Software\\Calculator", true);
             if (regkey == null)
             {
                 regkey = Registry.LocalMachine.CreateSubKey("Software\\Calculator");
-                regkey.SetValue("MemoryNumber", (string) "0", RegistryValueKind.String);
+                regkey.SetValue("MemoryNumber", "0", RegistryValueKind.String);
             }
-
             string memory = (string) regkey.GetValue("MemoryNumber");
             if (memory == null)
             {
-                regkey.SetValue("MemoryNumber", (string) "0", RegistryValueKind.String);
+                regkey.SetValue("MemoryNumber", "0", RegistryValueKind.String);
                 memory = (string) regkey.GetValue("MemoryNumber");
             }
             try
@@ -788,7 +686,7 @@ namespace Calculator
             catch (FormatException)
             {
                 mem_num = 0;
-                regkey.SetValue("MemoryNumber", (string) "0");
+                regkey.SetValue("MemoryNumber", "0");
             }
             regkey.Close();
         }
@@ -836,7 +734,7 @@ namespace Calculator
         /// <summary>
         /// form with history - ctrl - H
         /// </summary>
-        private void formWithHistory()
+        private void formWithHistory(bool isLoaded)
         {
             historyTSMI.Checked = !historyTSMI.Checked;
             clearHistoryCTMN.Visible = historyTSMI.Checked;
@@ -858,7 +756,7 @@ namespace Calculator
                 if (standardTSMI.Checked) stdWithHistory();
                 if (scientificTSMI.Checked) sciWithHistory();
                 historyDGV.CurrentCell = null;
-                currentCellToNull();
+                //currentCellToNull();
                 hideProComponent(programmerTSMI.Checked);
                 hideStaComponent(statisticsTSMI.Checked);
                 hideSciComponent(scientificTSMI.Checked);   // phải đứng cuối
@@ -870,7 +768,7 @@ namespace Calculator
                 historyPN.Visible = false;
             }
             this.Size = new Size(237 + 210 * (sci + pro) + 363 * ex, 340 + 130 * his + 80 * pro);
-            writeToRegistry(historyTSMI);
+            if (!isLoaded) writeToRegistry(historyTSMI);
         }
         /// <summary>
         /// 2 tính năng date calculation và unit conversion
@@ -1026,7 +924,7 @@ namespace Calculator
             #endregion
         }
         /// <summary>
-        /// enable các controls đã bị disable
+        /// enable các controls đã bị form programmer disable
         /// </summary>
         private void enableComponent()
         {
@@ -1101,11 +999,11 @@ namespace Calculator
 
             this.btnF.Location = new Point(183, 329);
             this.btnF.Enabled = (hexRB.Checked);
-
-            if (binRB.Checked) pasteTSMI.Enabled = Binary.CheckIsBin(Clipboard.GetText().Trim());
-            if (octRB.Checked) pasteTSMI.Enabled = Binary.CheckIsOct(Clipboard.GetText().Trim());
-            if (decRB.Checked) pasteTSMI.Enabled = Binary.CheckIsDec(Clipboard.GetText().Trim());
-            if (hexRB.Checked) pasteTSMI.Enabled = Binary.CheckIsHex(Clipboard.GetText().Trim());
+            string getClipboard = Clipboard.GetText().Trim();
+            if (binRB.Checked) pasteTSMI.Enabled = Binary.CheckIsBin(getClipboard);
+            if (octRB.Checked) pasteTSMI.Enabled = Binary.CheckIsOct(getClipboard);
+            if (decRB.Checked) pasteTSMI.Enabled = Binary.CheckIsDec(getClipboard);
+            if (hexRB.Checked) pasteTSMI.Enabled = Binary.CheckIsHex(getClipboard);
             pasteCTMN.Enabled = pasteTSMI.Enabled;
         }
         /// <summary>
@@ -1135,7 +1033,7 @@ namespace Calculator
             invertFunction(false);
             double screenNumber = double.Parse(str);
             int base_ = 0;
-            // khong co 'e'
+            // khong co 'rowIndex'
             if (str.IndexOf('E') <= 0)
             {
                 if (Math.Abs(screenNumber) >= 10)
@@ -1169,14 +1067,6 @@ namespace Calculator
                 else
                     scr_lb.Text = str;
             }
-        }
-        /// <summary>
-        /// trả về 1 chuỗi là cách hiển thị số thực kiểu Mỹ
-        /// Vd ở VN 2,54 thì ở Mỹ là 2.54
-        /// </summary>
-        private string getUSNumber(object num)
-        {
-            return num.ToString().Replace(decimalSym, ".");
         }
         /// <summary>
         /// copy - ctrl c
@@ -1401,7 +1291,7 @@ namespace Calculator
         /// <summary>
         /// nút bằng
         /// </summary>
-        private void equalclicked()
+        private void equalClicked()
         {
             invertFunction(false);
             // thay input_str = 2,3 bằng str_ = 2.3
@@ -1425,20 +1315,18 @@ namespace Calculator
                 if (historyDGV.Rows.Count < 4)
                 {
                     historyDGV.Rows.Add();
-                    clearHistoryBT.Enabled = true;
                     if (historyDGV[0, 0].Value != null)
                     {
                         //historyDGV.Rows.Add();
                         int count = historyDGV.Rows.Count;
                         //historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
                         if (oper != "")
-                            historyDGV[0, count - 1].Value = getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
-                        else historyDGV[0, count - 1].Value = getUSNumber("" + result);
+                            historyDGV[0, count - 1].Value = num_1 + oper + num_2;
+                        else historyDGV[0, count - 1].Value = result;
                     }
                     else
                     {
-                        historyDGV[0, 0].Value = getUSNumber("" + num_1) +
-                            oper + getUSNumber("" + num_2);
+                        historyDGV[0, 0].Value = num_1 + oper + num_2;
                     }
                 }
                 else
@@ -1447,20 +1335,24 @@ namespace Calculator
                     historyDGV[0, 1].Value = historyDGV[0, 2].Value;
                     historyDGV[0, 2].Value = historyDGV[0, 3].Value;
                     if (oper != "")
-                        historyDGV[0, historyDGV.Rows.Count - 1].Value =
-                            getUSNumber("" + num_1) + oper + getUSNumber("" + num_2);
-                    else historyDGV[0, historyDGV.Rows.Count - 1].Value = getUSNumber("" + result);
+                        historyDGV[0, historyDGV.Rows.Count - 1].Value = num_1 + oper + num_2;
+                    else historyDGV[0, historyDGV.Rows.Count - 1].Value = result;
                 }
                 #endregion
 
+                historyDGV.CurrentCell = historyDGV[0, historyDGV.Rows.Count - 1];
+                clearHistoryCTMN.Enabled = true;
+                clearHistoryTSMI.Enabled = true;
                 str = "" + result;
-                historyDGV.CurrentCell = null;
                 displayToScreen(); 
                 #endregion
             }
             if (scientificTSMI.Checked)     // scientific.checked
             {
                 #region scientific operation
+                if (deg_rb.Checked) parser.Mode = Mode.DEG;
+                if (rad_rb.Checked) parser.Mode = Mode.RAD;
+                if (gra_rb.Checked) parser.Mode = Mode.GRA;
                 if (pre_oprt == 30 || pre_oprt == 34)
                 {
                     expressionpow += str;
@@ -1468,19 +1360,20 @@ namespace Calculator
                         str = "" + misc.power(expressionpow);
                     else
                         str = "" + misc.power_inv(expressionpow);
-                    sci_expression += getUSNumber(str);
-                    str = "" + misc.Evaluate(sci_expression);
+                    sci_expression += str;
+                    parser.Evaluate(sci_expression);
+                    str = parser.strResult;
                 }
                 else
                 {
-                    if (str[0] != '-') sci_expression += getUSNumber(str);
-                    else sci_expression += "(" + getUSNumber(str) + ")";
-
-                    str = "" + misc.Evaluate(sci_expression);
+                    if (str[0] != '-') sci_expression += str;
+                    else sci_expression += "(" + str + ")";
+                    
+                    parser.Evaluate(sci_expression);
+                    str = parser.strResult;
                 }
 
                 #region write to history panel
-                clearHistoryBT.Enabled = true;
                 if (historyDGV.Rows.Count < 4)
                 {
                     historyDGV.Rows.Add();
@@ -1501,9 +1394,11 @@ namespace Calculator
                     historyDGV[0, 2].Value = historyDGV[0, 3].Value;
                     historyDGV[0, 3].Value = sci_expression;
                 }
-                historyDGV.CurrentCell = null; 
                 #endregion
 
+                historyDGV.CurrentCell = historyDGV[0, historyDGV.Rows.Count - 1];
+                clearHistoryCTMN.Enabled = true;
+                clearHistoryTSMI.Enabled = true;
                 displayToScreen(); 
                 #endregion
             }
@@ -1568,10 +1463,10 @@ namespace Calculator
         /// </summary>
         private void programmerOperation()
         {
-            binnum = ConvertNumber.dec_to_other("" + resultpro, 1);
-            octnum = ConvertNumber.dec_to_other("" + resultpro, 2);
+            binnum = Binary.dec_to_other("" + resultpro, 1);
+            octnum = Binary.dec_to_other("" + resultpro, 2);
             decnum = "" + resultpro;
-            hexnum = ConvertNumber.dec_to_other("" + resultpro, 4);
+            hexnum = Binary.dec_to_other("" + resultpro, 4);
             binnum64 = binnum;
             while (binnum64.Length < 64) binnum64 = "0" + binnum64;
             for (int i = 0; i < 16; i++)
@@ -1731,7 +1626,6 @@ namespace Calculator
                         if (pre_oprt == 15) { result = num_1 / num_2; pre_op = "/"; }
 
                         #region thu gọn lại cho đỡ bị trồi ra
-                        clearHistoryBT.Enabled = true;
                         if (historyDGV.Rows.Count < 4)
                         {
                             historyDGV.Rows.Add();
@@ -1740,13 +1634,11 @@ namespace Calculator
                                 //historyDGV.Rows.Add();
                                 int count = historyDGV.Rows.Count;
                                 //historyDGV[0, count - 2].Value = historyDGV[0, count - 1].Value;
-                                historyDGV[0, count - 1].Value = getUSNumber("" + num_1) +
-                                    pre_op + getUSNumber("" + num_2);
+                                historyDGV[0, count - 1].Value = num_1 + pre_op + num_2;
                             }
                             else
                             {
-                                historyDGV[0, 0].Value = getUSNumber("" + num_1) +
-                                    pre_op + getUSNumber("" + num_2);
+                                historyDGV[0, 0].Value = num_1 + pre_op + num_2;
                             }
                         }
                         else
@@ -1754,8 +1646,7 @@ namespace Calculator
                             historyDGV[0, 0].Value = historyDGV[0, 1].Value;
                             historyDGV[0, 1].Value = historyDGV[0, 2].Value;
                             historyDGV[0, 2].Value = historyDGV[0, 3].Value;
-                            historyDGV[0, 3].Value = getUSNumber("" + num_1) +
-                                operator_lb.Text + getUSNumber("" + num_2);
+                            historyDGV[0, 3].Value = num_1 + operator_lb.Text + num_2;
                         }
                         #endregion
                     }
@@ -1797,15 +1688,17 @@ namespace Calculator
                                     str = "" + misc.power(expressionpow);
                                 else
                                     str = "" + misc.power_inv(expressionpow);
-                                sci_expression += getUSNumber(str);
-                                str = misc.Evaluate(sci_expression).ToString();
+                                sci_expression += str;
+                                parser.Evaluate(sci_expression);
+                                str = parser.strResult;                                
                             }
                             else
                             {
-                                if (str[0] != '-') sci_expression += getUSNumber(str);
-                                else sci_expression += "(" + getUSNumber(str) + ")";
+                                if (str[0] != '-') sci_expression += str;
+                                else sci_expression += "(" + str + ")";
 
-                                str = misc.Evaluate(sci_expression).ToString();
+                                parser.Evaluate(sci_expression);
+                                str = parser.strResult;
                             }
                             sci_expression += operator_lb.Text;
                         }
@@ -1814,24 +1707,24 @@ namespace Calculator
                         {
                             if (pre_oprt == 30 || pre_oprt == 34)
                             {
-                                expressionpow += getUSNumber(str);
+                                expressionpow += str;
                                 if (pre_oprt == 30)
                                     str = "" + misc.power(expressionpow);
                                 else
                                     str = "" + misc.power_inv(expressionpow);
-                                sci_expression += getUSNumber(str) + operator_lb.Text;
+                                sci_expression += str + operator_lb.Text;
                             }
                             else 
-                                sci_expression += getUSNumber(str) + operator_lb.Text;
+                                sci_expression += str + operator_lb.Text;
                         }
                         // sau = x^y hoac y√x (x^1/y)
                         if (index == 30 || index == 34)
                         {
                             if (pre_oprt != index)
-                                expressionpow = getUSNumber(str) + operator_lb.Text;
+                                expressionpow = str + operator_lb.Text;
                             else
                             {
-                                expressionpow += getUSNumber(str);
+                                expressionpow += str;
                                 if (index == 30)
                                     expressionpow = misc.power(expressionpow) + operator_lb.Text;
                                 else
@@ -1849,7 +1742,7 @@ namespace Calculator
                 {
                     if (index >= 12 && index <= 15)
                     {
-                        sci_expression = getUSNumber(str) + operator_lb.Text;
+                        sci_expression = str + operator_lb.Text;
                     }
                     if (index == 30 || index == 34)
                         expressionpow = str + operator_lb.Text;
@@ -2019,7 +1912,6 @@ namespace Calculator
             this.historyPN = new System.Windows.Forms.Panel();
             this.dnBT = new System.Windows.Forms.Button();
             this.upBT = new System.Windows.Forms.Button();
-            this.clearHistoryBT = new System.Windows.Forms.Button();
             this.historyDGV = new System.Windows.Forms.DataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.unknownPN = new System.Windows.Forms.Panel();
@@ -2857,7 +2749,6 @@ namespace Calculator
             this.gra_rb.TabIndex = 154;
             this.gra_rb.Text = "Grads";
             this.gra_rb.UseVisualStyleBackColor = true;
-            this.gra_rb.CheckedChanged += new System.EventHandler(this.EnableKeyboard);
             // 
             // rad_rb
             // 
@@ -2869,7 +2760,6 @@ namespace Calculator
             this.rad_rb.TabIndex = 154;
             this.rad_rb.Text = "Radian";
             this.rad_rb.UseVisualStyleBackColor = true;
-            this.rad_rb.CheckedChanged += new System.EventHandler(this.EnableKeyboard);
             // 
             // deg_rb
             // 
@@ -2883,7 +2773,6 @@ namespace Calculator
             this.deg_rb.TabStop = true;
             this.deg_rb.Text = "Degrees";
             this.deg_rb.UseVisualStyleBackColor = true;
-            this.deg_rb.CheckedChanged += new System.EventHandler(this.EnableKeyboard);
             // 
             // nonameTB
             // 
@@ -3186,7 +3075,6 @@ namespace Calculator
             this.historyPN.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.historyPN.Controls.Add(this.dnBT);
             this.historyPN.Controls.Add(this.upBT);
-            this.historyPN.Controls.Add(this.clearHistoryBT);
             this.historyPN.Controls.Add(this.historyDGV);
             this.historyPN.Location = new System.Drawing.Point(232, 310);
             this.historyPN.Name = "historyPN";
@@ -3195,37 +3083,23 @@ namespace Calculator
             // 
             // dnBT
             // 
-            this.dnBT.Enabled = false;
+            this.dnBT.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.dnBT.Location = new System.Drawing.Point(176, 4);
             this.dnBT.Name = "dnBT";
             this.dnBT.Size = new System.Drawing.Size(26, 30);
             this.dnBT.TabIndex = 1;
-            this.dnBT.Text = "▼";
+            this.dnBT.Text = "↓";
             this.dnBT.UseVisualStyleBackColor = true;
-            this.dnBT.Click += new System.EventHandler(this.dnBT_Click);
             // 
             // upBT
             // 
-            this.upBT.Enabled = false;
+            this.upBT.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
             this.upBT.Location = new System.Drawing.Point(146, 4);
             this.upBT.Name = "upBT";
             this.upBT.Size = new System.Drawing.Size(26, 30);
             this.upBT.TabIndex = 1;
-            this.upBT.Text = "▲";
+            this.upBT.Text = "↑";
             this.upBT.UseVisualStyleBackColor = true;
-            this.upBT.Click += new System.EventHandler(this.upBT_Click);
-            // 
-            // clearHistoryBT
-            // 
-            this.clearHistoryBT.Enabled = false;
-            this.clearHistoryBT.Location = new System.Drawing.Point(5, 4);
-            this.clearHistoryBT.Name = "clearHistoryBT";
-            this.clearHistoryBT.Size = new System.Drawing.Size(50, 30);
-            this.clearHistoryBT.TabIndex = 1;
-            this.clearHistoryBT.Text = "Clear";
-            this.clearHistoryBT.UseVisualStyleBackColor = true;
-            this.clearHistoryBT.Click += new System.EventHandler(this.clearHistoryBT_Click);
-            this.clearHistoryBT.EnabledChanged += new System.EventHandler(this.clearHistoryBT_EnabledChanged);
             // 
             // historyDGV
             // 
@@ -3239,6 +3113,7 @@ namespace Calculator
             this.historyDGV.ColumnHeadersVisible = false;
             this.historyDGV.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column1});
+            this.historyDGV.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnF2;
             this.historyDGV.Location = new System.Drawing.Point(-1, 41);
             this.historyDGV.MultiSelect = false;
             this.historyDGV.Name = "historyDGV";
@@ -3248,7 +3123,10 @@ namespace Calculator
             this.historyDGV.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
             this.historyDGV.Size = new System.Drawing.Size(206, 90);
             this.historyDGV.TabIndex = 0;
-            this.historyDGV.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellClick);
+            this.historyDGV.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.historyDGV_CellBeginEdit);
+            this.historyDGV.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellDoubleClick);
+            this.historyDGV.CellStateChanged += new System.Windows.Forms.DataGridViewCellStateChangedEventHandler(this.historyDGV_CellStateChanged);
+            this.historyDGV.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.historyDGV_CellEndEdit);
             // 
             // Column1
             // 
@@ -3767,7 +3645,6 @@ namespace Calculator
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.ce;
             this.ClientSize = new System.Drawing.Size(231, 288);
             this.Controls.Add(this.statisticsPN);
             this.Controls.Add(this.Expsta_bt);
@@ -3968,7 +3845,7 @@ namespace Calculator
             this.standardTSMI.Name = "standardTSMI";
             this.standardTSMI.Shortcut = Shortcut.Alt1;
             this.standardTSMI.RadioCheck = true;
-            this.standardTSMI.Click += new EventHandler(viewMode_Click);
+            this.standardTSMI.Click += new EventHandler(standardTSMI_Click);
             // 
             // scientificTSMI
             // 
@@ -4176,6 +4053,8 @@ namespace Calculator
             // 
             this.Menu = this.menuStrip1;
             this.scr_lb.ContextMenu = contextMenu1;
+            this.statisticsPN.ContextMenu = contextMenu1;
+            this.historyPN.ContextMenu = contextMenu1;
             this.screenPN.ContextMenu = contextMenu1;
         }
         /// <summary>
@@ -4256,6 +4135,7 @@ namespace Calculator
             // 
             this.screenPN.Location = new Point(12, 17);
             this.screenPN.Size = new Size(418, 42);
+            this.percent_bt.Enabled = false;
 
             hideSciComponent(true);
             // 
@@ -4406,10 +4286,10 @@ namespace Calculator
                 fcb[i].TabIndex = 11;
                 fcb[i].MaxDropDownItems = 14;
                 fcb[i].Location = new Point(16, 129);
-                fcb[i].Name = "fromCB" + i;
+                //fcb[i].Name = "fromCB" + i;
                 fcb[i].Size = new Size(306, 22);
                 fcb[i].SelectedIndexChanged += new EventHandler(this.fromCB_SelectedIndexChanged);
-                fcb[i].GotFocus += new EventHandler(this.DisableKeyboard); 
+                fcb[i].GotFocus += new EventHandler(DisableKeyboard); 
                 #endregion
 
                 #region tcb properties
@@ -4421,10 +4301,10 @@ namespace Calculator
                 tcb[i].TabIndex = 13;
                 tcb[i].MaxDropDownItems = 14;
                 tcb[i].Location = new Point(16, 206);
-                tcb[i].Name = "toCB" + i;
+                //tcb[i].Name = "toCB" + i;
                 tcb[i].Size = new Size(306, 22);
                 tcb[i].SelectedIndexChanged += new EventHandler(this.toCB_SelectedIndexChanged);
-                tcb[i].GotFocus += new EventHandler(this.DisableKeyboard); 
+                //tcb[i].GotFocus += new EventHandler(DisableKeyboard); 
                 #endregion
             }
             object[][] obj = new object[11][];
@@ -4694,6 +4574,7 @@ namespace Calculator
             this.screenPN.Size = new Size(418, 42);
 
             hideSciComponent(true);
+            this.percent_bt.Enabled = false;
 
             this.historyPN.Location = new Point(12, 17);
             this.historyPN.Size = new Size(418, 132);
@@ -4844,7 +4725,6 @@ namespace Calculator
 
             baseRBCheckedChanged();
             copyHistoryTSMI.Enabled = false;
-            clearHistoryBT.Enabled = false;
             // 
             // Programmer
             // 
@@ -4950,8 +4830,8 @@ namespace Calculator
             if (dtP1.Focused || dtP2.Focused) label2.Focus();
             if (historyTSMI.Checked && historyTSMI.Enabled)
             {
-                historyDGV.CurrentCell = null;
-                currentCellToNull();
+                //historyDGV.CurrentCell = null;
+                //currentCellToNull();
             }
             if (statisticsTSMI.Checked) statisticsDGV.CurrentCell = null;
             //clearHistoryBT.Enabled = false;
@@ -4988,7 +4868,7 @@ namespace Calculator
 
         #endregion
 
-        #region register component
+        #region regist component
         
         private Button num1;
         private Button num2;
@@ -5089,7 +4969,6 @@ namespace Calculator
         private Panel historyPN;
         private Button dnBT;
         private Button upBT;
-        private Button clearHistoryBT;
         private DataGridView historyDGV;
         private DataGridViewTextBoxColumn Column1;
 

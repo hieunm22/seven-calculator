@@ -11,7 +11,7 @@ namespace Calculator
         /// <summary>
         /// chia các hàng đơn vị của 1 số thực thành từng nhóm
         /// </summary>
-        /// <param dwordname="expression">xâu cần chia</param>
+        /// <param dwordname="obj">chuỗi cần chia</param>
         public string grouping(object obj)
         {
             string outp = "";
@@ -33,6 +33,7 @@ namespace Calculator
             {
                 outp = outp.Insert(temp - i, getThousandSym());
             }
+
             if (comma > 0 && exper < 0) outp += ("" + obj).Substring(comma);
             if (exper > 0) outp += ("" + obj).Substring(exper);
             if (("" + obj)[0] == '-') outp = "-" + outp;
@@ -41,7 +42,9 @@ namespace Calculator
         /// <summary>
         /// chia các hàng đơn vị của 1 số thực thành từng nhóm
         /// </summary>
-        /// <param dwordname="expression">xâu cần chia</param>
+        /// <param name="inp">chuỗi cần chia</param>
+        /// <param name="num">số kí tự của từng nhóm</param>
+        /// <returns></returns>
         public string grouping(string inp, int num)
         {
             string outp = inp;
@@ -71,7 +74,7 @@ namespace Calculator
         /// <summary>
         /// kiểm tra xem 1 xâu nhập vào có phải là số hay không
         /// </summary>
-        /// <param dwordname="input_str">xâu cần kiểm tra</param>
+        /// <param dwordname="input_str">chuỗi cần kiểm tra</param>
         public bool isNumber(string str)
         {
             try
@@ -111,18 +114,16 @@ namespace Calculator
         /// <param dwordname="year">true nếu year là năm nhuận, false nếu ngược lại</param>
         private bool isBis(int year)
         {
-            bool bis = false;
-            if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) bis = true;
-            return bis;
+            return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
         }
         /// <summary>
         /// trả về giá trị là khoảng thời gian giữa 2 ngày trong control datetimempicker
         /// </summary>
-        public double differenceBW2Dates(DateTime dtp1, DateTime dtp2)
+        public int differenceBW2Dates(DateTime dtp1, DateTime dtp2)
         {
-            double dist = dtp2.Subtract(dtp1).TotalDays;
+            double dist = dtp2.Subtract(dtp1).Days;
             dist = Math.Round(dist);
-            return Math.Abs(dist);
+            return (int)Math.Abs(dist);
         }
         /// <summary>
         /// chênh lệch giữa 2 ngày theo năm, tháng, tuần, ngày
@@ -148,8 +149,9 @@ namespace Calculator
             int diff3 = 0;
             dtp1_Temp = dtp1_Temp.AddMonths(differ[1]);
             diff3 = dtp2.DayOfYear - dtp1_Temp.DayOfYear;
+            // neu la nam nhuan thi +366, khong thi 365      
+            // neu diff3 < 0 thi moi +365/366, khong thi thoi
             diff3 += (365 + isBis(dtp1_Temp.Year).GetHashCode()) * (diff3 < 0).GetHashCode();
-            // neu la nam nhuan thi +366, khong thi 365      // neu diff3 < 0 thi moi +365/366, khong thi thoi
             differ[3] = diff3 % 7;
 
             // differ[2], từ 3 mới suy ra 2 - week - ALWAYS DONE
@@ -318,21 +320,49 @@ namespace Calculator
             }
             else return 1;
         }
-
-        public string Evaluate(string expression)
-        {
-            System.Data.DataTable table = new System.Data.DataTable();
-            table.Columns.Add("expression", string.Empty.GetType(), expression);
-            System.Data.DataRow row = table.NewRow();
-            table.Rows.Add(row);
-            return double.Parse((string)row["expression"]).ToString();
-        }
     }
     /// <summary>
-    /// lớp các phương thức chuyển đổi 1 số từ hệ này sang hệ khác
+    /// lớp các phương thức liên quan đến hệ cơ số
     /// </summary>
-    class ConvertNumber
+    class Binary
     {
+        /// <summary>
+        /// kiểm tra 1 xâu có phải kiểu bin hay không
+        /// </summary>
+        public static bool CheckIsBin(string str)
+        {
+            Regex reg = new Regex("^[0-1]+$");
+
+            return reg.IsMatch(str);
+        }
+        /// <summary>
+        /// kiểm tra 1 xâu có phải kiểu oct hay không
+        /// </summary>
+        public static bool CheckIsOct(string str)
+        {
+            Regex reg = new Regex("^[0-7]+$");
+
+            return reg.IsMatch(str);
+        }
+        /// <summary>
+        /// kiểm tra 1 xâu có phải kiểu dec hay không
+        /// </summary>
+        public static bool CheckIsDec(string str)
+        {
+            Regex reg = new Regex("^[0-9]+$");
+
+            return reg.IsMatch(str);
+        }
+        /// <summary>
+        /// kiểm tra 1 xâu có phải kiểu hex hay không
+        /// </summary>
+        public static bool CheckIsHex(string str)
+        {
+            Regex reg = new Regex("^[0-9A-Fa-f]+$");
+
+            return reg.IsMatch(str);
+        }
+
         /// <summary>
         /// tính a^n với a, n nguyên
         /// </summary>
@@ -358,7 +388,7 @@ namespace Calculator
             string ketqua = "";
             if (bs == 1) dich = 2;
             if (bs == 2) dich = 8;
-            if (bs == 4) return sothuc.ToString("x2");
+            if (bs == 4) return sothuc.ToString("X2");
             if (sothuc == 0) ketqua = "0";
             for (i = 0; i <= 31; i++) array[i] = 16;
             while (sothuc != 0)
@@ -477,48 +507,6 @@ namespace Calculator
             while (result[0] == '0' && result.Length > 1)
                 result = result.Substring(1, result.Length - 1);
             return result;
-        }
-    }
-    /// <summary>
-    /// lớp các phương thức kiểm tra hệ số
-    /// </summary>
-    class Binary
-    {
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu bin hay không
-        /// </summary>
-        public static bool CheckIsBin(string str)
-        {
-            Regex reg = new Regex("^[0-1]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu oct hay không
-        /// </summary>
-        public static bool CheckIsOct(string str)
-        {
-            Regex reg = new Regex("^[0-7]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu dec hay không
-        /// </summary>
-        public static bool CheckIsDec(string str)
-        {
-            Regex reg = new Regex("^[0-9]+$");
-
-            return reg.IsMatch(str);
-        }
-        /// <summary>
-        /// kiểm tra 1 xâu có phải kiểu hex hay không
-        /// </summary>
-        public static bool CheckIsHex(string str)
-        {
-            Regex reg = new Regex("^[0-9A-Fa-f]+$");
-
-            return reg.IsMatch(str);
         }
     }
 }
