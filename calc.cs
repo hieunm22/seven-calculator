@@ -127,6 +127,8 @@ namespace Calculator
 
             //parser.Transfer += new MathParserService.SendValue(parser_Transfer);
             parser.UpdateDictEvent += new MathParserService.UpdateDictionary(parser_UpdateDictEvent);
+            parser.ProgressEvent += new MathParserService.FactorialProgress(parser_ProgressEvent);
+            parser.IsCancellationRequested = () => mWorker != null && mWorker.CancellationPending;
             hisDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
             staDGV.MouseWheel += new MouseEventHandler(directionBT_Click);
         }
@@ -2273,28 +2275,65 @@ namespace Calculator
                  * so we can calculate the other varius from the formula above
                  *
                  * */
+                var monthlyRate = 0d;
+                var totalMonths = 0d;
                 switch (typeWorkSheetCB.SelectedIndex)
                 {
                     case 0:
-                        smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
-                        result_WS = db[3] * (smth - 1);
-                        result_WS /= smth * db[2] / 1200;
-                        result_WS = db[0] - result_WS;
+                        monthlyRate = db[2] / 1200;
+                        totalMonths = db[1] * 12;
+                        if (monthlyRate == 0)
+                        {
+                            result_WS = db[0] - db[3] * totalMonths;
+                        }
+                        else
+                        {
+                            smth = Math.Pow(1 + monthlyRate, totalMonths);
+                            result_WS = db[3] * (smth - 1);
+                            result_WS /= smth * monthlyRate;
+                            result_WS = db[0] - result_WS;
+                        }
                         break;
                     case 1:
-                        smth = Math.Pow(1 + db[3] / 1200, db[2] * 12);
-                        result_WS = (db[0] - db[1]) * smth * (db[3] / 1200);
-                        result_WS /= smth - 1;
+                        monthlyRate = db[3] / 1200;
+                        totalMonths = db[2] * 12;
+                        if (monthlyRate == 0)
+                        {
+                            result_WS = (db[0] - db[1]) / totalMonths;
+                        }
+                        else
+                        {
+                            smth = Math.Pow(1 + monthlyRate, totalMonths);
+                            result_WS = (db[0] - db[1]) * smth * monthlyRate;
+                            result_WS /= smth - 1;
+                        }
                         break;
                     case 2:
-                        smth = Math.Pow(1 + db[2] / 1200, db[1] * 12);
-                        result_WS = db[3] * (smth - 1);
-                        result_WS /= smth * db[2] / 1200;
-                        result_WS += db[0];
+                        monthlyRate = db[2] / 1200;
+                        totalMonths = db[1] * 12;
+                        if (monthlyRate == 0)
+                        {
+                            result_WS = db[0] + db[3] * totalMonths;
+                        }
+                        else
+                        {
+                            smth = Math.Pow(1 + monthlyRate, totalMonths);
+                            result_WS = db[3] * (smth - 1);
+                            result_WS /= smth * monthlyRate;
+                            result_WS += db[0];
+                        }
                         break;
                     case 3:
-                        smth = db[3] / (db[3] - (db[0] - db[1]) * db[2] / 1200);
-                        result_WS = Math.Log(smth) / Math.Log(1 + db[2] / 1200) / 12;
+                        monthlyRate = db[2] / 1200;
+                        if (monthlyRate == 0)
+                        {
+                            result_WS = (db[0] - db[1]) / db[3] / 12;
+                        }
+                        else
+                        {
+                            smth = db[3] / (db[3] - (db[0] - db[1]) * monthlyRate);
+                            result_WS = Math.Log(smth) / Math.Log(1 + monthlyRate) / 12;
+                        }
                         break;
                 }
                 mortgageTF[order[len]].AllowTextChanged = false;
@@ -2324,31 +2363,72 @@ namespace Calculator
                  * so we can calculate the other varius from the formula above
                  *
                  * */
+                double periodicRate = 0;
+                double totalPayments = 0;
                 switch (typeWorkSheetCB.SelectedIndex)
                 {
                     case 0:
                         //db = new double[5] { lv, n, rv, r, p };
-                        var periodicRate = db[3] / db[1];
-                        result_WS = Math.Log(1 - periodicRate * (db[0] - db[2]) / (db[4] - db[2] * periodicRate));
-                        result_WS /= -db[1];
-                        result_WS /= Math.Log(1 + periodicRate);
+                        periodicRate = db[3] / 100 / db[1];
+                        if (periodicRate == 0)
+                        {
+                            // lp = (lv - rv) / (p * n)
+                            result_WS = (db[0] - db[2]) / db[4] / db[1];
+                        }
+                        else
+                        {
+                            // lp = -ln((p - lv*rp) / (p - rv*rp)) / (n * ln(1 + rp))
+                            result_WS = -Math.Log((db[4] - db[0] * periodicRate) / (db[4] - db[2] * periodicRate));
+                            result_WS /= db[1] * Math.Log(1 + periodicRate);
+                        }
                         break;
                     case 1:
                         //db = new double[5] { lp, n, rv, r, p };
-                        periodicRate = db[3] / db[1];
-                        result_WS = db[4] * (1 - Math.Pow(1 + periodicRate, -db[1] * db[0])) / periodicRate;
-                        result_WS += db[2] / Math.Pow(1 + periodicRate, db[1] * db[0]);
+                        periodicRate = db[3] / 100 / db[1];
+                        totalPayments = db[0] * db[1];
+                        if (periodicRate == 0)
+                        {
+                            // lv = p*N + rv
+                            result_WS = db[4] * totalPayments + db[2];
+                        }
+                        else
+                        {
+                            // lv = p*(1 - (1 + rp)^(-N))/rp + rv/(1 + rp)^N
+                            result_WS = db[4] * (1 - Math.Pow(1 + periodicRate, -totalPayments)) / periodicRate;
+                            result_WS += db[2] / Math.Pow(1 + periodicRate, totalPayments);
+                        }
                         break;
                     case 2:
                         //db = new double[5] { lv, lp, n, rv, r };
-                        //result_WS = (lv - rv) / (lp * n) + rv * (rv / n);
-                        result_WS = (db[0] - db[3]) / (db[1] * db[2]) + db[3] * (db[4] / db[2]);
+                        periodicRate = db[4] / 100 / db[2];
+                        totalPayments = db[1] * db[2];
+                        if (periodicRate == 0)
+                        {
+                            // p = (lv - rv) / N
+                            result_WS = (db[0] - db[3]) / totalPayments;
+                        }
+                        else
+                        {
+                            // p = (lv - rv/(1 + rp)^N) * rp / (1 - (1 + rp)^(-N))
+                            result_WS = db[0] - db[3] / Math.Pow(1 + periodicRate, totalPayments);
+                            result_WS *= periodicRate / (1 - Math.Pow(1 + periodicRate, -totalPayments));
+                        }
                         break;
                     case 3:
                         //db = new double[5] { lv, lp, n, r, p };
-                        periodicRate = db[3] / db[2];
-                        var depreciationValue = db[4] * (1 - Math.Pow(1 + periodicRate, -db[1] * db[2])) / periodicRate;
-                        result_WS = db[0] - depreciationValue;
+                        periodicRate = db[3] / 100 / db[2];
+                        totalPayments = db[1] * db[2];
+                        if (periodicRate == 0)
+                        {
+                            // rv = lv - p*N
+                            result_WS = db[0] - db[4] * totalPayments;
+                        }
+                        else
+                        {
+                            // rv = (lv - p*(1 - (1 + rp)^(-N))/rp) * (1 + rp)^N
+                            result_WS = db[0] - db[4] * (1 - Math.Pow(1 + periodicRate, -totalPayments)) / periodicRate;
+                            result_WS *= Math.Pow(1 + periodicRate, totalPayments);
+                        }
                         break;
                     default: // chua co cong thuc tinh => ケメノ
                         break;
@@ -2523,6 +2603,23 @@ namespace Calculator
             var tb = sender as TextBox;
             tb.SelectionStart = 0;
             tb.SelectionLength = 0;
+        }
+        /// <summary>
+        /// nhận tiến độ tính giai thừa từ parser (có thể từ thread khác) và chuyển cho BackgroundWorker
+        /// để BackgroundWorker đưa về UI thread qua ProgressChanged
+        /// </summary>
+        /// <param name="percent">phần trăm hoàn thành</param>
+        /// <param name="status">bước đang thực hiện</param>
+        private void parser_ProgressEvent(int percent, string status)
+        {
+            System.ComponentModel.BackgroundWorker worker = mWorker;
+            // chỉ báo progress khi đang tính trong BackgroundWorker (giai thừa nhỏ được tính đồng bộ, không có form progress)
+            if (worker == null || !worker.IsBusy || !worker.WorkerReportsProgress) return;
+            try
+            {
+                worker.ReportProgress(percent, status);
+            }
+            catch (InvalidOperationException) { /* worker vừa kết thúc hoặc bị huỷ */ }
         }
         /// <summary>
         /// cập nhật giá trị hàm giai thừa lớn vào bộ nhớ

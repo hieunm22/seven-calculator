@@ -17,8 +17,30 @@ namespace Calculator
             set
             {
                 finished = value;
-                if (value) Close();
+                if (value && !IsDisposed) Close();
             }
+        }
+        /// <summary>
+        /// cập nhật tiến độ lên progress bar và dòng trạng thái (gọi từ UI thread)
+        /// </summary>
+        /// <param name="percent">phần trăm hoàn thành 0..100</param>
+        /// <param name="status">mô tả bước đang thực hiện</param>
+        public void UpdateProgress(int percent, string status)
+        {
+            if (IsDisposed) return;
+            if (percent < progressBar.Minimum) percent = progressBar.Minimum;
+            if (percent > progressBar.Maximum) percent = progressBar.Maximum;
+            progressBar.Value = percent;
+            lbPercent.Text = string.Format("{0}%", percent);
+            if (!string.IsNullOrEmpty(status)) lbStatus.Text = status;
+        }
+        /// <summary>
+        /// nếu phép tính đã xong trước khi form kịp hiện lên thì đóng luôn
+        /// </summary>
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
+            if (finished) Close();
         }
 
         public delegate void CancelProcess();
@@ -52,6 +74,9 @@ namespace Calculator
 
         private void CancelOperation_Load(object sender, EventArgs e)
         {
+            progressBar.Value = 0;
+            lbPercent.Text = "0%";
+            lbStatus.Text = "Preparing...";
             timer1.Start();
         }
 

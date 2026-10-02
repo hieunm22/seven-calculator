@@ -212,7 +212,16 @@ namespace Sharith.Math.Primes
         /// </returns>
         public BigNumber GetPrimorial(long low, long high)
         {
-            return GetPrimorial(new PositiveRange(low, high));
+            return GetPrimorial(new PositiveRange(low, high), null);
+        }
+
+        /// <summary>
+        /// Gives the Product of the prime numbers in the given sieveRange,
+        /// reporting progress of the product tree through <paramref name="progress"/>.
+        /// </summary>
+        public BigNumber GetPrimorial(long low, long high, XMath.ProductProgress progress)
+        {
+            return GetPrimorial(new PositiveRange(low, high), progress);
         }
 
         /// <summary>
@@ -223,7 +232,16 @@ namespace Sharith.Math.Primes
         /// </returns>
         public BigNumber GetPrimorial(PositiveRange range)
         {
-            int start; 
+            return GetPrimorial(range, null);
+        }
+
+        /// <summary>
+        /// Computes the Product of the prime numbers in the given sieveRange,
+        /// reporting progress of the product tree through <paramref name="progress"/> (may be null).
+        /// </summary>
+        public BigNumber GetPrimorial(PositiveRange range, XMath.ProductProgress progress)
+        {
+            int start;
             long size;
             var pc = new PrimeCollection(this, range);
             if (pc.GetSliceParameters(out start, out size))
@@ -231,7 +249,7 @@ namespace Sharith.Math.Primes
                 return 1;
             }
 
-            return XMath.Product(primes, start, size);
+            return XMath.Product(primes, start, size, progress);
         }
 
         /// <summary>

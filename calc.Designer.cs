@@ -1486,9 +1486,10 @@ namespace Calculator
             mWorker.WorkerSupportsCancellation = true;
             mWorker.WorkerReportsProgress = true;
             mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkPrevFunc);
+            mWorker.ProgressChanged += new ProgressChangedEventHandler(mWorker_ProgressChanged);
             mWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(mWorker_RunWorkerCompleted);
-            mWorker.RunWorkerAsync();
             InitCancelOperation();
+            mWorker.RunWorkerAsync();
             co.ShowDialog();
         }
         /// <summary>
@@ -1500,9 +1501,10 @@ namespace Calculator
             mWorker.WorkerSupportsCancellation = true;
             mWorker.WorkerReportsProgress = true;
             mWorker.DoWork += new DoWorkEventHandler(mWorker_DoWorkExpr);
+            mWorker.ProgressChanged += new ProgressChangedEventHandler(mWorker_ProgressChanged);
             mWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(mWorker_RunWorkerCompleted);
-            mWorker.RunWorkerAsync();
             InitCancelOperation();
+            mWorker.RunWorkerAsync();
             co.ShowDialog();
         }
         /// <summary>
@@ -2360,25 +2362,31 @@ namespace Calculator
         //
         private void mWorker_DoWorkExpr(object sender, DoWorkEventArgs e)
         {
-            lock (this)
+            if (mWorker.CancellationPending)
             {
-                if (mWorker.CancellationPending)
-                {
-                    e.Cancel = true;
-                    return;
-                }
-                pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp.ToString()));
+                e.Cancel = true;
+                return;
             }
+            pex = parser.EvaluateSci(SimplyFactorialExpression(mainExp.ToString()));
+        }
+        //
+        // cập nhật tiến độ tính giai thừa số lớn lên form CancelOperation (chạy trên UI thread)
+        //
+        private void mWorker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            if (co == null || co.IsDisposed) return;
+            co.UpdateProgress(e.ProgressPercentage, e.UserState as string);
         }
         //
         // kết thúc tính giai thừa số lớn của biểu thức
         //
         private void mWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            lock (this)
+            BackgroundWorker worker = sender as BackgroundWorker;
+            if (worker != null) worker.Dispose();
+            if (co != null && !co.IsDisposed)
             {
-                if (co != null) co.Finished = true;
-                mWorker.Dispose();
+                co.Finished = true;
                 co.Dispose();
             }
         }

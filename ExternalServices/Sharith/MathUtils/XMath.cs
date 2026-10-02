@@ -102,8 +102,25 @@ namespace Sharith.Math.MathUtils
 
         const int PARALLEL_THRESHOLD = 1024;
 
+        /// <summary>
+        /// Progress callback for the product tree: called with the number of
+        /// leaves (elements of the paired array) consumed by a finished subtree.
+        /// The sum of all reported values equals (length + 1) / 2.
+        /// </summary>
+        public delegate void ProductProgress(long leavesDone);
+
+        /// <summary>Subtrees with at most this many leaves report progress as one chunk.</summary>
+        const int PROGRESS_CHUNK = 128;
+
         // <returns>a[start]*a[start+1]*...*a[start+length-1]</returns>
         public static BigNumber Product(long[] a, int start, long length)
+        {
+            return Product(a, start, length, null);
+        }
+
+        // <returns>a[start]*a[start+1]*...*a[start+length-1]</returns>
+        // <param name="progress">optional progress callback, may be called from two threads</param>
+        public static BigNumber Product(long[] a, int start, long length, ProductProgress progress)
         {
             if (length == 0) return 1;
 
@@ -121,17 +138,54 @@ namespace Sharith.Math.MathUtils
 
             if (k > PARALLEL_THRESHOLD)
             {
-                var task = Task.Factory.StartNew(() =>
-                {
-                    return RecProduct(b, (k - 1) / 2 + 1, k - 1);
-                });
-
-                var left = RecProduct(b, 0, (k - 1) / 2);
-                var right = task.Result;
-                return left * right;
+                return ParallelProduct(b, k, progress);
             }
 
-            return RecProduct(b, 0, k - 1);
+            return RecProduct(b, 0, k - 1, progress);
+        }
+
+        /// <summary>
+        /// Multiplies b[0..k-1] using up to Environment.ProcessorCount contiguous segments, each
+        /// reduced by RecProduct on its own task, then combines the partial products. The product
+        /// tree inside each segment is unchanged; this only raises the degree of parallelism so
+        /// the largest swing (the last one still running) uses all cores instead of two.
+        /// </summary>
+        private static BigNumber ParallelProduct(long[] b, long k, ProductProgress progress)
+        {
+            int parts = (int)Math.Min(Environment.ProcessorCount, k / PARALLEL_THRESHOLD);
+            if (parts < 2) parts = 2;
+            long segment = k / parts;
+
+            var tasks = new Task<BigNumber>[parts - 1];
+            for (int p = 1; p < parts; p++)
+            {
+                long lo = p * segment;
+                long hi = (p == parts - 1) ? k - 1 : lo + segment - 1;
+                tasks[p - 1] = Task.Factory.StartNew(() => RecProduct(b, lo, hi, progress));
+            }
+
+            BigNumber result = RecProduct(b, 0, segment - 1, progress);
+            foreach (var task in tasks)
+            {
+                result = result * WaitResult(task);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Waits for the task and rethrows the original exception (e.g. OperationCanceledException)
+        /// instead of the AggregateException wrapper.
+        /// </summary>
+        private static BigNumber WaitResult(Task<BigNumber> task)
+        {
+            try
+            {
+                return task.Result;
+            }
+            catch (AggregateException ae)
+            {
+                throw ae.Flatten().InnerExceptions[0];
+            }
         }
 
         public static BigNumber Product(long[] a, int start, long length, int increment)
@@ -158,7 +212,7 @@ namespace Sharith.Math.MathUtils
                 });
 
                 var left = RecProduct(b, 0, (len - 1) / 2);
-                var right = task.Result;
+                var right = WaitResult(task);
                 return left * right;
             }
 
@@ -178,6 +232,28 @@ namespace Sharith.Math.MathUtils
 
             long k = (n + m) >> 1;
             return RecProduct(s, n, k) * RecProduct(s, k + 1, m);
+        }
+
+        /// <summary>
+        /// Same as RecProduct(s, n, m) but reports progress: every finished subtree of at most
+        /// PROGRESS_CHUNK leaves reports its leaf count through <paramref name="progress"/>.
+        /// </summary>
+        public static BigNumber RecProduct(long[] s, long n, long m, ProductProgress progress)
+        {
+            if (progress == null) return RecProduct(s, n, m);
+            if (n > m)
+            {
+                return 1;
+            }
+            if (m - n < PROGRESS_CHUNK)
+            {
+                var chunk = RecProduct(s, n, m);
+                progress(m - n + 1);
+                return chunk;
+            }
+
+            long k = (n + m) >> 1;
+            return RecProduct(s, n, k, progress) * RecProduct(s, k + 1, m, progress);
         }
     } 
 }

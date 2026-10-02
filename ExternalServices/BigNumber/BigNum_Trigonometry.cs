@@ -14,7 +14,6 @@ namespace Calculator
             BigNumber f_comma_x = new BigNumber();  // f'(x)
             BigNumber lastFactorial = "6";
             BigNumber pow = new BigNumber();
-            BigNumber div = new BigNumber();
             BigNumber abs = new BigNumber();
             BigNumber add = new BigNumber();
             BigNumber mul = new BigNumber();

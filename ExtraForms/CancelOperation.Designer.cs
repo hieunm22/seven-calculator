@@ -32,7 +32,9 @@
             this.btnCancel = new System.Windows.Forms.Button();
             this.lbTitle = new System.Windows.Forms.Label();
             this.hiddenButton = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.lbStatus = new System.Windows.Forms.Label();
+            this.lbPercent = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
@@ -40,7 +42,7 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.btnCancel.Location = new System.Drawing.Point(186, 48);
+            this.btnCancel.Location = new System.Drawing.Point(186, 94);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(82, 27);
             this.btnCancel.TabIndex = 3;
@@ -53,7 +55,7 @@
             // 
             this.lbTitle.AutoSize = true;
             this.lbTitle.Font = new System.Drawing.Font("Verdana", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(163)));
-            this.lbTitle.Location = new System.Drawing.Point(27, 20);
+            this.lbTitle.Location = new System.Drawing.Point(27, 12);
             this.lbTitle.Name = "lbTitle";
             this.lbTitle.Size = new System.Drawing.Size(207, 13);
             this.lbTitle.TabIndex = 1;
@@ -69,14 +71,35 @@
             this.hiddenButton.Text = "hiddenButton";
             this.hiddenButton.UseVisualStyleBackColor = true;
             // 
-            // label2
+            // progressBar
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(92, 146);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(41, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "label2";
+            this.progressBar.Location = new System.Drawing.Point(30, 36);
+            this.progressBar.Maximum = 100;
+            this.progressBar.Minimum = 0;
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(345, 18);
+            this.progressBar.Step = 1;
+            this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.progressBar.TabIndex = 4;
+            //
+            // lbPercent
+            //
+            this.lbPercent.Location = new System.Drawing.Point(378, 38);
+            this.lbPercent.Name = "lbPercent";
+            this.lbPercent.Size = new System.Drawing.Size(48, 15);
+            this.lbPercent.TabIndex = 5;
+            this.lbPercent.Text = "0%";
+            this.lbPercent.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            //
+            // lbStatus
+            //
+            this.lbStatus.AutoEllipsis = true;
+            this.lbStatus.Location = new System.Drawing.Point(27, 62);
+            this.lbStatus.Name = "lbStatus";
+            this.lbStatus.Size = new System.Drawing.Size(399, 18);
+            this.lbStatus.TabIndex = 6;
+            this.lbStatus.Text = "Preparing...";
+            this.lbStatus.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MoveFormWithoutMouseAtTitleBar);
             // 
             // timer1
             // 
@@ -89,9 +112,11 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(451, 86);
+            this.ClientSize = new System.Drawing.Size(451, 132);
             this.ControlBox = false;
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lbStatus);
+            this.Controls.Add(this.lbPercent);
+            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.lbTitle);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.hiddenButton);
@@ -116,7 +141,9 @@
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Label lbTitle;
         private System.Windows.Forms.Button hiddenButton;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.Label lbStatus;
+        private System.Windows.Forms.Label lbPercent;
         private System.Windows.Forms.Timer timer1;
     }
 }
