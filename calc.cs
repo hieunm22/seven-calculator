@@ -123,6 +123,8 @@ namespace Calculator
 
             clearDatasetMI.Text = "C&lear\tD";
 
+            typeUnitCB.MainDataSource = typeUnitCB.Items.Cast<object>().Select(i => i.ToString()).ToArray();
+
             NewPriorityExpression();
 
             //parser.Transfer += new MathParserService.SendValue(parser_Transfer);
@@ -1280,6 +1282,7 @@ namespace Calculator
         private void typeUnitCB_SelectedIndexChanged(object sender, EventArgs e)
         {
             //if (typeFECB.SelectedIndex < 0) MessageBox.Show("Lỗi âm");
+            if (typeUnitCB.SelectedIndex < 0) return;
             currentConfig[Config._06_TypeUnit] = typeUnitCB.SelectedIndex;
             propertiesChange = invert_unit.Enabled = true;
             toCB.SelectedIndexChanged -= fromCB_SelectedIndexChanged;
@@ -1292,6 +1295,9 @@ namespace Calculator
         /// </summary>
         private void assignDefaultIndex(int selectindex)
         {
+            if (selectindex < 0 || selectindex >= Constants.unitTypeItemMember.Length || selectindex >= typeUnitCB.Items.Count)
+                selectindex = 0;
+
             fromCB.Items.Clear();
             fromCB.Items.AddRange(Constants.unitTypeItemMember[selectindex]);
             fromCB.MainDataSource = Constants.unitTypeItemMember[selectindex];

@@ -21,13 +21,15 @@ namespace Calculator
             {
                 if (allowFilter = value)
                 {
-                    tbSearch = new ITextBox();
-                    tbSearch.SuggestType = SuggestType.PlaceHolder;
-                    tbSearch.SuggestText = "Filter here...";
-                    tbSearch.Location = new System.Drawing.Point(0, 0);
-                    tbSearch.Visible = false;
-                    tbSearch.ShortcutsEnabled = false;
-                    tbSearch.Cursor = Cursors.IBeam;
+                    tbSearch = new ITextBox
+                    {
+                        SuggestType = SuggestType.PlaceHolder,
+                        SuggestText = "Filter here...",
+                        Location = new System.Drawing.Point(0, 0),
+                        Visible = false,
+                        ShortcutsEnabled = false,
+                        Cursor = Cursors.IBeam
+                    };
                     tbSearch.BringToFront();
                     tbSearch.TextChanged += new EventHandler(tb_TextChanged);
                     Controls.Add(tbSearch);
@@ -36,7 +38,7 @@ namespace Calculator
         }
 
         private string[] mainDataSource = new string[0];
-        [Browsable(false)]
+        [Browsable(true)]
         public string[] MainDataSource
         {
             get { return mainDataSource; }
