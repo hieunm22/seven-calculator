@@ -1117,7 +1117,14 @@ namespace Calculator
                 tbResult2.Text = lunar.ToString();
                 // tô đỏ những ngày lễ/rằm/đầu tháng trong âm lịch
                 var dm = lunar.Day.ToString() + lunar.Month.ToString();
-                if (lunar.Day == 1 || lunar.Day == 15 || dm == "103" || dm == "11" || dm == "21" || dm == "31")
+                bool isLunarNewYearsEve = false;
+                if (lunar.Month == 12 && lunar.Day >= 29)
+                {
+                    LunarDateModel nextLunar = ConvertDateService.cd.Solar2Lunar(dtP1.Value.AddDays(1));
+                    isLunarNewYearsEve = nextLunar.Day == 1 && nextLunar.Month == 1
+                        && nextLunar.Leap == 0 && nextLunar.Year == lunar.Year + 1;
+                }
+                if (lunar.Day == 1 || lunar.Day == 15 || dm == "103" || dm == "11" || dm == "21" || dm == "31" || isLunarNewYearsEve)
                 {
                     tbResult2.ForeColor = Color.Red;
                 }
