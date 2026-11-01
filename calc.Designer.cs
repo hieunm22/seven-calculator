@@ -1371,10 +1371,6 @@ namespace Calculator
                     else curOperand = string.Format("powe({0})", parameter);
                     break;
                 case 32:
-                    if (!BigNumber.IsInteger(inp_num.StrValue))
-                    {
-                        return;
-                    }
                     if (inp_num >= Constants.MIN_FACTORIAL && co != null)
                     {
                         InitCancelOperation();
