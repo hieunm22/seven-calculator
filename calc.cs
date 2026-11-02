@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Windows.Forms;
@@ -187,7 +190,7 @@ namespace Calculator
                 toolTip2.SetToolTip(expressionTB, "");
             }
         }
-      
+
         BigNumber mem_num = 0;
         //
         // nut xoa bo nho
@@ -357,7 +360,7 @@ namespace Calculator
                 DisplayToScreen();
                 openBrkLevel = 0;
                 leftNum = 0;
-                jump: bracketExp = new string[Constants.MAX_BRACKET_LEVEL + 1];
+            jump: bracketExp = new string[Constants.MAX_BRACKET_LEVEL + 1];
                 NewPriorityExpression();
                 pre_bt = 16;
             }
@@ -900,8 +903,8 @@ namespace Calculator
             {
                 foreach (DataGridViewRow item in staDGV.Rows)
                 {
-                    clipboard = clipboard.AppendFormat("{0}_{1}\n", 
-                        item.Cells[0].Value, 
+                    clipboard = clipboard.AppendFormat("{0}_{1}\n",
+                        item.Cells[0].Value,
                         item.Cells[0].ToolTipText.Substring("Frequence: ".Length)
                         );
                 }
@@ -959,11 +962,27 @@ namespace Calculator
         {
             try
             {
-                System.Diagnostics.Process.Start("shortcuts-key.pdf");
+                string tempFile = Path.Combine(Path.GetTempPath(), "shortcuts-key.pdf");
+
+                Assembly asm = Assembly.GetExecutingAssembly();
+
+                using (Stream stream = asm.GetManifestResourceStream("Calculator.Resources.shortcuts-key.pdf"))
+                {
+                    using (FileStream fs = new FileStream(tempFile, FileMode.Create))
+                    {
+                        stream.CopyTo(fs);
+                    }
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = tempFile,
+                    UseShellExecute = true
+                });
             }
-            catch 
+            catch
             {
-                System.Diagnostics.Process.Start("http://www.shortcutmania.com/Windows-7-Calculator-Keyboard-Shortcuts.htm");
+                Process.Start("http://www.shortcutmania.com/Windows-7-Calculator-Keyboard-Shortcuts.htm");
             }
         }
         //
@@ -975,7 +994,7 @@ namespace Calculator
                 currentConfig[Config._09_CollapseSpeed],
                 (int)currentConfig[Config._10_SignInteger] == 1,
                 (int)currentConfig[Config._11_ReadDictionary] == 1,
-                (int)currentConfig[Config._12_StoreHistory] == 1, 
+                (int)currentConfig[Config._12_StoreHistory] == 1,
                 currentConfig[Config._13_FastInput]
                 );
             pre.DoCheck += new Preferences.PreferencesChanged(pre_DoCheck);
@@ -1555,7 +1574,7 @@ namespace Calculator
                 if ((int)currentConfig[Config._13_FastInput] == 1)
                 {
                     addStaWithFrequence(true);
-                } 
+                }
             }
         }
         /// <summary>
@@ -2022,7 +2041,7 @@ namespace Calculator
                 if ((ModifierKeys != Keys.None && (int)currentConfig[Config._13_FastInput] != 1)       // ctrl enter và tick chọn (nhập frequency cho từng số)            
                     || (ModifierKeys == Keys.None && (int)currentConfig[Config._13_FastInput] == 1))   // hoặc enter và untick chọn (nhập frequency cho từng số)
                 {
-                    var dr = addStaWithFrequence(false) ;
+                    var dr = addStaWithFrequence(false);
                     if (dr == DialogResult.OK)
                     {
                         DisplayCountNumber();
@@ -2058,9 +2077,9 @@ namespace Calculator
         /// <param name="isUpdate">true nếu là cập nhật lại giá trị và tần suất của số đó, false nếu là add bình thường</param>
         private void frq_GetFrequence(int fq, bool isUpdate)
         {
-            if (!isUpdate) 
+            if (!isUpdate)
                 AddStaFQ(fq);
-            else 
+            else
                 UpdateStaFQ(fq);
             screenPN.Focus();
             //DisplayCountNumber();
