@@ -231,38 +231,38 @@
 
         };
         /// <summary>
-        /// độ rộng form standard/statistic không có extra function = 220
+        /// độ rộng vùng nội dung standard/statistic không có extra function
         /// </summary>
-        public const int APP_W1 = 220;
+        public const int APP_W1 = 214;
         /// <summary>
-        /// độ rộng form scientific/programmer không có extra function = 413
+        /// độ rộng vùng nội dung scientific/programmer không có extra function
         /// </summary>
-        public const int APP_W2 = 413;
+        public const int APP_W2 = 409;
         /// <summary>
-        /// độ rộng form standard/statistic có extra function = 591
+        /// độ rộng vùng nội dung standard/statistic có extra function
         /// </summary>
-        public const int APP_W3 = 591;
+        public const int APP_W3 = APP_W1 + 371;
         /// <summary>
-        /// độ rộng form scientific/programmer có extra function = 784
+        /// độ rộng vùng nội dung scientific/programmer có extra function
         /// </summary>
-        public const int APP_W4 = 784;
+        public const int APP_W4 = APP_W2 + 371;
 
         /// <summary>
-        /// chiều cao form standard/scientific không có history = 310
+        /// chiều cao vùng nội dung standard/scientific không có history
         /// </summary>
-        public const int APP_H1 = 310;
+        public const int APP_H1 = 265;
         /// <summary>
-        /// chiều cao form programmer không có preview = 374
+        /// chiều cao vùng nội dung programmer không có preview
         /// </summary>
-        public const int APP_H2 = 374;
+        public const int APP_H2 = APP_H1 + 64;
         /// <summary>
-        /// chiều cao form standard/scientific có history = 414
+        /// chiều cao vùng nội dung standard/scientific có history
         /// </summary>
-        public const int APP_H3 = 414;
+        public const int APP_H3 = APP_H1 + 104;
         /// <summary>
-        /// chiều cao form programmer có preview = 455
+        /// chiều cao vùng nội dung programmer có preview
         /// </summary>
-        public const int APP_H4 = 455;
+        public const int APP_H4 = APP_H2 + 81;
 
         /// <summary>
         /// giá trị nhỏ nhất để tính giai thừa số lớn bằng thuật toán prime swing

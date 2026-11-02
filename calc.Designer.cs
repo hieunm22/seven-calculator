@@ -744,7 +744,8 @@ namespace Calculator
         private void FormSizeChanged(Size newS, bool isLoaded)
         {
             scr_lb.Focus();
-            if (isLoaded) { Size = newS; return; }
+            if (isLoaded) { ClientSize = newS; return; }
+            newS = SizeFromClientSize(newS);
             int old_w = Size.Width, old_h = Size.Height;
             int new_w = newS.Width, new_h = newS.Height;
             //------chi thay doi chieu rong
@@ -833,7 +834,7 @@ namespace Calculator
             //countLB.Text = "";
 
             //FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, 310 + 104 * his), isLoaded);
-            FormSizeChanged(new Size(220 + 193 * sci + 371 * exf, his == 1 ? Constants.APP_H3 : Constants.APP_H1), isLoaded);
+            FormSizeChanged(new Size((sci == 1 ? Constants.APP_W2 : Constants.APP_W1) + (Constants.APP_W3 - Constants.APP_W1) * exf, his == 1 ? Constants.APP_H3 : Constants.APP_H1), isLoaded);
             if (!isLoaded) propertiesChange = true;
         }
         /// <summary>
@@ -874,7 +875,7 @@ namespace Calculator
             int pro = programmerMI.Checked ? 1 : 0;
             int sci = scientificMI.Checked ? 1 : 0;
             //FormSizeChanged(new Size(216 + (exf ? 376 : 0), 310 + 105 * his), isLoaded);
-            FormSizeChanged(new Size(591 + 193 * (sci + pro), 310 + 104 * his + 64 * pro + previewPanelHeight * pro), isLoaded);
+            FormSizeChanged(new Size(sci + pro == 1 ? Constants.APP_W4 : Constants.APP_W3, Constants.APP_H1 + (Constants.APP_H3 - Constants.APP_H1) * his + (Constants.APP_H2 - Constants.APP_H1) * pro + previewPanelHeight * pro), isLoaded);
 
             currentConfig[Config._02_ExtraFunction] = menuitem.Index + (menuitem.Parent == worksheetsMI ? 3 : -8);
             datecalcPN.Visible = dateCalculationMI.Checked = (menuitem == dateCalculationMI);
@@ -5607,7 +5608,7 @@ namespace Calculator
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(217)))), ((int)(((byte)(228)))), ((int)(((byte)(241)))));
-            this.ClientSize = new System.Drawing.Size(214, 281);
+            this.ClientSize = new System.Drawing.Size(Constants.APP_W1, Constants.APP_H1);
             this.Controls.Add(this.datecalcPN);
             this.Controls.Add(this.num9BT_PN);
             this.Controls.Add(this.num7BT_PN);
@@ -5701,7 +5702,7 @@ namespace Calculator
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.MaximizeBox = false;
             this.Menu = this.mainMenu;
-            this.MinimumSize = new System.Drawing.Size(220, 310);
+            this.MinimumSize = SizeFromClientSize(new Size(Constants.APP_W1, Constants.APP_H1));
             this.Name = "calc";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Calculator";
